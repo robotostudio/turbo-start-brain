@@ -201,6 +201,9 @@ importers:
       '@ai-sdk/react':
         specifier: 'catalog:'
         version: 4.0.68(react@19.2.8)(zod@4.3.6)
+      '@blossom-carousel/react':
+        specifier: ^1.5.2
+        version: 1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@json-render/core':
         specifier: 'catalog:'
         version: 0.19.0(zod@4.3.6)
@@ -264,6 +267,9 @@ importers:
       schema-dts:
         specifier: ^1.1.5
         version: 1.1.5
+      thinking-orbs:
+        specifier: ^0.3.1
+        version: 0.3.1(react@19.2.8)
       zod:
         specifier: 'catalog:'
         version: 4.3.6
@@ -1364,12 +1370,25 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@blossom-carousel/core@1.1.8':
+    resolution: {integrity: sha512-f3/7jS/Ga63N0X7goVkPs0KafSe463y9w4+zE9ZyacjMCT0VSpAQuCQrOpyfyDJ23EONPHgpEyHtscHoRbtGTg==}
+
+  '@blossom-carousel/react@1.5.2':
+    resolution: {integrity: sha512-RhEZpxLmNtjTycieq1cR4E6Ko/iT2Oq2HLSmUu4ZCDeLypjn+I5egRDaf+ZDEZB8114DuB51YuD053wF6S57Ng==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
 
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@bramus/style-observer@2.0.2':
+    resolution: {integrity: sha512-oRKamZ9Z637pAZgNGJIbNGiFoYQSeA47PpU4K8hXZq9lQcPu35BCqMG9d9J/ab2CB/0XlXq6ToMnVhHF8mLNqg==}
+    engines: {node: '>=12'}
 
   '@chevrotain/types@11.1.2':
     resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
@@ -7983,6 +8002,11 @@ packages:
   text-decoder@1.2.3:
     resolution: {integrity: sha512-3/o9z3X0X0fTupwsYvR03pJ/DjWuqqrfwBgTQzdWDiQSm9KitAyz/9WqsT2JQW7KV2m+bC2ol/zqpW37NHxLaA==}
 
+  thinking-orbs@0.3.1:
+    resolution: {integrity: sha512-3BG1aeB1RUTxItCml/BBuIz5JRM4kZqGuyx+vouv0fXTtcR9ZNoKjWGneHPx94y74GxgArwJZ1qbJR5dt54kSw==}
+    peerDependencies:
+      react: '>=18.0.0'
+
   throttleit@2.1.0:
     resolution: {integrity: sha512-nt6AMGKW1p/70DF/hGBdJB57B8Tspmbp5gfJ8ilhLnt7kkr2ye7hzD6NVG8GGErk2HWF34igrL2CXmNIkzKqKw==}
     engines: {node: '>=18'}
@@ -9682,11 +9706,23 @@ snapshots:
   '@biomejs/cli-win32-x64@2.4.7':
     optional: true
 
+  '@blossom-carousel/core@1.1.8':
+    dependencies:
+      '@bramus/style-observer': 2.0.2
+
+  '@blossom-carousel/react@1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@blossom-carousel/core': 1.1.8
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
   '@braintree/sanitize-url@7.1.2': {}
 
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
+
+  '@bramus/style-observer@2.0.2': {}
 
   '@chevrotain/types@11.1.2': {}
 
@@ -17743,6 +17779,10 @@ snapshots:
   text-decoder@1.2.3:
     dependencies:
       b4a: 1.6.7
+
+  thinking-orbs@0.3.1(react@19.2.8):
+    dependencies:
+      react: 19.2.8
 
   throttleit@2.1.0: {}
 

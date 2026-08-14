@@ -10,11 +10,12 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@workspace/ui/components/message-scroller";
-import { Spinner } from "@workspace/ui/components/spinner";
 import { useState } from "react";
 
 import { ChatComposer } from "@/components/chat-composer";
 import { ChatMessage } from "@/components/chat-message";
+import { ChatPhaseIndicator } from "@/components/chat-phase-indicator";
+import { deriveChatPhase } from "@/lib/ai/chat-phase";
 
 export function ChatPanel() {
   const [input, setInput] = useState("");
@@ -26,6 +27,10 @@ export function ChatPanel() {
   });
 
   const lastMessage = messages.at(-1);
+  // What the assistant is doing right now (searching / reading / thinking /
+  // preparing cards), derived from the streamed parts. Null once answer text
+  // is rendering — the text itself is the progress signal then.
+  const phase = deriveChatPhase(status, lastMessage);
 
   const handleSubmit = () => {
     const text = input.trim();
@@ -74,12 +79,9 @@ export function ChatPanel() {
                   </MessageScrollerItem>
                 ))
               )}
-              {status === "submitted" ? (
+              {phase ? (
                 <MessageScrollerItem messageId="pending">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0">
-                    <Spinner />
-                    Searching the docs…
-                  </div>
+                  <ChatPhaseIndicator phase={phase} />
                 </MessageScrollerItem>
               ) : null}
               {status === "error" ? (

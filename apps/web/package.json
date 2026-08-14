@@ -17,6 +17,7 @@
   "dependencies": {
     "@ai-sdk/mcp": "catalog:",
     "@ai-sdk/react": "catalog:",
+    "@blossom-carousel/react": "^1.5.2",
     "@json-render/core": "catalog:",
     "@json-render/react": "catalog:",
     "@sanity/client": "catalog:",
@@ -38,6 +39,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "schema-dts": "^1.1.5",
+    "thinking-orbs": "^0.3.1",
     "zod": "catalog:"
   },
   "devDependencies": {
