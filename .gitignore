@@ -41,6 +41,9 @@ npm-debug.log*
 
 # Claude
 .claude/settings.local.json
+
+# Next.js 16.3 dev server auto-writes this (repo standardizes on CLAUDE.md)
+apps/web/AGENTS.md
 # shelve-managed-block
 .env
 .env.*
