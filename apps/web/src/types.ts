@@ -1,7 +1,6 @@
 import type { FilterByType, Get } from "@sanity/codegen";
 import type {
   QueryGlobalSeoSettingsResult,
-  QueryDocsIndexResult,
   QueryDocBySlugResult,
   QueryNavbarDataResult,
 } from "@workspace/sanity/types";

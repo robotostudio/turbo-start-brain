@@ -395,7 +395,7 @@
   /* One inset for both columns: the block padding has to match or number N and
      line N start on different rows, and the inline inset matches the header's
      px-3 so the badge, the numbers and the code share one 0.75rem rhythm. */
-  --rich-code-inset-block: 1rem;
+  --rich-code-inset-block: 0.75rem;
   --rich-code-inset-inline: 0.75rem;
 }
 
@@ -422,10 +422,8 @@
   line-height: inherit;
   text-align: right;
   font-variant-numeric: tabular-nums;
-  color: color-mix(in oklab, var(--muted-foreground) 60%, transparent);
+  color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
   user-select: none;
-  border-right: 1px solid var(--border);
-  background-color: var(--muted);
 }
 
 .rich-code-gutter span {

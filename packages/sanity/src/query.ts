@@ -152,6 +152,16 @@ export const queryDocsTree = defineQuery(`
   }
 `);
 
+export const querySearchDocs = defineQuery(`
+  *[_type == "doc" && defined(slug.current) && hidden != true]{
+    _id,
+    title,
+    description,
+    "slug": slug.current,
+    "content": pt::text(body)
+  }
+`);
+
 export const queryNavbarData = defineQuery(`
   *[_type == "navbar" && _id == "navbar"][0]{
     _id,

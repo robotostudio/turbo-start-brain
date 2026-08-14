@@ -5,7 +5,7 @@ import MuxPlayer from "@mux/mux-player-react/lazy";
 import { Logger } from "@workspace/logger";
 import { cn } from "@workspace/tailwind-config/utils";
 import Link from "next/link";
-import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
+import { CircleCheck, Info, OctagonAlert, TriangleAlert } from "lucide-react";
 import {
   PortableText,
   type PortableTextBlock,
@@ -21,23 +21,24 @@ const logger = new Logger("RichText");
 
 const calloutStyles = {
   info: {
-    className:
-      "border-blue-500/40 bg-blue-500/8 text-blue-950 dark:text-blue-100",
+    className: "border-blue-500/40 bg-blue-500/8",
+    iconClassName: "text-blue-600 dark:text-blue-400",
     Icon: Info,
   },
   warning: {
-    className:
-      "border-amber-500/50 bg-amber-500/10 text-amber-950 dark:text-amber-100",
-    Icon: CircleAlert,
+    className: "border-amber-500/50 bg-amber-500/10",
+    iconClassName: "text-amber-600 dark:text-amber-400",
+    Icon: TriangleAlert,
   },
   success: {
-    className:
-      "border-emerald-500/40 bg-emerald-500/8 text-emerald-950 dark:text-emerald-100",
+    className: "border-emerald-500/40 bg-emerald-500/8",
+    iconClassName: "text-emerald-600 dark:text-emerald-400",
     Icon: CircleCheck,
   },
   danger: {
-    className: "border-red-500/40 bg-red-500/8 text-red-950 dark:text-red-100",
-    Icon: CircleX,
+    className: "border-red-500/40 bg-red-500/8",
+    iconClassName: "text-red-600 dark:text-red-400",
+    Icon: OctagonAlert,
   },
 } as const;
 
@@ -170,13 +171,16 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <aside
           className={cn(
-            "not-prose my-6 flex gap-3 rounded-lg border-l-4 p-4",
+            "not-prose my-6 flex gap-3 rounded-xl border p-4 text-sm",
             variant.className
           )}
         >
-          <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+          <Icon
+            aria-hidden="true"
+            className={cn("mt-0.5 size-5 shrink-0", variant.iconClassName)}
+          />
           <RichText
-            className="min-w-0 flex-1 prose-p:my-0"
+            className="min-w-0 flex-1 prose-p:my-2 prose-p:text-foreground/80 prose-p:text-sm prose-p:leading-6 prose-p:first:mt-0 prose-p:last:mb-0"
             richText={value?.body}
           />
         </aside>
@@ -244,10 +248,10 @@ const components: Partial<PortableTextReactComponents> = {
         <ol className="not-prose my-8 ml-4 border-l">
           {items.map((item, index) => (
             <li className="relative pb-8 pl-8 last:pb-0" key={item._key}>
-              <span className="absolute top-0 -left-4 flex size-8 items-center justify-center rounded-full border bg-background font-semibold text-sm">
+              <span className="absolute top-0 -left-4 flex size-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm ring-4 ring-background">
                 {index + 1}
               </span>
-              <h3 className="mb-2 font-semibold text-lg">{item.title}</h3>
+              <h3 className="mb-2 pt-1 font-medium text-base">{item.title}</h3>
               <RichText richText={item.content} />
             </li>
           ))}
@@ -261,17 +265,17 @@ const components: Partial<PortableTextReactComponents> = {
       }
       const defaultValue = items[0]?._key;
       return (
-        <Tabs.Root
-          className="not-prose my-8 overflow-hidden rounded-lg border"
-          defaultValue={defaultValue}
-        >
+        <Tabs.Root className="not-prose my-8" defaultValue={defaultValue}>
+          {/* The underline indicator: each tab draws a 2px bottom border on
+              the same edge as the list's 1px rule, drawn as an inset shadow
+              so the active border overlaps it even while the list scrolls. */}
           <Tabs.List
             aria-label="Content options"
-            className="flex gap-1 overflow-x-auto border-b bg-muted/40 p-1"
+            className="flex gap-4 overflow-x-auto shadow-[inset_0_-1px_0_0_var(--color-border)]"
           >
             {items.map((item) => (
               <Tabs.Tab
-                className="rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:bg-background data-active:text-foreground data-active:shadow-sm"
+                className="whitespace-nowrap border-transparent border-b-2 px-1 pt-1 pb-2.5 font-medium text-muted-foreground text-sm outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:border-primary data-active:text-foreground"
                 key={item._key}
                 value={item._key}
               >
@@ -281,7 +285,7 @@ const components: Partial<PortableTextReactComponents> = {
           </Tabs.List>
           {items.map((item) => (
             <Tabs.Panel
-              className="p-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="pt-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               key={item._key}
               value={item._key}
             >

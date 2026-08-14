@@ -5,6 +5,7 @@ import { Github, SunMoon } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 
+import { DocsSearch } from "@/components/docs/docs-search";
 import { DocsMobileSidebar } from "@/components/docs/docs-sidebar";
 import { Logo } from "@/components/logo";
 import type { DocsTreeNode } from "@/lib/docs-tree";
@@ -85,6 +86,7 @@ export function DocsHeader({
           </nav>
         ) : null}
         <div className="ml-auto flex items-center gap-1">
+          <DocsSearch />
           {navbar?.buttons?.length ? (
             <SanityButtons
               buttons={navbar.buttons}

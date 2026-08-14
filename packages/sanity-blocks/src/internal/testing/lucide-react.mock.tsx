@@ -25,6 +25,7 @@ export const LayoutGrid = IconStub("layout-grid");
 export const Linkedin = IconStub("linkedin");
 export const LoaderCircle = IconStub("loader-circle");
 export const Mail = IconStub("mail");
+export const OctagonAlert = IconStub("octagon-alert");
 export const Menu = IconStub("menu");
 export const MessageCircle = IconStub("message-circle");
 export const Phone = IconStub("phone");

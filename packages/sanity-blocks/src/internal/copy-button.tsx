@@ -6,7 +6,10 @@ import { Check } from "lucide-react";
 import { CopyIcon } from "./icons";
 import { COPY_STATUS_CLASS, useCopyToClipboard } from "./use-copy";
 
-export function CopyButton({ code }: Readonly<{ code: string }>) {
+export function CopyButton({
+  code,
+  className,
+}: Readonly<{ code: string; className?: string }>) {
   const { status, copy } = useCopyToClipboard(() => code);
   const copied = status === "copied";
 
@@ -17,8 +20,9 @@ export function CopyButton({ code }: Readonly<{ code: string }>) {
     <button
       aria-label="Copy code to clipboard"
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center rounded-none p-1 text-muted-foreground transition-colors hover:text-foreground",
-        COPY_STATUS_CLASS[status]
+        "focus-ring inline-flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground",
+        COPY_STATUS_CLASS[status],
+        className
       )}
       onClick={copy}
       type="button"
