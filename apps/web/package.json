@@ -15,6 +15,10 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@ai-sdk/mcp": "catalog:",
+    "@ai-sdk/react": "catalog:",
+    "@json-render/core": "catalog:",
+    "@json-render/react": "catalog:",
     "@sanity/client": "catalog:",
     "@sanity/visual-editing": "^5.4.3",
     "@tanstack/react-query": "^5.90.21",
@@ -24,6 +28,7 @@
     "@workspace/sanity-blocks": "workspace:*",
     "@workspace/tailwind-config": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "ai": "catalog:",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
     "fuse.js": "^7.1.0",
     "lucide-react": "catalog:",

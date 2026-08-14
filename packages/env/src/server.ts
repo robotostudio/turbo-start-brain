@@ -15,6 +15,9 @@ const env = createEnv({
     // Shared secret for the `/api/revalidate-sync-tags` webhook. Optional so
     // existing deployments still boot; the webhook fails closed when unset.
     SANITY_REVALIDATE_SECRET: z.string().min(1).optional(),
+    // Vercel AI Gateway key for the `/api/chat` docs assistant. Optional so
+    // keyless dev/builds still boot; the chat route fails closed when unset.
+    AI_GATEWAY_API_KEY: z.string().min(1).optional(),
   },
 
   experimental__runtimeEnv: {

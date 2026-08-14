@@ -1158,7 +1158,13 @@ export type QueryDocsIndexResult = {
             | {
                 code: string;
                 language?:
-                  "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+                  | "bash"
+                  | "css"
+                  | "groq"
+                  | "js"
+                  | "json"
+                  | "ts"
+                  | "tsx";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1232,7 +1238,13 @@ export type QueryDocsIndexResult = {
             | {
                 code: string;
                 language?:
-                  "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+                  | "bash"
+                  | "css"
+                  | "groq"
+                  | "js"
+                  | "json"
+                  | "ts"
+                  | "tsx";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1642,7 +1654,13 @@ export type QueryDocBySlugResult = {
             | {
                 code: string;
                 language?:
-                  "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+                  | "bash"
+                  | "css"
+                  | "groq"
+                  | "js"
+                  | "json"
+                  | "ts"
+                  | "tsx";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1716,7 +1734,13 @@ export type QueryDocBySlugResult = {
             | {
                 code: string;
                 language?:
-                  "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+                  | "bash"
+                  | "css"
+                  | "groq"
+                  | "js"
+                  | "json"
+                  | "ts"
+                  | "tsx";
                 filename?: string;
                 _type: "code";
                 _key: string;

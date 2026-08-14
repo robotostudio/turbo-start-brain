@@ -3,6 +3,11 @@ packages:
   - packages/*
 
 catalog:
+  ai: ^7.0.65
+  "@ai-sdk/react": ^4.0.68
+  "@ai-sdk/mcp": ^2.0.31
+  "@json-render/core": ^0.19.0
+  "@json-render/react": ^0.19.0
   "@sanity/client": ^7.26.2
   "@tailwindcss/postcss": ^4.2.1
   "@types/node": ^25.5.0
@@ -49,6 +54,12 @@ overrides:
 peerDependencyRules:
   allowedVersions:
     "@csstools/css-syntax-patches-for-csstree>css-tree": ">=3"
+    # Studio pins @sanity/icons 4.1.0 — the only line shipping BOTH the v3
+    # barrel (needed by sanity-plugin-lucide-icon-picker's dist) and the
+    # per-icon subpaths @sanity/context imports (peer-declared ^5).
+    "@sanity/context>@sanity/icons": ">=4"
+    "@sanity/context>ai": ">=6"
+    "sanity-plugin-lucide-icon-picker>@sanity/icons": ">=3"
     next-sanity>sanity: ">=5"
     sanity-plugin-asset-source-unsplash>sanity: ">=5"
     sanity-plugin-lucide-icon-picker>@sanity/ui: ">=3"

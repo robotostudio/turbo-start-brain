@@ -1,4 +1,5 @@
 import { assist } from "@sanity/assist";
+import { contextPlugin } from "@sanity/context/studio";
 import { visionTool } from "@sanity/vision";
 import { defineConfig } from "sanity";
 import { presentationTool } from "sanity/presentation";
@@ -58,6 +59,7 @@ export default defineConfig({
     media(),
     muxInput(),
     assist(),
+    contextPlugin(),
   ],
   document: {
     newDocumentOptions: (prev, { creationContext }) => {
