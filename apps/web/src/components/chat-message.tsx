@@ -1,6 +1,10 @@
 "use client";
 
-import { Renderer, useJsonRenderMessage } from "@json-render/react";
+import {
+  JSONUIProvider,
+  Renderer,
+  useJsonRenderMessage,
+} from "@json-render/react";
 import type { UIMessage } from "ai";
 import { MessageResponse } from "@workspace/ui/components/ai-response";
 import { Bubble, BubbleContent } from "@workspace/ui/components/bubble";
@@ -22,6 +26,12 @@ function sameOriginUrlTransform(url: string): string | null {
   return null;
 }
 
+// Entry animation: fade + rise via @starting-style (interruptible CSS
+// transition, transform/opacity only). Motion is dropped under
+// prefers-reduced-motion; the fade stays.
+const MESSAGE_ENTER =
+  "transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
+
 export function ChatMessage({
   message,
   isAnimating,
@@ -36,7 +46,7 @@ export function ChatMessage({
 
   if (isUser) {
     return (
-      <Message align="end">
+      <Message align="end" className={MESSAGE_ENTER}>
         <MessageContent>
           <Bubble align="end" variant="default">
             <BubbleContent>{text}</BubbleContent>
@@ -47,7 +57,7 @@ export function ChatMessage({
   }
 
   return (
-    <Message align="start">
+    <Message align="start" className={MESSAGE_ENTER}>
       <MessageContent>
         <Bubble variant="ghost">
           <BubbleContent>
@@ -60,7 +70,15 @@ export function ChatMessage({
               </MessageResponse>
             ) : null}
             {hasSpec && spec ? (
-              <Renderer registry={registry} spec={spec} />
+              <JSONUIProvider registry={registry}>
+                {/* loading while streaming: the scroller patch arrives before
+                    its card patches; suppresses missing-child warnings. */}
+                <Renderer
+                  loading={isAnimating}
+                  registry={registry}
+                  spec={spec}
+                />
+              </JSONUIProvider>
             ) : null}
           </BubbleContent>
         </Bubble>

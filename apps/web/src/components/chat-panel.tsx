@@ -48,7 +48,7 @@ export function ChatPanel() {
             <MessageScrollerContent className="py-6">
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
-                  <div className="max-w-md text-center">
+                  <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
                     <h2 className="font-semibold text-foreground text-lg">
                       Ask the docs
                     </h2>
@@ -76,7 +76,7 @@ export function ChatPanel() {
               )}
               {status === "submitted" ? (
                 <MessageScrollerItem messageId="pending">
-                  <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <div className="flex items-center gap-2 text-muted-foreground text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0">
                     <Spinner />
                     Searching the docs…
                   </div>
@@ -84,7 +84,10 @@ export function ChatPanel() {
               ) : null}
               {status === "error" ? (
                 <MessageScrollerItem messageId="error">
-                  <p className="text-destructive text-sm" role="alert">
+                  <p
+                    className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
+                    role="alert"
+                  >
                     {error?.message ??
                       "Something went wrong. Please try again."}
                   </p>

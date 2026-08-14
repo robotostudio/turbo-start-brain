@@ -17,7 +17,10 @@ export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        // No `size-full` (upstream default): height:100% inside an auto-height
+        // overflow-hidden Bubble pins the bubble to a stale height and clips
+        // any sibling rendered after the prose (e.g. doc cards).
+        "w-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       plugins={streamdownPlugins}
