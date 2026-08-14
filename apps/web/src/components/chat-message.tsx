@@ -1,9 +1,12 @@
 "use client";
 
+import { Renderer, useJsonRenderMessage } from "@json-render/react";
 import type { UIMessage } from "ai";
 import { MessageResponse } from "@workspace/ui/components/ai-response";
 import { Bubble, BubbleContent } from "@workspace/ui/components/bubble";
 import { Message, MessageContent } from "@workspace/ui/components/message";
+
+import { registry } from "@/lib/ai/registry";
 
 // Streamdown security hardening: only same-origin (relative) links and images
 // may render — the assistant is instructed to cite docs pages by slug.
@@ -26,36 +29,41 @@ export function ChatMessage({
   message: UIMessage;
   isAnimating: boolean;
 }>) {
+  // Splits the message into conversational prose and the streamed json-render
+  // spec (doc cards). Memoized; recomputes as streaming parts are appended.
+  const { text, spec, hasSpec } = useJsonRenderMessage(message.parts);
   const isUser = message.role === "user";
 
+  if (isUser) {
+    return (
+      <Message align="end">
+        <MessageContent>
+          <Bubble align="end" variant="default">
+            <BubbleContent>{text}</BubbleContent>
+          </Bubble>
+        </MessageContent>
+      </Message>
+    );
+  }
+
   return (
-    <Message align={isUser ? "end" : "start"}>
+    <Message align="start">
       <MessageContent>
-        {message.parts.map((part, index) => {
-          if (part.type !== "text") {
-            return null;
-          }
-          const key = `${message.id}-${index}`;
-          if (isUser) {
-            return (
-              <Bubble align="end" key={key} variant="default">
-                <BubbleContent>{part.text}</BubbleContent>
-              </Bubble>
-            );
-          }
-          return (
-            <Bubble key={key} variant="ghost">
-              <BubbleContent>
-                <MessageResponse
-                  isAnimating={isAnimating}
-                  urlTransform={sameOriginUrlTransform}
-                >
-                  {part.text}
-                </MessageResponse>
-              </BubbleContent>
-            </Bubble>
-          );
-        })}
+        <Bubble variant="ghost">
+          <BubbleContent>
+            {text ? (
+              <MessageResponse
+                isAnimating={isAnimating}
+                urlTransform={sameOriginUrlTransform}
+              >
+                {text}
+              </MessageResponse>
+            ) : null}
+            {hasSpec && spec ? (
+              <Renderer registry={registry} spec={spec} />
+            ) : null}
+          </BubbleContent>
+        </Bubble>
       </MessageContent>
     </Message>
   );

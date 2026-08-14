@@ -10,6 +10,7 @@ import {
   type UIMessage,
 } from "ai";
 
+import { docsCatalog } from "@/lib/ai/catalog";
 import {
   getInitialContext,
   getSanityContextTools,
@@ -26,6 +27,17 @@ const BASE_INSTRUCTIONS = `You are the docs assistant for Turbo Start Brain, a d
 - Only link to pages you actually retrieved — never invent slugs.
 - If retrieval returns nothing relevant, say so and suggest broadening the question. Never invent content.
 - Keep answers concise and grounded in the documentation.`;
+
+// json-render doc-card spec instructions (inline mode: prose first, then
+// JSONL patches). Built once — the catalog is static.
+const DOC_CARDS_PROMPT = docsCatalog.prompt({
+  mode: "inline",
+  customRules: [
+    "When your answer draws on 2 or more docs pages, append exactly one DocCardScroller with up to 3 DocCard children — one per page the answer relied on most.",
+    "DocCard hrefs must be the slug paths of pages you actually retrieved in this conversation, copied exactly. Never invent or guess an href.",
+    "For a single-page answer, or when retrieval found nothing, emit no UI at all.",
+  ],
+});
 
 export async function POST(req: Request) {
   // Fail closed: without the Gateway key the model call cannot succeed.
@@ -59,9 +71,9 @@ export async function POST(req: Request) {
 
   const { tools, close } = await getSanityContextTools();
 
-  const instructions = initialContext
-    ? `${BASE_INSTRUCTIONS}\n\n${initialContext}`
-    : BASE_INSTRUCTIONS;
+  const instructions = [BASE_INSTRUCTIONS, DOC_CARDS_PROMPT, initialContext]
+    .filter(Boolean)
+    .join("\n\n");
 
   const result = streamText({
     model: "anthropic/claude-sonnet-5",
