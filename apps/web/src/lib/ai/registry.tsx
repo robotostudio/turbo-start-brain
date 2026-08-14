@@ -8,6 +8,15 @@ import { docsCatalog } from "@/lib/ai/catalog";
 
 const MAX_DOC_CARDS = 3;
 
+// A bare slug like "delivery/migration-playbook" — the model sometimes drops
+// the leading slash despite the catalog regex; normalize instead of dropping
+// the card.
+const BARE_SLUG_PATTERN = /^[a-z0-9][a-z0-9/-]*$/;
+
+function normalizeHref(href: string) {
+  return BARE_SLUG_PATTERN.test(href) ? `/${href}` : href;
+}
+
 /**
  * Client-side registry mapping the docs catalog to real components. The
  * catalog regex already constrains `href`, but the model output is untrusted —
@@ -23,15 +32,16 @@ export const { registry } = defineRegistry(docsCatalog, {
       </div>
     ),
     DocCard: ({ props }) => {
+      const href = normalizeHref(props.href);
       // Reject anything that isn't a site-relative path ("//" would be a
       // protocol-relative external URL).
-      if (!props.href.startsWith("/") || props.href.startsWith("//")) {
+      if (!href.startsWith("/") || href.startsWith("//")) {
         return null;
       }
       return (
         <Link
           className="grid w-64 shrink-0 gap-1 rounded-lg border bg-card p-4 transition-colors hover:bg-accent"
-          href={props.href}
+          href={href}
         >
           <span className="text-muted-foreground text-xs">{props.section}</span>
           <span className="font-medium text-sm">{props.title}</span>

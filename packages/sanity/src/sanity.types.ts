@@ -583,6 +583,53 @@ export type MuxVideo = {
 
 export type LucideIcon = string;
 
+export type SanityAgentContextConversation = {
+  _id: string;
+  _type: "sanity.agentContextConversation";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  agentId: string;
+  threadId: string;
+  messages?: Array<{
+    role: "user" | "assistant" | "system" | "tool";
+    content?: string;
+    toolName?: string;
+    toolType?: "call" | "result";
+    _type: "conversationMessage";
+    _key: string;
+  }>;
+  startedAt?: string;
+  messagesUpdatedAt?: string;
+  modelProvider?: string;
+  modelId?: string;
+  tokenUsage?: {
+    inputTokens?: number;
+    outputTokens?: number;
+    totalTokens?: number;
+  };
+  coreMetrics?: {
+    successScore?: number;
+    sentiment?: "positive" | "neutral" | "negative";
+    contentGaps?: Array<string>;
+  };
+  classifiedAt?: string;
+  classificationError?: string;
+};
+
+export type SanityAgentContext = {
+  _id: string;
+  _type: "sanity.agentContext";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  version?: string;
+  name?: string;
+  slug: Slug;
+  groqFilter?: string;
+  instructions?: string;
+};
+
 export type SanityAssistInstructionTask = {
   _type: "sanity.assist.instructionTask";
   path?: string;
@@ -950,6 +997,8 @@ export type AllSanitySchemaTypes =
   | MuxVideoAssetReference
   | MuxVideo
   | LucideIcon
+  | SanityAgentContextConversation
+  | SanityAgentContext
   | SanityAssistInstructionTask
   | SanityAssistTaskStatus
   | SanityAssistSchemaTypeAnnotations

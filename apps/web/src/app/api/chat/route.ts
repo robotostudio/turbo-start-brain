@@ -34,7 +34,7 @@ const DOC_CARDS_PROMPT = docsCatalog.prompt({
   mode: "inline",
   customRules: [
     "When your answer draws on 2 or more docs pages, append exactly one DocCardScroller with up to 3 DocCard children — one per page the answer relied on most.",
-    "DocCard hrefs must be the slug paths of pages you actually retrieved in this conversation, copied exactly. Never invent or guess an href.",
+    'DocCard hrefs must be "/" followed by the slug of a page you actually retrieved in this conversation (e.g. slug "delivery/migration-playbook" becomes href "/delivery/migration-playbook"). Never invent or guess an href.',
     "For a single-page answer, or when retrieval found nothing, emit no UI at all.",
   ],
 });
