@@ -44,7 +44,13 @@ export default async function RootLayout({
   // Production stays static published.
   const showDrafts = DRAFTS_WITHOUT_SESSION;
   return (
-    <html lang="en" suppressHydrationWarning>
+    // motion-safe:scroll-smooth: in-page TOC anchors rely on native hash
+    // navigation; this is what animates the jump (see table-of-content.tsx).
+    <html
+      className="motion-safe:scroll-smooth"
+      lang="en"
+      suppressHydrationWarning
+    >
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
       >

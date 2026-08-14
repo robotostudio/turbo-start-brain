@@ -311,6 +311,31 @@ function processHeadingBlocks(
   }
 }
 
+export type FlatHeading = {
+  readonly slug: string;
+  readonly text: string;
+  readonly level: number;
+};
+
+// Depth-first flattening for flat renderers (the clerk-style TOC) that draw
+// their own depth rails instead of nesting lists.
+export function flattenHeadings(headings: ProcessedHeading[]): FlatHeading[] {
+  const result: FlatHeading[] = [];
+  const walk = (items: ProcessedHeading[]) => {
+    for (const item of items) {
+      const slug = item.href.replace(/^#/, "");
+      if (slug) {
+        result.push({ slug, text: item.text, level: item.level });
+      }
+      if (item.children.length > 0) {
+        walk(item.children);
+      }
+    }
+  };
+  walk(headings);
+  return result;
+}
+
 function flattenSlugs(headings: ProcessedHeading[]): string[] {
   const result: string[] = [];
   const walk = (items: ProcessedHeading[]) => {
@@ -325,7 +350,7 @@ function flattenSlugs(headings: ProcessedHeading[]): string[] {
   return result.filter(Boolean);
 }
 
-function useTableOfContentState(
+export function useTableOfContentState(
   richText?: SanityRichTextProps,
   maxDepth: number = DEFAULT_MAX_DEPTH
 ): TableOfContentState {
@@ -361,7 +386,7 @@ function useTableOfContentState(
   }
 }
 
-function useActiveHeading(slugKey: string): string | null {
+export function useActiveHeading(slugKey: string): string | null {
   const [activeSlug, setActiveSlug] = useState<string | null>(null);
 
   useEffect(() => {
@@ -457,13 +482,12 @@ const TableOfContentAnchor: FC<AnchorProps> = ({
   const hasChildren =
     Array.isArray(children) && children.length > 0 && currentDepth < maxDepth;
 
-  // In-page anchors are rendered as native <a>, not next/link. next/link
-  // unconditionally preventDefaults hash clicks and defers the scroll to the
-  // App Router, whose hash handling races with hydration and intermittently
-  // no-ops — so a click during that window is swallowed (default suppressed,
-  // no scroll). A native anchor plus this synchronous handler always scrolls:
-  // before hydration the browser jumps natively, after hydration we scroll
-  // here, and the router is never involved.
+  // In-page anchors are rendered as native <a>, not next/link, and rely on
+  // native hash navigation plus the root's CSS scroll-behavior for smooth
+  // scrolling. Next 16's patched history.pushState treats a JS hash update as
+  // a navigation and resets the scroll position, cancelling any programmatic
+  // scrollIntoView — the browser's own hash navigation is the only path the
+  // router leaves alone.
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (
       event.defaultPrevented ||
@@ -471,30 +495,20 @@ const TableOfContentAnchor: FC<AnchorProps> = ({
       event.metaKey ||
       event.ctrlKey ||
       event.shiftKey ||
-      event.altKey
+      event.altKey ||
+      !onNavigate
     ) {
       return;
     }
-    const target = document.getElementById(slug);
-    if (!target) {
-      // Fall back to the browser's native hash navigation.
-      return;
-    }
+    // Mobile: collapse the disclosure first, then navigate once its close
+    // animation has settled. Scrolling immediately overshoots — the TOC
+    // above the target shrinks mid-scroll, pulling the heading up and past
+    // the viewport top.
     event.preventDefault();
-    window.history.pushState(null, "", href);
-    if (onNavigate) {
-      // Mobile: collapse the disclosure first, then scroll once its close
-      // animation has settled. Scrolling immediately overshoots — the TOC
-      // above the target shrinks mid-scroll, pulling the heading up and past
-      // the viewport top.
-      onNavigate();
-      window.setTimeout(
-        () => target.scrollIntoView({ behavior: "smooth" }),
-        DISCLOSURE_CLOSE_MS
-      );
-      return;
-    }
-    target.scrollIntoView({ behavior: "smooth" });
+    onNavigate();
+    window.setTimeout(() => {
+      window.location.hash = slug;
+    }, DISCLOSURE_CLOSE_MS);
   };
 
   return (
@@ -571,7 +585,7 @@ const SHARE_TARGETS: readonly ShareTarget[] = [
   },
 ] as const;
 
-function ShareOptions({
+export function ShareOptions({
   title,
   shareUrl,
 }: Readonly<{ title?: string; shareUrl?: string }>) {
@@ -740,8 +754,6 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
   richText,
   className,
   maxDepth = DEFAULT_MAX_DEPTH,
-  shareTitle,
-  shareUrl,
 }) => {
   const { shouldShow, headings, error } = useTableOfContentState(
     richText,
@@ -802,7 +814,6 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
               ))}
             </ul>
           </nav>
-          <ShareOptions shareUrl={shareUrl} title={shareTitle} />
         </div>
       </div>
     </details>
