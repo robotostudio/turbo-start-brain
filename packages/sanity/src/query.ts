@@ -1,12 +1,6 @@
-import { ctaGroqProjection } from "@workspace/sanity-blocks/cta/cta.groq";
 import { faqAccordionGroqProjection } from "@workspace/sanity-blocks/faq-accordion/faq-accordion.groq";
 import { featureCardsIconGroqProjection } from "@workspace/sanity-blocks/feature-cards-icon/feature-cards-icon.groq";
-import { heroGroqProjection } from "@workspace/sanity-blocks/hero/hero.groq";
-import { logoCloudGroqProjection } from "@workspace/sanity-blocks/logo-cloud/logo-cloud.groq";
 import { richTextBlockGroqProjection } from "@workspace/sanity-blocks/rich-text-block/rich-text-block.groq";
-import { showcaseGridGroqProjection } from "@workspace/sanity-blocks/showcase-grid/showcase-grid.groq";
-import { socialGridGroqProjection } from "@workspace/sanity-blocks/social-grid/social-grid.groq";
-import { subscribeNewsletterGroqProjection } from "@workspace/sanity-blocks/subscribe-newsletter/subscribe-newsletter.groq";
 import { defineQuery } from "next-sanity";
 
 const imageFields = /* groq */ `
@@ -30,12 +24,6 @@ const imageFields = /* groq */ `
     top
   }
 `;
-const imageFragment = /* groq */ `
-  image {
-    ${imageFields}
-  }
-`;
-
 const customLinkFragment = /* groq */ `
   ...customLink{
     openInNewTab,
@@ -43,51 +31,50 @@ const customLinkFragment = /* groq */ `
       type == "internal" => internal->slug.current,
       type == "external" => external,
       "#"
-    ),
+    )
   }
 `;
 
-const markDefsFragment = /* groq */ `
-  markDefs[]{
+const nestedPortableTextFragment = /* groq */ `
+  ...,
+  _type == "block" => {
     ...,
-    ${customLinkFragment}
-  }
-`;
-
-const richTextFragment = /* groq */ `
-  richText[]{
-    ...,
-    _type == "block" => {
+    markDefs[]{
       ...,
-      ${markDefsFragment}
-    },
-    _type == "image" => {
-      ${imageFields},
-      "caption": caption
+      ${customLinkFragment}
+    }
+  },
+  _type == "image" => {
+    ${imageFields},
+    caption
+  },
+  _type == "muxVideo" => {
+    ...,
+    "playbackId": video.asset->playbackId,
+    "assetId": video.asset->assetId
+  }
+`;
+
+const portableTextFragment = /* groq */ `
+  ${nestedPortableTextFragment},
+  _type == "callout" => {
+    ...,
+    body[]{${nestedPortableTextFragment}}
+  },
+  _type == "steps" => {
+    ...,
+    items[]{
+      ...,
+      content[]{${nestedPortableTextFragment}}
+    }
+  },
+  _type == "tabs" => {
+    ...,
+    items[]{
+      ...,
+      content[]{${nestedPortableTextFragment}}
     }
   }
-`;
-
-const blogAuthorFragment = /* groq */ `
-  authors[0]->{
-    _id,
-    name,
-    position,
-    ${imageFragment}
-  }
-`;
-
-const blogCardFragment = /* groq */ `
-  _type,
-  _id,
-  title,
-  description,
-  "slug":slug.current,
-  orderRank,
-  category,
-  ${imageFragment},
-  publishedAt,
-  ${blogAuthorFragment}
 `;
 
 const buttonsFragment = /* groq */ `
@@ -112,132 +99,56 @@ const pageBuilderFragment = /* groq */ `
   pageBuilder[]{
     ...,
     _type,
-    ${ctaGroqProjection},
-    ${heroGroqProjection},
     ${faqAccordionGroqProjection},
     ${featureCardsIconGroqProjection},
-    ${subscribeNewsletterGroqProjection},
-    ${logoCloudGroqProjection},
-    ${socialGridGroqProjection},
-    ${showcaseGridGroqProjection},
     ${richTextBlockGroqProjection}
   }
 `;
 
-/** Type-reference only — never fetched; drives TS inference for image objects. */
-export const queryImageType = defineQuery(`
-  *[_type == "page" && defined(image)][0]{
-    ${imageFragment}
-  }.image
-`);
-
-export const queryHomePageData =
-  defineQuery(`*[_type == "homePage" && _id == "homePage"][0]{
+export const queryDocsIndex =
+  defineQuery(`*[_type == "docsIndex" && _id == "docsIndex"][0]{
     ...,
     _id,
     _type,
-    "slug": slug.current,
     title,
     description,
+    intro[]{${portableTextFragment}},
+    featuredLinks[]->{
+      _id,
+      title,
+      description,
+      icon,
+      "slug": slug.current
+    },
     ogTitle,
     "ogImage": seoImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
     ${pageBuilderFragment}
   }`);
 
-export const querySlugPageData = defineQuery(`
-  *[_type == "page" && defined(slug.current) && slug.current == $slug][0]{
+export const queryDocBySlug = defineQuery(`
+  *[_type == "doc" && defined(slug.current) && slug.current == $slug][0]{
     ...,
     "slug": slug.current,
     ogTitle,
     "ogImage": seoImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
+    body[]{${portableTextFragment}},
     ${pageBuilderFragment}
   }
   `);
 
-export const querySlugPagePaths = defineQuery(`
-  *[_type == "page" && defined(slug.current)].slug.current
+export const queryDocPaths = defineQuery(`
+  *[_type == "doc" && defined(slug.current)].slug.current
 `);
 
-/**
- * The whole blog index page in one round trip. The list excludes featured
- * posts only when no category is active (`$category == ""`) — the same
- * condition that renders the strip — so a promoted post is never counted
- * twice or paginated into a gap.
- */
-export const queryBlogIndexPage = defineQuery(`
-  *[_type == "blogIndex"][0]{
-    ...,
+export const queryDocsTree = defineQuery(`
+  *[_type == "doc" && defined(slug.current)]{
     _id,
-    _type,
     title,
     description,
-    ogTitle,
-    "ogImage": seoImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
-    ${pageBuilderFragment},
     "slug": slug.current,
-    "featuredBlogs": select(
-      $category == "" => *[_type == "blog" && featured == true && defined(slug.current) && (seoHideFromLists != true)] | order(orderRank asc){
-        ${blogCardFragment}
-      },
-      []
-    ),
-    "blogs": *[_type == "blog" && defined(slug.current) && (seoHideFromLists != true) && ($category == "" || category == $category) && ($category != "" || featured != true)] | order(orderRank asc) [$start...$end]{
-      ${blogCardFragment}
-    },
-    "total": count(*[_type == "blog" && defined(slug.current) && (seoHideFromLists != true) && ($category == "" || category == $category) && ($category != "" || featured != true)])
-  }
-`);
-
-export const queryAllBlogDataForSearch = defineQuery(`
-  *[_type == "blog" && defined(slug.current) && (seoHideFromLists != true)]{
-    ${blogCardFragment}
-  }
-`);
-
-export const queryBlogSlugPageData = defineQuery(`
-  *[_type == "blog" && slug.current == $slug][0]{
-    ...,
-    "slug": slug.current,
-    ogTitle,
-    "ogImage": seoImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
-    ${blogAuthorFragment},
-    ${imageFragment},
-    ${richTextFragment},
-    ${pageBuilderFragment}
-  }
-`);
-
-export const queryBlogPaths = defineQuery(`
-  *[_type == "blog" && defined(slug.current)].slug.current
-`);
-
-export const queryFooterData = defineQuery(`
-  *[_type == "footer" && _id == "footer"][0]{
-    _id,
-    subtitle,
-    columns[]{
-      _key,
-      title,
-      links[]{
-        _key,
-        name,
-        "openInNewTab": url.openInNewTab,
-        "href": select(
-          url.type == "internal" => url.internal->slug.current,
-          url.type == "external" => url.external,
-          url.href
-        ),
-      }
-    },
-    copyright,
-    credits[]{
-      _key,
-      label,
-      url,
-      logo {
-        ${imageFields}
-      }
-    }
+    order,
+    icon,
+    hidden
   }
 `);
 
@@ -283,11 +194,7 @@ export const queryNavbarData = defineQuery(`
 // URL in the sitemap while its own robots tag says noindex is a contradiction
 // search engines report as an error.
 export const querySitemapData = defineQuery(`{
-  "slugPages": *[_type == "page" && defined(slug.current) && seoNoIndex != true]{
-    "slug": slug.current,
-    "lastModified": _updatedAt
-  },
-  "blogPages": *[_type == "blog" && defined(slug.current) && seoNoIndex != true]{
+  "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{
     "slug": slug.current,
     "lastModified": _updatedAt
   }
@@ -304,9 +211,6 @@ export const queryGlobalSeoSettings = defineQuery(`
       logoDark {
         ${imageFields}
       },
-      footerLogo {
-        ${imageFields}
-      }
     },
     "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
     siteDescription,

@@ -177,6 +177,7 @@ const createMainPageListItem = (
 const createFolderListItem = (
   S: StructureBuilder,
   folder: FolderNode,
+  schemaType: string,
   uniqueId: string,
   listItems: SanityListItem[]
 ): ListItemBuilder => {
@@ -197,7 +198,7 @@ const createFolderListItem = (
             intent: {
               type: "create",
               params: [
-                { type: "page", template: "nested-page-template" },
+                { type: schemaType, template: "nested-page-template" },
                 {
                   slug: `/${folder.path}/${pageSlug}`,
                   title: `${folder.title} > ${pageTitle}`,
@@ -284,7 +285,7 @@ const processFolderItem = (config: FolderProcessConfig): ListItemBuilder => {
     );
   }
 
-  return createFolderListItem(S, folder, uniqueId, listItems);
+  return createFolderListItem(S, folder, schemaType, uniqueId, listItems);
 };
 
 const combineItemsWithDividers = (

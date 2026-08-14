@@ -84,26 +84,9 @@
     1
   );
 
-  /* Space the leading hero's copy takes. The pinned banner is `100svh` minus
-     this, so the copy sits on the fold. Mobile reserves more (taller wrapped
-     title + full-width button); retune if the title grows past two lines. */
-  --hero-copy: 420px;
-
   /* Inline gutter shared by the navbar's `container` and page content, so they
      line up at every width. */
   --container-px: 1.25rem;
-}
-
-@media (width >= 40rem) {
-  :root {
-    --hero-copy: 340px;
-  }
-}
-
-@media (width >= 64rem) {
-  :root {
-    --hero-copy: 285px;
-  }
 }
 
 .dark {
@@ -213,7 +196,7 @@
   margin-inline: calc(var(--container-px, 0.5rem) * -1);
 }
 
-/* The one hover wash, shared by nav, the FAQ accordion and blog cards. Any
+/* The one hover wash, shared by nav and the FAQ accordion. Any
  * surface using it must rest on `--background` (white/black), or the wash and
  * the rest state collapse into each other. */
 @utility hover-surface {
@@ -272,100 +255,6 @@
   to {
     transform: translateX(-50%);
   }
-}
-
-/* Slides the navbar out as the footer finishes taking over the screen. Sticky
-   cannot do this on its own while the footer is pinned: a fixed footer adds
-   only `--footer-height` of scroll past the content, so the header's container
-   comes to rest `100vh - --footer-height` below the top and never runs out.
-   Anchored to the end of the document, so it works pinned or in flow. */
-@keyframes nav-exit {
-  to {
-    transform: translateY(-100%);
-  }
-}
-
-@utility nav-exit {
-  animation-name: nav-exit;
-  /* Ignored on a scroll timeline, which drives progress from the range below. */
-  animation-duration: 1ms;
-  animation-timing-function: linear;
-  animation-fill-mode: both;
-  animation-timeline: scroll(root block);
-  animation-range: calc(100% - 180px) calc(100% - 20px);
-}
-
-@supports not (animation-timeline: scroll()) {
-  .nav-exit {
-    animation-name: none;
-  }
-}
-
-/* No `to`, so settled is the element's own state and anything ignoring the
-   animation still shows the stroke. User units: SVG % needs `transform-box`. */
-@keyframes mark-frame {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 120px, 0);
-  }
-  20% {
-    opacity: 1;
-  }
-}
-
-/* The pinned footer's top edge lands inside the navbar's row, and the navbar
-   paints only a blur — the page's `z-10` box starts below it, so nothing opaque
-   is behind. A top rubber-band moves that box down while a fixed element stays
-   put, uncovering the accent band. Driven from the scroll timeline to stay on
-   the compositor: React state committed a frame late and the flash got through.
-   Both degradations land visible rather than hidden. */
-@keyframes footer-uncover {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@utility footer-pinned {
-  animation-name: footer-uncover;
-  animation-duration: auto;
-  animation-fill-mode: both;
-  animation-timeline: scroll(root block);
-  animation-range: 0 1px;
-}
-
-/* Document scroll, not `view()`: the footer is fixed and never enters the
- * viewport. `--frame-index` offsets each range; delay is ignored here. */
-@utility mark-frame {
-  --frame-index: 0;
-  will-change: transform, opacity;
-  animation-name: mark-frame;
-  /* Drops to 0s without scroll timelines — lands on the settled state. */
-  animation-duration: auto;
-  animation-timing-function: var(--ease-spring);
-  animation-fill-mode: backwards;
-  animation-timeline: scroll(root block);
-  animation-range: calc(
-      100% -
-      var(--footer-height, 800px) +
-      320px +
-      var(--frame-index) *
-      44px
-    )
-    calc(100% - var(--footer-height, 800px) + 490px + var(--frame-index) * 44px);
-}
-
-/* Too fast to scrub: `StickyFooter` stamps this and the strokes run on real
- * time instead. Unlayered so it beats the utility however Tailwind sorts it. */
-[data-mark-play="fast"] .mark-frame {
-  animation-duration: 170ms;
-  animation-delay: calc(var(--frame-index) * 22ms);
-  animation-timing-function: var(--ease-spring);
-  animation-fill-mode: both;
-  animation-timeline: auto;
-  animation-range: normal;
 }
 
 /* Underline that wipes in from the left on hover/focus (and while a Base-UI
@@ -433,9 +322,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  /* Colour the overscroll gutters — mainly the top rubber-band by the navbar.
-     The sticky footer owns the bottom, so there's no accent split here. For why
-     the pinned footer stops painting at the top, see `StickyFooter`. */
+  /* Colour the overscroll gutters, mainly the top rubber-band by the navbar. */
   html {
     background: var(--overscroll-top);
     overscroll-behavior-x: none;
@@ -444,8 +331,8 @@
     background-color: var(--accent-green);
     color: var(--accent-green-foreground);
   }
-  /* On solid accent-green surfaces (e.g. the footer) the green-on-green
-     selection is invisible, so invert it: dark highlight, green text. */
+  /* On solid accent-green surfaces the green-on-green selection is invisible,
+     so invert it: dark highlight, green text. */
   [class~="bg-accent-green"] ::selection,
   [class~="bg-accent-green"]::selection {
     background-color: var(--accent-green-foreground);
@@ -543,23 +430,4 @@
 
 .rich-code-gutter span {
   display: block;
-}
-
-@keyframes hero-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-    filter: blur(2px);
-  }
-}
-
-@utility hero-enter {
-  animation: hero-enter 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Reduced motion: land on the final state instead of animating to it. */
-@media (prefers-reduced-motion: reduce) {
-  .hero-enter {
-    animation: none;
-  }
 }

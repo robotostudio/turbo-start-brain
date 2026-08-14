@@ -29,10 +29,10 @@ type PageSeoData = Metadata & {
 };
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
-  title: "Turbo Start Sanity",
-  description: "Turbo Start Sanity",
+  title: "Turbo Start Brain",
+  description: "Company knowledgebase built with Sanity and Next.js",
   twitterHandle: "@studioroboto",
-  keywords: ["roboto", "studio", "demo", "sanity", "next", "react", "template"],
+  keywords: ["docs", "knowledgebase", "documentation", "sanity", "next"],
 };
 
 async function resolveSiteConfig(): Promise<SiteConfig> {

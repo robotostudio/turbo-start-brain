@@ -380,3 +380,94 @@ test("never emits raw JSX-style tags", () => {
   ]);
   expect(md).not.toMatch(/<[A-Za-z]/);
 });
+
+test("serializes a callout as a labelled blockquote", () => {
+  const md = portableTextToMarkdown([
+    {
+      _type: "callout",
+      variant: "warning",
+      body: [
+        {
+          _type: "block",
+          style: "normal",
+          children: [{ _type: "span", text: "Mind the gap." }],
+        },
+      ],
+    },
+  ]);
+  expect(md).toBe("> **WARNING**\n>\n> Mind the gap.");
+});
+
+test("callout with an empty body serializes to nothing", () => {
+  expect(portableTextToMarkdown([{ _type: "callout", body: [] }])).toBe("");
+});
+
+test("serializes steps as an ordered list with bold titles", () => {
+  const md = portableTextToMarkdown([
+    {
+      _type: "steps",
+      items: [
+        {
+          _key: "a",
+          title: "Install",
+          content: [
+            {
+              _type: "block",
+              style: "normal",
+              children: [{ _type: "span", text: "Run pnpm install." }],
+            },
+          ],
+        },
+        { _key: "b", title: null, content: [] },
+      ],
+    },
+  ]);
+  expect(md).toBe("1. **Install**\n\n   Run pnpm install.\n\n2. **Step 2**");
+});
+
+test("serializes tabs as level-3 headed sections", () => {
+  const md = portableTextToMarkdown([
+    {
+      _type: "tabs",
+      items: [
+        {
+          _key: "a",
+          title: "npm",
+          content: [
+            {
+              _type: "block",
+              style: "normal",
+              children: [{ _type: "span", text: "npm install" }],
+            },
+          ],
+        },
+        {
+          _key: "b",
+          title: "pnpm",
+          content: [
+            {
+              _type: "block",
+              style: "normal",
+              children: [{ _type: "span", text: "pnpm add" }],
+            },
+          ],
+        },
+      ],
+    },
+  ]);
+  expect(md).toBe("### npm\n\nnpm install\n\n### pnpm\n\npnpm add");
+});
+
+test("serializes muxVideo as a stream link, falling back to caption text", () => {
+  expect(
+    portableTextToMarkdown([
+      { _type: "muxVideo", playbackId: "abc123", caption: "Demo walkthrough" },
+    ])
+  ).toBe("[Demo walkthrough](https://stream.mux.com/abc123.m3u8)");
+  expect(
+    portableTextToMarkdown([{ _type: "muxVideo", playbackId: "abc123" }])
+  ).toBe("[Watch video](https://stream.mux.com/abc123.m3u8)");
+  expect(
+    portableTextToMarkdown([{ _type: "muxVideo", caption: "Coming soon" }])
+  ).toBe("Coming soon");
+});

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Turbo Start Sanity — a pnpm monorepo (Turborepo) with a Next.js 16 frontend and a Sanity Studio v6 CMS. Uses Biome/Ultracite for linting/formatting.
+Turbo Start Brain — a docs/knowledgebase pnpm monorepo (Turborepo) with a Next.js 16 frontend and a Sanity Studio v6 CMS. Uses Biome/Ultracite for linting/formatting.
 
 ## Commands
 
@@ -74,7 +74,7 @@ packages/
 
 The core content model is a **page builder** — an array of typed blocks:
 
-- **Schema source**: `packages/sanity-blocks/src/<block>/` — files are named after the block, e.g. `cta/cta.schema.ts`, `cta/cta.groq.ts`, `cta/index.tsx`, `cta/markdown.ts`, `cta/thumbnail.png`, plus co-located `*.test.tsx` / `*-markdown.test.ts`. All schemas are exported as `blockSchemas` from `packages/sanity-blocks/src/sanity-blocks.ts`
+- **Schema source**: `packages/sanity-blocks/src/<block>/` — files are named after the block, e.g. `faq-accordion/faq-accordion.schema.ts`, `faq-accordion/faq-accordion.groq.ts`, `faq-accordion/index.tsx`, `faq-accordion/markdown.ts`, `faq-accordion/thumbnail.png`, plus co-located `*.test.tsx` / `*-markdown.test.ts`. All schemas are exported as `blockSchemas` from `packages/sanity-blocks/src/sanity-blocks.ts`
 - **Studio side**: `apps/studio/schemaTypes/index.ts` merges `blockSchemas` into the exported `schemaTypes`, and `apps/studio/schemaTypes/definitions/pagebuilder.ts` maps over `blockSchemas` to build the array members — so a block added to `blockSchemas` shows up in the page builder automatically, no manual registration. Its insert-menu grid preview is `/static/thumbnails/preview-<kebab-case-name>.png`, copied from each block's `thumbnail.png` by the studio's `sync-thumbnails` script (runs on `postinstall`)
 - **Frontend side**: `apps/web/src/components/pagebuilder.tsx` — renders each `_type` via `renderBlockComponent`. Includes Sanity visual editing data attributes and optimistic updates
 - **Block components**: `packages/sanity-blocks/src/<block>/index.tsx` — styled implementations using Tailwind + `@workspace/ui`, imported by `pagebuilder.tsx` from `@workspace/sanity-blocks/<block>/index` and rendered directly. These are the production render layer
@@ -92,13 +92,13 @@ To add a new page builder block:
 
 ### Markdown content negotiation
 
-Any page is also served as Markdown for LLMs/agents: append `.md` to the URL (`/about.md`, `/blog/post.md`, `/index.md`) or send `Accept: text/markdown`. `apps/web/src/proxy.ts` rewrites those requests to `apps/web/src/app/api/markdown/route.ts`, which fetches the page's Sanity data and serializes it via `pageBuilderToMarkdown` — the Markdown counterpart of `renderBlockComponent`. Because it serializes structured data (never React), components can't leak as raw `<Component/>` tags; unknown block types return `""`. See step 7 above to support a new block.
+Any page is also served as Markdown for LLMs/agents: append `.md` to the URL (`/getting-started/setup.md`, `/index.md`) or send `Accept: text/markdown`. `apps/web/src/proxy.ts` rewrites those requests to `apps/web/src/app/api/markdown/route.ts`, which fetches the page's Sanity data and serializes it via `pageBuilderToMarkdown` — the Markdown counterpart of `renderBlockComponent`. Because it serializes structured data (never React), components can't leak as raw `<Component/>` tags; unknown block types return `""`. See step 7 above to support a new block.
 
 ### Sanity Document Types
 
-**Singletons** (one instance each): `homePage`, `blogIndex`, `settings`, `footer`, `navbar`
-**Documents**: `blog`, `page`, `faq`, `author`, `redirect`
-**Pages** use nested slug-based structure (`apps/studio/components/nested-pages-structure.ts`)
+**Singletons** (one instance each): `docsIndex`, `settings`, `navbar`
+**Documents**: `doc`, `faq`, `redirect`
+**Docs** use nested slug-based structure (`apps/studio/components/nested-pages-structure.ts`)
 
 ### Environment Variables
 
@@ -135,7 +135,7 @@ All frontend types derive from generated Sanity types. `apps/web/src/types.ts` e
 
 ### File Naming
 
-- **kebab-case** for all files: `feature-cards-icon.ts`, `blog-card.tsx`
+- **kebab-case** for all files: `feature-cards-icon.ts`, `docs-header.tsx`
 - `.tsx` for React components, `.ts` for utilities
 
 ### Sanity Schema

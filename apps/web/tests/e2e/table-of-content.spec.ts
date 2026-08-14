@@ -25,7 +25,7 @@ async function activeLabel(page: import("@playwright/test").Page) {
 }
 
 test.describe("table of contents", () => {
-  // Every blog post, every heading, each with a retrying assertion.
+  // Every slug page, every heading, each with a retrying assertion.
   test.setTimeout(300_000);
 
   test("clicking a heading highlights that heading, not the one above", async ({
@@ -35,7 +35,7 @@ test.describe("table of contents", () => {
     const failures: string[] = [];
     let checked = 0;
 
-    for (const slug of slugPages.blogs) {
+    for (const slug of slugPages.pages) {
       await page.goto(slug);
       const links = page.locator(TOC_LINKS);
       const count = await links.count();
@@ -60,7 +60,7 @@ test.describe("table of contents", () => {
 
     expect(
       checked,
-      "no blog post rendered a multi-heading TOC"
+      "no slug page rendered a multi-heading TOC"
     ).toBeGreaterThan(0);
     expect(failures).toEqual([]);
   });
@@ -72,7 +72,7 @@ test.describe("table of contents", () => {
     const failures: string[] = [];
     let checked = 0;
 
-    for (const slug of slugPages.blogs) {
+    for (const slug of slugPages.pages) {
       await page.goto(slug);
       const links = page.locator(TOC_LINKS);
       const count = await links.count();

@@ -13,14 +13,13 @@ import { Suspense } from "react";
 import { preconnect, prefetchDNS } from "react-dom";
 
 import { revalidateSyncTags } from "@/app/actions/revalidate";
-import { CachedFooter, DynamicFooter } from "@/components/footer";
+import { DocsHeader } from "@/components/docs/docs-header";
+import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { CombinedJsonLd } from "@/components/json-ld";
-import { Navbar } from "@/components/navbar";
 import { PreviewBar } from "@/components/preview-bar";
 import { Providers } from "@/components/providers";
 import { ScrollToTop } from "@/components/scroll-to-top";
-import { StickyFooter } from "@/components/sticky-footer";
-import { getGithubStars } from "@/lib/github-stars";
+import { getDocsNavigation } from "@/lib/docs-tree";
 import { getNavigationData } from "@/lib/navigation";
 
 const fontSans = Geist({
@@ -40,8 +39,8 @@ export default async function RootLayout({
 }>) {
   preconnect("https://cdn.sanity.io");
   prefetchDNS("https://cdn.sanity.io");
-  // In local dev, nav/footer follow drafts too (like page content), so draft
-  // navbar/footer/settings edits are visible without a Presentation session.
+  // In local dev, navigation follows drafts too (like page content), so navbar
+  // and settings edits are visible without a Presentation session.
   // Production stays static published.
   const showDrafts = DRAFTS_WITHOUT_SESSION;
   return (
@@ -51,35 +50,21 @@ export default async function RootLayout({
       >
         <Providers>
           <ScrollToTop />
-          <div style={{ marginBottom: "var(--footer-height)" }}>
-            {showDrafts ? (
-              <Suspense
-                fallback={
-                  <CachedNavbar perspective="published" stega={false} />
-                }
-              >
-                <DynamicNavbar />
-              </Suspense>
-            ) : (
-              <CachedNavbar perspective="published" stega={false} />
-            )}
-            <div className="-mt-16 relative z-10 min-h-dvh bg-background pt-16">
+          {showDrafts ? (
+            <Suspense
+              fallback={
+                <CachedDocsShell perspective="published" stega={false}>
+                  {children}
+                </CachedDocsShell>
+              }
+            >
+              <DynamicDocsShell>{children}</DynamicDocsShell>
+            </Suspense>
+          ) : (
+            <CachedDocsShell perspective="published" stega={false}>
               {children}
-            </div>
-          </div>
-          <StickyFooter>
-            {showDrafts ? (
-              <Suspense
-                fallback={
-                  <CachedFooter perspective="published" stega={false} />
-                }
-              >
-                <DynamicFooter />
-              </Suspense>
-            ) : (
-              <CachedFooter perspective="published" stega={false} />
-            )}
-          </StickyFooter>
+            </CachedDocsShell>
+          )}
           {/* Reads draftMode(), so it must stay behind Suspense — otherwise the
               whole layout opts out of prerendering for every visitor. */}
           <Suspense fallback={null}>
@@ -114,19 +99,44 @@ async function LivePreviewLayer() {
   );
 }
 
-async function DynamicNavbar() {
+async function DynamicDocsShell({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const { perspective, stega } = await getDynamicFetchOptions();
-  return <CachedNavbar perspective={perspective} stega={stega} />;
+  return (
+    <CachedDocsShell perspective={perspective} stega={stega}>
+      {children}
+    </CachedDocsShell>
+  );
 }
 
-async function CachedNavbar({ perspective, stega }: DynamicFetchOptions) {
-  const { navbarData, settingsData } = await getNavigationData({
+async function CachedDocsShell({
+  perspective,
+  stega,
+  children,
+}: DynamicFetchOptions & { children: React.ReactNode }) {
+  const { navbar, settings, tree } = await getDocsShellData({
     perspective,
     stega,
   });
-  const stars = await getGithubStars(navbarData?.gitHubUrl);
 
   return (
-    <Navbar navbarData={navbarData} settingsData={settingsData} stars={stars} />
+    <div className="min-h-dvh bg-background">
+      <DocsHeader navbar={navbar} settings={settings} tree={tree} />
+      <div className="mx-auto grid max-w-[100rem] grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)]">
+        <DocsSidebar tree={tree} />
+        <div className="min-w-0">{children}</div>
+      </div>
+    </div>
   );
+}
+
+async function getDocsShellData({ perspective, stega }: DynamicFetchOptions) {
+  "use cache";
+  const [{ navbarData, settingsData }, tree] = await Promise.all([
+    getNavigationData({ perspective, stega }),
+    getDocsNavigation({ perspective, stega }),
+  ]);
+
+  return { navbar: navbarData, settings: settingsData, tree };
 }

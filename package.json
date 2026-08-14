@@ -1,8 +1,8 @@
 {
-  "name": "turbo-start-sanity",
+  "name": "turbo-start-brain",
   "version": "1.0.0",
   "private": true,
-  "description": "Open-source Sanity + Next.js starter: a pnpm/Turborepo monorepo with a Next.js 16 frontend, a Sanity Studio 6 workspace, a shared page-builder block library, and Visual Editing wired end to end.",
+  "description": "A plug-and-play company knowledgebase built with Next.js, Sanity, pnpm, and Turborepo.",
   "keywords": [
     "sanity",
     "sanity-template",

@@ -40,6 +40,17 @@ export interface PortableTextNode {
   code?: string | null;
   language?: string | null;
   filename?: string | null;
+  playbackId?: string | null;
+  variant?: string | null;
+  body?: PortableTextNode[] | null;
+  content?: PortableTextNode[] | null;
+  items?: PortableTextNestedItem[] | null;
+}
+
+export interface PortableTextNestedItem {
+  _key?: string | null;
+  title?: string | null;
+  content?: PortableTextNode[] | null;
 }
 
 export interface MarkdownImage {
@@ -187,6 +198,18 @@ export function portableTextToMarkdown(
       underline: ({ children }) => children,
     },
     types: {
+      callout: ({ value }) => {
+        const node = value as PortableTextNode;
+        const body = portableTextToMarkdown(node.body, options);
+        if (!body) {
+          return "";
+        }
+        const label = escapeMarkdown((node.variant || "info").toUpperCase());
+        return `> **${label}**\n>\n${body
+          .split("\n")
+          .map((line) => `> ${line}`)
+          .join("\n")}`;
+      },
       code: ({ value }) => {
         const node = value as PortableTextNode;
         const code = node.code ?? "";
@@ -215,6 +238,38 @@ export function portableTextToMarkdown(
 
         // No resolvable URL — keep textual content instead of broken markup.
         return caption || alt;
+      },
+      muxVideo: ({ value }) => {
+        const node = value as PortableTextNode;
+        const playbackId = (node.playbackId ?? "").trim();
+        if (!playbackId) {
+          return node.caption ?? "";
+        }
+        const label = escapeMarkdown(node.caption?.trim() || "Watch video");
+        return `[${label}](https://stream.mux.com/${encodeURIComponent(playbackId)}.m3u8)`;
+      },
+      steps: ({ value }) => {
+        const node = value as PortableTextNode;
+        return (node.items ?? [])
+          .map((item, index) => {
+            const title = escapeMarkdown(
+              item.title?.trim() || `Step ${index + 1}`
+            );
+            const body = portableTextToMarkdown(item.content, options);
+            const indented = body.replace(/\n/g, "\n   ");
+            return `${index + 1}. **${title}**${indented ? `\n\n   ${indented}` : ""}`;
+          })
+          .join("\n\n");
+      },
+      tabs: ({ value }) => {
+        const node = value as PortableTextNode;
+        return (node.items ?? [])
+          .map((item) => {
+            const title = escapeMarkdown(item.title?.trim() || "Tab");
+            const body = portableTextToMarkdown(item.content, options);
+            return `### ${title}${body ? `\n\n${body}` : ""}`;
+          })
+          .join("\n\n");
       },
     },
     // Suppress unknown block types; the default emits a JSON code block.

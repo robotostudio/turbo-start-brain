@@ -32,9 +32,7 @@ export function ancestorCrumbs(segments: readonly string[]): Crumb[] {
 }
 
 /**
- * `BreadcrumbList` for the trail. Rendered separately from the visible bar
- * because pages that open with a hero hide the bar by design but still need the
- * structured data — otherwise Google shows the bare URL in place of a trail.
+ * `BreadcrumbList` for the trail, shared by visible breadcrumbs and metadata.
  */
 export function BreadcrumbsJsonLd({
   crumbs,

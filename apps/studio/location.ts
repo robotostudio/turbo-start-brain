@@ -1,25 +1,7 @@
 import { defineLocations } from "sanity/presentation";
 
 export const locations = {
-  blog: defineLocations({
-    select: {
-      title: "title",
-      slug: "slug.current",
-    },
-    resolve: (doc) => ({
-      locations: [
-        {
-          title: doc?.title || "Untitled",
-          href: `${doc?.slug}`,
-        },
-        {
-          title: "Blog",
-          href: "/blog",
-        },
-      ],
-    }),
-  }),
-  home: defineLocations({
+  docsIndex: defineLocations({
     select: {
       title: "title",
       slug: "slug.current",
@@ -33,7 +15,7 @@ export const locations = {
       ],
     }),
   }),
-  page: defineLocations({
+  doc: defineLocations({
     select: {
       title: "title",
       slug: "slug.current",

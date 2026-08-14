@@ -1,10 +1,6 @@
 import { Logger } from "@workspace/logger";
 import { sanityFetch } from "@workspace/sanity/live";
-import {
-  queryAllBlogDataForSearch,
-  queryGlobalSeoSettings,
-  querySlugPagePaths,
-} from "@workspace/sanity/query";
+import { queryDocPaths, queryGlobalSeoSettings } from "@workspace/sanity/query";
 import { absolutizeUrl } from "@workspace/sanity-blocks/internal/portable-text-to-markdown";
 
 import { getBaseUrl } from "@/utils";
@@ -37,16 +33,7 @@ async function fetchSettings() {
 async function fetchSlugs() {
   "use cache";
   const { data } = await sanityFetch({
-    query: querySlugPagePaths,
-    ...PUBLISHED,
-  });
-  return data;
-}
-
-async function fetchPosts() {
-  "use cache";
-  const { data } = await sanityFetch({
-    query: queryAllBlogDataForSearch,
+    query: queryDocPaths,
     ...PUBLISHED,
   });
   return data;
@@ -67,10 +54,9 @@ function slugToTitle(slug: string): string {
 }
 
 export async function GET(): Promise<Response> {
-  const [settingsResult, slugsResult, postsResult] = await Promise.allSettled([
+  const [settingsResult, slugsResult] = await Promise.allSettled([
     fetchSettings(),
     fetchSlugs(),
-    fetchPosts(),
   ]);
 
   if (settingsResult.status === "rejected") {
@@ -79,18 +65,12 @@ export async function GET(): Promise<Response> {
   if (slugsResult.status === "rejected") {
     logger.error("llms.txt: page slugs fetch failed", slugsResult.reason);
   }
-  if (postsResult.status === "rejected") {
-    logger.error("llms.txt: blog posts fetch failed", postsResult.reason);
-  }
 
   const settings =
     settingsResult.status === "fulfilled" ? settingsResult.value : null;
   const slugs =
     slugsResult.status === "fulfilled" ? (slugsResult.value ?? []) : [];
-  const posts =
-    postsResult.status === "fulfilled" ? (postsResult.value ?? []) : [];
-
-  const siteTitle = settings?.siteTitle ?? "Turbo Start Sanity";
+  const siteTitle = settings?.siteTitle ?? "Turbo Start Brain";
   const siteDescription = settings?.siteDescription ?? "";
 
   const pageLines = [
@@ -103,25 +83,12 @@ export async function GET(): Promise<Response> {
       }),
   ];
 
-  const sortedPosts = [...posts].sort((a, b) =>
-    (a.orderRank ?? "").localeCompare(b.orderRank ?? "")
-  );
-
-  const blogLines = sortedPosts.flatMap((post) =>
-    post.slug
-      ? [`- [${post.title ?? slugToTitle(post.slug)}](${mdHref(post.slug)})`]
-      : []
-  );
-
   const body = [
     `# ${siteTitle}`,
     ...(siteDescription ? [`> ${siteDescription}`] : []),
     "",
     "## Pages",
     ...pageLines,
-    "",
-    "## Blog",
-    ...blogLines,
   ].join("\n");
 
   return new Response(`${body}\n`, { headers: HEADERS });

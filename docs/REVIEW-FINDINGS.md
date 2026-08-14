@@ -1,0 +1,36 @@
+Review complete. The working tree (uncommitted conversion on top of the scaffold commit `6c381b8`) was reviewed against the brief. Findings, prioritized:
+
+## P0 — Build/pipeline breakage
+
+1. **Lockfile out of sync — CI install fails.** `sanity-plugin-mux-input@^5.0.6` was added to `apps/studio/package.json:45` but `pnpm-lock.yaml` was never updated: `pnpm install --frozen-lockfile` aborts with "1 dependencies were added: sanity-plugin-mux-input@^5.0.6". Local `node_modules` is in a half-installed state (`apps/web` has no `tsc`, `.pnpm` entries are empty shells), so `check-types`/`build`/typegen cannot currently run at all.
+
+2. **Typegen was never re-run; generated artifacts are stale and hand-edited.**
+   - `apps/studio/schema.json` still contains the old template schema (has `blog`, has no `doc`/`docsIndex`/mux types) — `pnpm extract`/`pnpm type` were not run after the conversion.
+   - `packages/sanity/src/sanity.types.ts` is a hand-patched hybrid: old template types survive (`Video` line 18, `HomePage` 745, `Page` 808, `Blog` 843) alongside a hand-written `DocsPortableText` (line 1212) and hand-written doc query results (1251, 1275). The file header says regeneration overwrites it — the next `pnpm type` clobbers all of this.
+   - Worse, the `SanityQueries` string map records an **older version of the queries**: the keys at `packages/sanity/src/sanity.types.ts:1459-1460` lack the `"assetId": video.asset->assetId` projection and the whole `callout`/`steps`/`tabs` branches that now exist in `packages/sanity/src/query.ts:57-84`. next-sanity's typed overloads match by exact query string, so `sanityFetch({ query: queryDocBySlug })` in `apps/web/src/app/[...slug]/page.tsx:101` and `queryDocsIndex` in `app/page.tsx:45` silently fall back to untyped results, and `SanityRichTextProps` (`apps/web/src/types.ts:22`, via `DocsPortableText`) omits the `callout`/`steps`/`tabs` members the runtime data actually contains.
+
+## P1 — Coupling bugs (brief's list 1/rich-text)
+
+3. **Nested rich-text members lose their projections at depth ≥ 2.** The schema lets `callout.body`, `steps.items[].content`, and `tabs.items[].content` contain the *full* member set again (`packages/sanity-blocks/src/internal/sanity-rich-text.ts:179,207,238` all use `type: "richText"`), but `portableTextFragment` (`packages/sanity/src/query.ts:64-84`) expands callout/steps/tabs only at the top level; their bodies are projected with `nestedPortableTextFragment` (lines 44-62), which handles only `block`/`image`/`muxVideo`. A callout inside a step, or a link/video inside a callout-in-a-callout, arrives unprojected: `customLink` markDefs have no resolved `href` → RichText renders "Link Broken" (`packages/sanity-blocks/src/internal/rich-text.tsx:129-136`), and nested `muxVideo` has no `playbackId` → renders null. Either restrict the nested `richText` fields to `["block","image","code","muxVideo"]` or recurse the fragment one more level.
+
+4. **`docsIndex.pageBuilder` is authorable but never rendered.** `apps/studio/schemaTypes/documents/docs-index.ts:47` includes `pageBuilderField`, but `apps/web/src/app/page.tsx` never renders `PageBuilder`, and `queryDocsIndex` (`packages/sanity/src/query.ts:121-138`) doesn't project it through the block projections — only the raw `...` spread. The markdown route *does* serialize it for `/` (`apps/web/src/lib/markdown.ts:57`), so `.md` output gets raw, unprojected blocks (richTextBlock links/images missing hrefs). Render it or drop the field.
+
+5. **`docsIndex.featuredLinks` is dead end-to-end.** Defined in `docs-index.ts:36`, projected in `query.ts:129-135`, consumed nowhere — `app/page.tsx` builds its cards from the docs tree instead.
+
+6. **Navbar singleton is fully orphaned on the web side.** Studio still exposes it (`apps/studio/structure.ts:82-87`, `schemaTypes/documents/navbar.ts`), and `queryNavbarData` (`query.ts:167-203`) + `getNavigationData` (`apps/web/src/lib/navigation.ts:24-36`) exist, but nothing renders it: `DocsHeader` uses only settings. `apps/web/src/components/navbar.tsx`, `mobile-menu.tsx`, and `elements/menu-link.tsx` are unimported dead files. `navbar.ts:163` (`gitHubUrl`) still promises a "live star count" although `github-stars` was deleted. Editors will edit navigation that never appears.
+
+## P2 — Dead code / leftovers (brief's list 5)
+
+7. **`queryImageType` queries a non-existent field.** `packages/sanity/src/query.ts:115-119` filters `_type == "doc" && defined(image)`, but `doc` (`apps/studio/schemaTypes/documents/doc.ts`) has no `image` field; `QueryImageTypeResult` is imported nowhere. Dead query referencing a phantom field (its `imageFragment` at query.ts:27-31 is then also dead).
+8. `apps/web/src/hooks/use-debounce.ts` — unimported (blog-search leftover).
+9. `apps/web/src/types.ts:41-52` — `ColumnLink`/`MenuLinkProps` only feed the dead navbar components (finding 6). (`NavigationData` is still used by `DocsHeader` for its `settingsData` half.)
+10. `apps/web/src/components/docs/docs-header.tsx:32-41` — the ⌘K "Search documentation…" button is a no-op placeholder; the old search route was deleted with no docs-search replacement.
+11. `apps/web/src/lib/seo.ts:31-36` — `FALLBACK_SITE_CONFIG` still says "Turbo Start Sanity" with template keywords.
+12. `packages/sanity-blocks/src/internal/rich-text.tsx:37-41` — `calloutStyles.warn` is unreachable (schema offers only `"warning"`, `sanity-rich-text.ts:173`); ditto the `item.content ?? item.body` fallbacks at rich-text.tsx:243,280 (schema field is `content`).
+
+## Verified clean
+
+- **Page-builder 3-list coupling**: in sync — `blockSchemas` (`packages/sanity-blocks/src/sanity-blocks.ts`: featureCardsIcon, faqAccordion, richTextBlock) = `pageBuilderFragment` projections (`query.ts:104-112`) = `renderBlockComponent` cases (`apps/web/src/components/pagebuilder.tsx:35-48`); markdown dispatcher (`page-builder-to-markdown.ts:16-25`) and all three thumbnails in `apps/studio/static/thumbnails/` match.
+- **Mux GROQ vs mux-input storage**: `video.asset->playbackId` / `->assetId` (`query.ts:57-61`) matches what `mux.video` stores (reference to `mux.videoAsset` carrying `playbackId`/`assetId`); the renderer (`rich-text.tsx:210-229`) and markdown serializer (`portable-text-to-markdown.ts:245-253`) both read the projected `playbackId`. Plugin registered (`sanity.config.ts:59`), peer rules (`pnpm-workspace.yaml:34-35`) and `image.mux.com` remote pattern (`apps/web/next.config.ts:31`) in place — only the lockfile (finding 1) and typegen (finding 2) block it.
+- **Visual editing/draft mode**: intact — `LivePreviewLayer` keeps `SanityLive`/`VisualEditing`/`PreviewBar` behind Suspense (`layout.tsx:70-99`), presentation-draft/disable-draft routes untouched, `nested-page-template` retargeted to `doc` (`sanity.config.ts:79`) and `nested-pages-structure.ts` now passes the schemaType through to the create intent, locations updated to `doc`/`docsIndex`.
+- Slug validation configs, structure, custom-url targets (`doc`/`docsIndex`), sitemap/llms.txt/markdown proxy, and e2e fixtures are all consistently retargeted with no blog residue.

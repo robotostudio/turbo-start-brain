@@ -17,7 +17,7 @@ export interface SlugValidationOptions {
   documentType?: string;
   /** Require leading slash */
   requireSlash?: boolean;
-  /** Required URL prefix (e.g., "/blog/") */
+  /** Required URL prefix */
   requiredPrefix?: string;
   /** Sanity document type key */
   sanityDocumentType?: string;
@@ -52,38 +52,21 @@ const SLUG_WARNING_MESSAGES = {
 } as const;
 
 const CONFIGS: Record<string, SlugValidationOptions> = {
-  blog: {
-    documentType: "Blog post",
-    requiredPrefix: "/blog/",
+  docsIndex: {
+    documentType: "Docs index",
     requireSlash: true,
-    segmentCount: 2,
-    sanityDocumentType: "blog",
-  },
-  blogIndex: {
-    documentType: "Blog index",
-    requireSlash: true,
-    sanityDocumentType: "blogIndex",
+    sanityDocumentType: "docsIndex",
     customValidators: [
-      (s) => (s !== "/blog" ? ["Blog index must be exactly '/blog'"] : []),
+      (slug) => (slug === "/" ? [] : ["Docs index must be exactly '/'."]),
     ],
   },
-  homePage: {
-    documentType: "Home page",
+  doc: {
+    documentType: "Document",
     requireSlash: true,
-    sanityDocumentType: "homePage",
-    customValidators: [
-      (s) => (s !== "/" ? ["Home page must be exactly '/'"] : []),
-    ],
-  },
-  page: {
-    documentType: "Page",
-    requireSlash: true,
-    sanityDocumentType: "page",
+    sanityDocumentType: "doc",
     customValidators: [
       (slug) => {
         const reserved = [
-          ["/blog", "blog content"],
-          ["/author", "authors"],
           ["/admin", "admin"],
           ["/api", "API routes"],
         ] as const;
@@ -91,7 +74,7 @@ const CONFIGS: Record<string, SlugValidationOptions> = {
           .filter(([prefix]) => slug.startsWith(prefix))
           .map(
             ([prefix, label]) =>
-              `Pages cannot use "${prefix}" prefix - reserved for ${label}`
+              `Documents cannot use "${prefix}" prefix - reserved for ${label}`
           );
       },
     ],
@@ -282,15 +265,9 @@ export function generateSlugFromTitle(
   if (!clean) return "";
 
   switch (documentType) {
-    case "homePage":
+    case "docsIndex":
       return "/";
-    case "blogIndex":
-      return "/blog";
-    case "author":
-      return `/author/${clean}`;
-    case "blog":
-      return `/blog/${clean}`;
-    case "page": {
+    case "doc": {
       if (currentSlug?.includes("/")) {
         const segments = currentSlug.split("/").filter(Boolean);
         if (segments.length > 1)

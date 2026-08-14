@@ -1,4 +1,12 @@
-import { CodeBlockIcon, ImageIcon, LinkIcon } from "@sanity/icons";
+import {
+  BlockContentIcon,
+  CodeBlockIcon,
+  ImageIcon,
+  LinkIcon,
+  PlayIcon,
+  SplitVerticalIcon,
+  ThListIcon,
+} from "@sanity/icons";
 import {
   type ConditionalProperty,
   defineArrayMember,
@@ -10,6 +18,10 @@ const PORTABLE_TEXT_MEMBER_NAMES = {
   block: "block",
   image: "image",
   code: "code",
+  muxVideo: "muxVideo",
+  callout: "callout",
+  steps: "steps",
+  tabs: "tabs",
 } as const;
 
 const CODE_LANGUAGES = [
@@ -22,7 +34,12 @@ const CODE_LANGUAGES = [
   { title: "CSS", value: "css" },
 ];
 
-const richTextMembers = [
+// Members that may appear at any nesting depth. Callout, steps and tabs
+// bodies reuse exactly this set (instead of the full `richText` type), so the
+// GROQ portable-text fragment only ever needs to project one level of
+// nesting — a callout inside a step can never smuggle in members the
+// nested projection doesn't resolve (links, videos).
+const baseRichTextMembers = [
   defineArrayMember({
     name: PORTABLE_TEXT_MEMBER_NAMES.block,
     type: "block",
@@ -132,6 +149,111 @@ const richTextMembers = [
         };
       },
     },
+  }),
+  defineArrayMember({
+    name: PORTABLE_TEXT_MEMBER_NAMES.muxVideo,
+    type: "object",
+    title: "Video",
+    icon: PlayIcon,
+    fields: [
+      defineField({
+        name: "video",
+        type: "mux.video",
+        validation: (rule) => rule.required(),
+      }),
+      defineField({ name: "caption", type: "string" }),
+    ],
+  }),
+];
+
+const richTextMembers = [
+  ...baseRichTextMembers,
+  defineArrayMember({
+    name: PORTABLE_TEXT_MEMBER_NAMES.callout,
+    type: "object",
+    title: "Callout",
+    icon: BlockContentIcon,
+    fields: [
+      defineField({
+        name: "variant",
+        type: "string",
+        initialValue: "info",
+        options: {
+          list: ["info", "warning", "success", "danger"],
+          layout: "radio",
+        },
+      }),
+      defineField({
+        name: "body",
+        type: "array",
+        of: baseRichTextMembers,
+        validation: (rule) => rule.required(),
+      }),
+    ],
+  }),
+  defineArrayMember({
+    name: PORTABLE_TEXT_MEMBER_NAMES.steps,
+    type: "object",
+    title: "Steps",
+    icon: ThListIcon,
+    fields: [
+      defineField({
+        name: "items",
+        type: "array",
+        validation: (rule) => rule.min(1).required(),
+        of: [
+          defineArrayMember({
+            name: "step",
+            type: "object",
+            fields: [
+              defineField({
+                name: "title",
+                type: "string",
+                validation: (rule) => rule.required(),
+              }),
+              defineField({
+                name: "content",
+                type: "array",
+                of: baseRichTextMembers,
+                validation: (rule) => rule.required(),
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  }),
+  defineArrayMember({
+    name: PORTABLE_TEXT_MEMBER_NAMES.tabs,
+    type: "object",
+    title: "Tabs",
+    icon: SplitVerticalIcon,
+    fields: [
+      defineField({
+        name: "items",
+        type: "array",
+        validation: (rule) => rule.min(1).required(),
+        of: [
+          defineArrayMember({
+            name: "tab",
+            type: "object",
+            fields: [
+              defineField({
+                name: "title",
+                type: "string",
+                validation: (rule) => rule.required(),
+              }),
+              defineField({
+                name: "content",
+                type: "array",
+                of: baseRichTextMembers,
+                validation: (rule) => rule.required(),
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
   }),
 ];
 

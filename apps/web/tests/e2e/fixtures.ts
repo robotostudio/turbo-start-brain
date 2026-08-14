@@ -3,7 +3,6 @@ import { createClient } from "@sanity/client";
 
 type SlugPages = {
   pages: string[];
-  blogs: string[];
 };
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
@@ -36,13 +35,11 @@ export const test = base.extend<{ slugPages: SlugPages }>({
   // biome-ignore lint/correctness/noEmptyPattern: required by Playwright
   slugPages: async ({}, provide) => {
     const result = await sanityClient.fetch<SlugPages>(`{
-      "pages": *[_type == "page" && defined(slug.current)].slug.current,
-      "blogs": *[_type == "blog" && defined(slug.current)].slug.current
+      "pages": *[_type == "doc" && defined(slug.current)].slug.current
     }`);
 
     await provide({
       pages: sanitizeSlugs(result.pages ?? []),
-      blogs: sanitizeSlugs(result.blogs ?? []),
     });
   },
 });

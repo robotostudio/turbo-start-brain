@@ -44,26 +44,6 @@ test("serializes an FAQ block as semantic markdown, not a component tag", () => 
   expect(md).not.toMatch(/<[A-Za-z]/);
 });
 
-test("serializes hero with buttons as markdown links", () => {
-  const md = pageBuilderToMarkdown([
-    {
-      _type: "hero",
-      badge: "New",
-      title: "Welcome",
-      richText: para("Intro copy."),
-      buttons: [
-        { _key: "b1", text: "Get started", href: "/start" },
-        { _key: "b2", text: "Broken", href: "#" },
-      ],
-    },
-  ]);
-
-  expect(md).toContain("## Welcome");
-  expect(md).toContain("Intro copy.");
-  expect(md).toContain("- [Get started](/start)");
-  expect(md).toContain("- Broken");
-});
-
 test("serializes feature cards as nested headings", () => {
   const md = pageBuilderToMarkdown([
     {
@@ -84,22 +64,6 @@ test("serializes feature cards as nested headings", () => {
   expect(md).toContain("### Fast");
   expect(md).toContain("Very fast.");
   expect(md).not.toContain("bolt");
-});
-
-test("serializes subscribe newsletter without form markup", () => {
-  const md = pageBuilderToMarkdown([
-    {
-      _type: "subscribeNewsletter",
-      title: "Stay in the loop",
-      subTitle: para("Subscribe for updates."),
-      helperText: para("No spam."),
-    },
-  ]);
-
-  expect(md).toContain("## Stay in the loop");
-  expect(md).toContain("Subscribe for updates.");
-  expect(md).toContain("No spam.");
-  expect(md).not.toMatch(/<(form|input|button)/i);
 });
 
 test("unknown blocks contribute nothing", () => {

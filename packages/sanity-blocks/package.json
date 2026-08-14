@@ -19,6 +19,8 @@
     "sanity": "catalog:"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
+    "@mux/mux-player-react": "^3.13.0",
     "@portabletext/markdown": "^1.4.2",
     "@sanity/icons": "^3.7.4",
     "@workspace/env": "workspace:*",
@@ -51,10 +53,8 @@
     "./*.groq": "./src/*.groq.ts",
     "./internal/block-eyebrow": "./src/internal/block-eyebrow.tsx",
     "./internal/block-header": "./src/internal/block-header.tsx",
-    "./internal/blog-categories": "./src/internal/blog-categories.ts",
     "./internal/heading-slug": "./src/internal/heading-slug.ts",
     "./internal/icons": "./src/internal/icons.tsx",
-    "./internal/logo-height": "./src/internal/logo-height.ts",
     "./internal/lucide-icon-preview": "./src/internal/lucide-icon-preview.tsx",
     "./internal/page-builder-to-markdown": "./src/internal/page-builder-to-markdown.ts",
     "./internal/portable-text-to-markdown": "./src/internal/portable-text-to-markdown.ts",

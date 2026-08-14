@@ -44,46 +44,10 @@ export interface MarkdownLink {
   href?: string | null;
 }
 
-export interface MarkdownLogo {
-  _key?: string | null;
-  href?: string | null;
-  image?: MarkdownImage | null;
-}
-
-export interface MarkdownSocial {
-  _key?: string | null;
-  platform?: string | null;
-  label?: string | null;
-  href?: string | null;
-}
-
-export interface MarkdownShowcaseItem {
-  _key?: string | null;
-  siteName?: string | null;
-  url?: string | null;
-  category?: string | null;
-}
-
 export interface MarkdownFaqCategory {
   _key?: string | null;
   title?: string | null;
   faqs?: MarkdownFaq[] | null;
-}
-
-export interface MarkdownTestimonial {
-  eyebrow?: string | null;
-  quote?: PortableTextValue;
-  authorName?: string | null;
-  authorRole?: string | null;
-}
-
-export interface MarkdownVideoVariant {
-  poster?: MarkdownImage | null;
-}
-
-export interface MarkdownVideo {
-  light?: MarkdownVideoVariant | null;
-  dark?: MarkdownVideoVariant | null;
 }
 
 export interface MarkdownBlock {
@@ -92,20 +56,12 @@ export interface MarkdownBlock {
   title?: string | null;
   eyebrow?: string | null;
   description?: string | null;
-  items?: MarkdownShowcaseItem[] | null;
-  badge?: string | null;
   subtitle?: string | null;
   richText?: PortableTextValue;
-  subTitle?: PortableTextValue;
-  helperText?: PortableTextValue;
   buttons?: MarkdownButton[] | null;
   cards?: MarkdownCard[] | null;
   categories?: MarkdownFaqCategory[] | null;
   link?: MarkdownLink | null;
-  logos?: MarkdownLogo[] | null;
-  socials?: MarkdownSocial[] | null;
-  video?: MarkdownVideo | null;
-  testimonial?: MarkdownTestimonial | null;
 }
 
 /** Joins defined, non-empty sections with a blank line between them. */

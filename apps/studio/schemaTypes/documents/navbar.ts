@@ -164,7 +164,7 @@ export const navbar = defineType({
       type: "url",
       title: "GitHub Repository URL",
       description:
-        "Public GitHub repository URL. The navbar shows this repo's live star count (e.g. https://github.com/owner/repo). Leave empty to hide the star badge.",
+        "Public GitHub repository URL (e.g. https://github.com/owner/repo). Shown as a GitHub icon link in the site header. Leave empty to hide it.",
       validation: (rule) =>
         rule.uri({ scheme: ["https"] }).custom((value) => {
           if (!value) {

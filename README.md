@@ -1,4 +1,4 @@
-# Turbo Start Sanity
+# Turbo Start Brain
 
 Turbo Start Sanity is an open-source Sanity template built as a `pnpm`
 monorepo with Turborepo, a Next.js 16 frontend, and a Sanity Studio 6

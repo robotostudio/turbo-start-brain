@@ -4,14 +4,11 @@ import {
   queryNavbarData,
 } from "@workspace/sanity/query";
 
-/** The Settings singleton as its own cache entry, so the navbar and footer
+/** The Settings singleton as its own cache entry, so navigation consumers
  * share one fetch instead of baking private copies into their boundaries.
  * Sync tags still reach both callers — Next propagates a nested `'use cache'`
  * entry's tags to the enclosing one, on hit as well as on miss. */
-export async function getGlobalSettings({
-  perspective,
-  stega,
-}: DynamicFetchOptions) {
+async function getGlobalSettings({ perspective, stega }: DynamicFetchOptions) {
   "use cache";
   const { data } = await sanityFetch({
     query: queryGlobalSeoSettings,

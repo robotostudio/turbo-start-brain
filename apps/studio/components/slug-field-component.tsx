@@ -150,7 +150,7 @@ export function PathnameFieldComponent(props: ObjectFieldProps<SlugValue>) {
                 disabled={readOnly}
                 fontSize={1}
                 onChange={handleSlugChange}
-                placeholder="e.g., /about-us or /blog/my-post"
+                placeholder="e.g., /getting-started/tool-onboarding"
                 style={monoStyle}
                 value={currentSlug}
               />

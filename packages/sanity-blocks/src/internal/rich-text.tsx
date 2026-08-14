@@ -1,6 +1,11 @@
+"use client";
+
+import { Tabs } from "@base-ui/react/tabs";
+import MuxPlayer from "@mux/mux-player-react/lazy";
 import { Logger } from "@workspace/logger";
 import { cn } from "@workspace/tailwind-config/utils";
 import Link from "next/link";
+import { CircleAlert, CircleCheck, CircleX, Info } from "lucide-react";
 import {
   PortableText,
   type PortableTextBlock,
@@ -13,6 +18,45 @@ import { sanitizeHref } from "./safe-href";
 import { SanityImage } from "./sanity-image";
 
 const logger = new Logger("RichText");
+
+const calloutStyles = {
+  info: {
+    className:
+      "border-blue-500/40 bg-blue-500/8 text-blue-950 dark:text-blue-100",
+    Icon: Info,
+  },
+  warning: {
+    className:
+      "border-amber-500/50 bg-amber-500/10 text-amber-950 dark:text-amber-100",
+    Icon: CircleAlert,
+  },
+  success: {
+    className:
+      "border-emerald-500/40 bg-emerald-500/8 text-emerald-950 dark:text-emerald-100",
+    Icon: CircleCheck,
+  },
+  danger: {
+    className: "border-red-500/40 bg-red-500/8 text-red-950 dark:text-red-100",
+    Icon: CircleX,
+  },
+} as const;
+
+/**
+ * A `steps` step or `tabs` tab as projected by the GROQ portable-text
+ * fragment — a titled section whose `content` is nested portable text.
+ * Local rather than generated: query-result types live in
+ * `@workspace/sanity`, which itself imports this package's GROQ fragments.
+ */
+type RichTextSectionItem = {
+  _key: string;
+  title?: string | null;
+  content?: RichTextValue;
+};
+
+function sectionItems(value: unknown): RichTextSectionItem[] {
+  const items = (value as { items?: unknown })?.items;
+  return Array.isArray(items) ? (items as RichTextSectionItem[]) : [];
+}
 
 const components: Partial<PortableTextReactComponents> = {
   block: {
@@ -118,6 +162,26 @@ const components: Partial<PortableTextReactComponents> = {
     },
   },
   types: {
+    callout: ({ value }) => {
+      const variant =
+        calloutStyles[value?.variant as keyof typeof calloutStyles] ??
+        calloutStyles.info;
+      const Icon = variant.Icon;
+      return (
+        <aside
+          className={cn(
+            "not-prose my-6 flex gap-3 rounded-lg border-l-4 p-4",
+            variant.className
+          )}
+        >
+          <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
+          <RichText
+            className="min-w-0 flex-1 prose-p:my-0"
+            richText={value?.body}
+          />
+        </aside>
+      );
+    },
     code: ({ value }) => {
       if (!value?.code) {
         return null;
@@ -149,6 +213,82 @@ const components: Partial<PortableTextReactComponents> = {
             </figcaption>
           )}
         </figure>
+      );
+    },
+    muxVideo: ({ value }) => {
+      const playbackId = value?.playbackId;
+      if (!playbackId) {
+        return null;
+      }
+      return (
+        <figure className="not-prose my-8">
+          <MuxPlayer
+            className="aspect-video w-full overflow-hidden rounded-xl border bg-black"
+            playbackId={playbackId}
+            streamType="on-demand"
+          />
+          {value?.caption ? (
+            <figcaption className="mt-2 text-center text-sm text-muted-foreground">
+              {value.caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      );
+    },
+    steps: ({ value }) => {
+      const items = sectionItems(value);
+      if (items.length === 0) {
+        return null;
+      }
+      return (
+        <ol className="not-prose my-8 ml-4 border-l">
+          {items.map((item, index) => (
+            <li className="relative pb-8 pl-8 last:pb-0" key={item._key}>
+              <span className="absolute top-0 -left-4 flex size-8 items-center justify-center rounded-full border bg-background font-semibold text-sm">
+                {index + 1}
+              </span>
+              <h3 className="mb-2 font-semibold text-lg">{item.title}</h3>
+              <RichText richText={item.content} />
+            </li>
+          ))}
+        </ol>
+      );
+    },
+    tabs: ({ value }) => {
+      const items = sectionItems(value);
+      if (items.length === 0) {
+        return null;
+      }
+      const defaultValue = items[0]?._key;
+      return (
+        <Tabs.Root
+          className="not-prose my-8 overflow-hidden rounded-lg border"
+          defaultValue={defaultValue}
+        >
+          <Tabs.List
+            aria-label="Content options"
+            className="flex gap-1 overflow-x-auto border-b bg-muted/40 p-1"
+          >
+            {items.map((item) => (
+              <Tabs.Tab
+                className="rounded-md px-3 py-1.5 font-medium text-muted-foreground text-sm outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:bg-background data-active:text-foreground data-active:shadow-sm"
+                key={item._key}
+                value={item._key}
+              >
+                {item.title}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          {items.map((item) => (
+            <Tabs.Panel
+              className="p-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              key={item._key}
+              value={item._key}
+            >
+              <RichText richText={item.content} />
+            </Tabs.Panel>
+          ))}
+        </Tabs.Root>
       );
     },
   },

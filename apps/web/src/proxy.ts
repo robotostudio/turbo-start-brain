@@ -2,9 +2,6 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { normalizeMarkdownPath, prefersMarkdown } from "@/lib/markdown-path";
 
-/** Query params the Markdown route honours — blog index pagination + filter. */
-const FORWARDED_PARAMS = ["page", "category"] as const;
-
 /**
  * Content negotiation for Markdown: a `.md` URL or `Accept: text/markdown` is
  * rewritten to the `/api/markdown` route handler; everything else passes through.
@@ -41,17 +38,6 @@ export function proxy(request: NextRequest): NextResponse {
   // newlines and control bytes, which a header value cannot.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-markdown-path", encodeURIComponent(contentPath));
-  for (const param of FORWARDED_PARAMS) {
-    const value = request.nextUrl.searchParams.get(param);
-    // Set-or-delete, so a client-sent `x-markdown-page` can never outrank the
-    // URL the request actually asked for.
-    if (value === null) {
-      requestHeaders.delete(`x-markdown-${param}`);
-    } else {
-      requestHeaders.set(`x-markdown-${param}`, encodeURIComponent(value));
-    }
-  }
-
   // The incoming query string rides along untouched as the headers' fallback.
   const url = request.nextUrl.clone();
   url.pathname = "/api/markdown";

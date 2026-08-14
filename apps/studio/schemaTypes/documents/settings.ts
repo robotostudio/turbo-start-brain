@@ -99,14 +99,6 @@ export const settings = defineType({
             "Optional logo variant for dark backgrounds, such as the navbar in dark mode. Reuses the light logo's alt text; if left empty, the light logo is used everywhere.",
           options: { hotspot: true },
         }),
-        defineField({
-          name: "footerLogo",
-          type: "image",
-          title: "Footer Logo",
-          description:
-            "Optional logo for the footer's colored background, where the main logo may not have enough contrast. Reuses the main logo's alt text; if left empty, the main logo is used.",
-          options: { hotspot: true },
-        }),
       ],
     }),
     defineField({

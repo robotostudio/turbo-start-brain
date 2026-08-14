@@ -5,7 +5,7 @@ import type { MetadataRoute } from "next";
 
 import { getBaseUrl } from "@/utils";
 
-type Page = QuerySitemapDataResult["slugPages"][number];
+type Page = QuerySitemapDataResult["docs"][number];
 
 const baseUrl = getBaseUrl();
 
@@ -14,7 +14,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     query: querySitemapData,
     perspective: "published",
   });
-  const { slugPages, blogPages } = data ?? { slugPages: [], blogPages: [] };
+  const { docs } = data ?? { docs: [] };
   return [
     {
       url: baseUrl,
@@ -22,23 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    ...slugPages.map((page: Page) => ({
+    ...docs.map((page: Page) => ({
       url: `${baseUrl}${page.slug}`,
       lastModified: new Date(page.lastModified ?? new Date()),
       changeFrequency: "weekly" as const,
       priority: 0.8,
-    })),
-    ...blogPages.map((page: Page) => ({
-      url: `${baseUrl}${page.slug}`,
-      lastModified: new Date(page.lastModified ?? new Date()),
-      changeFrequency: "weekly" as const,
-      priority: 0.5,
     })),
   ];
 }

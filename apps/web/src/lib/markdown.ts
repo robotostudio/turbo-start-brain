@@ -1,27 +1,22 @@
 import { env } from "@workspace/env/client";
 import { urlFor } from "@workspace/sanity/client";
 import type {
-  QueryAllBlogDataForSearchResult,
-  QueryBlogSlugPageDataResult,
+  QueryDocBySlugResult,
+  QueryDocsIndexResult,
 } from "@workspace/sanity/types";
 import {
-  imageToMarkdown,
   type MarkdownBlock,
   pageBuilderToMarkdown,
 } from "@workspace/sanity-blocks/internal/page-builder-to-markdown";
 import {
-  absolutizeUrl,
   escapeMarkdown,
-  type MarkdownImage,
   type MarkdownOptions,
   type PortableTextValue,
   portableTextToMarkdown,
 } from "@workspace/sanity-blocks/internal/portable-text-to-markdown";
 
-// Site origin for absolutizing internal `.md`/page links (already protocol-prefixed).
 const BASE_URL = env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
 
-/** Resolves a Sanity image (by asset `_ref`) to a public CDN URL for Markdown. */
 export const resolveImageUrl: NonNullable<
   MarkdownOptions["resolveImageUrl"]
 > = (image) => {
@@ -29,7 +24,6 @@ export const resolveImageUrl: NonNullable<
     return null;
   }
   try {
-    // The image-url builder accepts an asset reference id (e.g. `image-…`).
     return urlFor(image.id).width(1600).url();
   } catch {
     return null;
@@ -38,33 +32,13 @@ export const resolveImageUrl: NonNullable<
 
 const markdownOptions: MarkdownOptions = { resolveImageUrl, baseUrl: BASE_URL };
 
-// Field shapes are derived from the generated query result types rather than
-// hand-written, per the project's types strategy. The blog post result carries
-// every field the serializers read, so it is the source for the document shape.
+// `_type` is omitted before intersecting: the two result types carry
+// incompatible `_type` literals ("doc" vs "docsIndex"), which would reduce
+// the whole intersection to `never`.
 export type MarkdownDocument = Partial<
-  Pick<
-    NonNullable<QueryBlogSlugPageDataResult>,
-    "title" | "description" | "image" | "richText" | "pageBuilder"
-  >
+  Omit<NonNullable<QueryDocBySlugResult>, "_type"> &
+    Omit<NonNullable<QueryDocsIndexResult>, "_type">
 >;
-
-export type MarkdownBlogListItem = Partial<
-  Pick<
-    NonNullable<QueryAllBlogDataForSearchResult[number]>,
-    "title" | "slug" | "orderRank"
-  >
->;
-
-function pageBuilderMarkdown(doc: MarkdownDocument): string {
-  return pageBuilderToMarkdown(
-    doc.pageBuilder as MarkdownBlock[] | null | undefined,
-    markdownOptions
-  );
-}
-
-function richTextMarkdown(richText: MarkdownDocument["richText"]): string {
-  return portableTextToMarkdown(richText as PortableTextValue, markdownOptions);
-}
 
 function documentHeader(doc: MarkdownDocument): string {
   const title = doc.title?.trim();
@@ -77,48 +51,18 @@ function documentHeader(doc: MarkdownDocument): string {
     .join("\n\n");
 }
 
-function withTrailingNewline(sections: string[]): string {
+export function pageToMarkdown(doc: MarkdownDocument): string {
+  const sections = [
+    documentHeader(doc),
+    portableTextToMarkdown(
+      (doc.body ?? doc.intro) as PortableTextValue,
+      markdownOptions
+    ),
+    pageBuilderToMarkdown(
+      doc.pageBuilder as MarkdownBlock[] | null | undefined,
+      markdownOptions
+    ),
+  ];
   const body = sections.filter((section) => section.trim()).join("\n\n");
   return body ? `${body}\n` : "";
-}
-
-export function pageToMarkdown(doc: MarkdownDocument): string {
-  return withTrailingNewline([documentHeader(doc), pageBuilderMarkdown(doc)]);
-}
-
-export function blogPostToMarkdown(doc: MarkdownDocument): string {
-  const cover = imageToMarkdown(
-    doc.image as MarkdownImage | null,
-    markdownOptions
-  );
-
-  return withTrailingNewline([
-    documentHeader(doc),
-    cover,
-    richTextMarkdown(doc.richText),
-    pageBuilderMarkdown(doc),
-  ]);
-}
-
-export function blogIndexToMarkdown(
-  doc: MarkdownDocument,
-  posts: MarkdownBlogListItem[]
-): string {
-  const list = [...posts]
-    .sort((a, b) => (a.orderRank ?? "").localeCompare(b.orderRank ?? ""))
-    .map((post) => {
-      const title = post.title?.trim();
-      const slug = post.slug?.trim();
-      return title && slug
-        ? `- [${escapeMarkdown(title)}](${absolutizeUrl(slug, BASE_URL)})`
-        : null;
-    })
-    .filter(Boolean)
-    .join("\n");
-
-  return withTrailingNewline([
-    documentHeader(doc),
-    pageBuilderMarkdown(doc),
-    list ? `## Latest posts\n\n${list}` : "",
-  ]);
 }

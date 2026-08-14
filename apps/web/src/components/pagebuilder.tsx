@@ -2,15 +2,9 @@
 
 import { useOptimistic } from "@sanity/visual-editing/react";
 import { env } from "@workspace/env/client";
-import { CTABlock } from "@workspace/sanity-blocks/cta/index";
 import { FaqAccordion } from "@workspace/sanity-blocks/faq-accordion/index";
 import { FeatureCardsWithIcon } from "@workspace/sanity-blocks/feature-cards-icon/index";
-import { HeroBlock } from "@workspace/sanity-blocks/hero/index";
-import { LogoCloud } from "@workspace/sanity-blocks/logo-cloud/index";
 import { RichTextBlock } from "@workspace/sanity-blocks/rich-text-block/index";
-import { ShowcaseGrid } from "@workspace/sanity-blocks/showcase-grid/index";
-import { SocialGrid } from "@workspace/sanity-blocks/social-grid/index";
-import { SubscribeNewsletter } from "@workspace/sanity-blocks/subscribe-newsletter/index";
 import { cn } from "@workspace/tailwind-config/utils";
 import { createDataAttribute } from "next-sanity";
 
@@ -35,40 +29,18 @@ type SanityDataAttributeConfig = {
  */
 function renderBlockComponent(
   block: PageBuilderBlock,
-  isFirst: boolean,
-  dataSanity?: string
+  _isFirst: boolean,
+  _dataSanity?: string
 ) {
   switch (block?._type) {
-    case "cta":
-      return <CTABlock {...(block as PagebuilderType<"cta">)} />;
     case "faqAccordion":
       return <FaqAccordion {...(block as PagebuilderType<"faqAccordion">)} />;
-    case "hero":
-      return (
-        <HeroBlock
-          {...(block as PagebuilderType<"hero">)}
-          dataSanity={dataSanity}
-          isFirst={isFirst}
-        />
-      );
     case "featureCardsIcon":
       return (
         <FeatureCardsWithIcon
           {...(block as PagebuilderType<"featureCardsIcon">)}
         />
       );
-    case "subscribeNewsletter":
-      return (
-        <SubscribeNewsletter
-          {...(block as PagebuilderType<"subscribeNewsletter">)}
-        />
-      );
-    case "logoCloud":
-      return <LogoCloud {...(block as PagebuilderType<"logoCloud">)} />;
-    case "socialGrid":
-      return <SocialGrid {...(block as PagebuilderType<"socialGrid">)} />;
-    case "showcaseGrid":
-      return <ShowcaseGrid {...(block as PagebuilderType<"showcaseGrid">)} />;
     case "richTextBlock":
       return <RichTextBlock {...(block as PagebuilderType<"richTextBlock">)} />;
     default:
@@ -156,19 +128,9 @@ function useBlockRenderer(id: string, type: string) {
     });
 
   const renderBlock = (block: PageBuilderBlock, index: number) => {
-    // The leading hero's wrapper is `display: contents` so the banner pins
-    // against this grid, and a box-less element measures 0x0 in the visual
-    // editing overlay — unselectable, undraggable. Hand the attribute to the
-    // hero instead, which puts it on the banner box.
-    const isLeadingHero = index === 0 && block?._type === "hero";
     const dataSanity = block && createBlockDataAttribute(block._key);
     const content =
-      block &&
-      renderBlockComponent(
-        block,
-        index === 0,
-        isLeadingHero ? dataSanity : undefined
-      );
+      block && renderBlockComponent(block, index === 0, dataSanity);
 
     if (!content) {
       return (
@@ -182,11 +144,8 @@ function useBlockRenderer(id: string, type: string) {
 
     return (
       <div
-        className={cn(
-          "min-w-0",
-          isLeadingHero ? "contents" : "relative z-10 bg-background"
-        )}
-        data-sanity={isLeadingHero ? undefined : dataSanity}
+        className={cn("relative z-10 min-w-0 bg-background")}
+        data-sanity={dataSanity}
         key={`${block._type}-${block._key}`}
       >
         {content}
