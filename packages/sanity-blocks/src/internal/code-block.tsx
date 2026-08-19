@@ -38,11 +38,11 @@ export function CodeBlock({
         <div className="flex items-center gap-2 border-border border-b bg-muted px-3 py-1.5">
           <span
             aria-hidden="true"
-            className="grid h-5 min-w-5 place-items-center rounded-md border border-border bg-background px-1 font-mono font-semibold text-[10px] text-muted-foreground uppercase"
+            className="grid h-5 min-w-5 place-items-center rounded-md border border-border bg-background px-1 font-mono font-semibold text-[0.625rem] text-muted-foreground uppercase"
           >
             {badge}
           </span>
-          <span className="truncate font-mono text-muted-foreground text-xs">
+          <span className="truncate font-mono text-micro text-muted-foreground">
             {filename}
           </span>
           <CopyButton className="ms-auto" code={code} />
@@ -55,7 +55,7 @@ export function CodeBlock({
           />
         </div>
       )}
-      <div className="rich-code flex text-[13px] leading-6">
+      <div className="rich-code flex text-small">
         <div aria-hidden="true" className="rich-code-gutter font-mono">
           {Array.from({ length: lineCount }, (_, index) => (
             <span key={index + 1}>{index + 1}</span>

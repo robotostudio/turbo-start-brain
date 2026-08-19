@@ -10,9 +10,10 @@ import {
 } from "@workspace/sanity/live";
 import { queryDocBySlug, queryDocPaths } from "@workspace/sanity/query";
 import { RichText } from "@workspace/sanity-blocks/internal/rich-text";
+import { cn } from "@workspace/tailwind-config/utils";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 
 import { DocsBreadcrumbs } from "@/components/docs/docs-breadcrumbs";
 import { DocsPager } from "@/components/docs/docs-pager";
@@ -25,11 +26,15 @@ import {
   getDocsNavigation,
   type DocsTreeNode,
 } from "@/lib/docs-tree";
+import { resolveRedirect } from "@/lib/redirects";
 import { seoFromDocument } from "@/lib/seo";
+import { hasTocHeadings } from "@/lib/toc";
 import type { SanityRichTextProps } from "@/types";
 import { PLACEHOLDER_SLUG } from "@/utils";
 
 const logger = new Logger("DocSlug");
+
+const TOC_MAX_DEPTH = 3;
 
 type SlugParams = { slug: string[] };
 
@@ -50,6 +55,23 @@ export async function generateStaticParams() {
   }
 }
 
+async function fetchDocMetadata(
+  slug: string,
+  perspective: DynamicFetchOptions["perspective"]
+) {
+  try {
+    const { data } = await sanityFetchMetadata({
+      query: queryDocBySlug,
+      params: { slug },
+      perspective,
+    });
+    return data;
+  } catch (error) {
+    logger.error("Error fetching document metadata", error);
+    return null;
+  }
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -60,12 +82,33 @@ export async function generateMetadata({
     getDynamicFetchOptions(),
   ]);
   const slugString = `/${slug.join("/")}`;
-  const { data } = await sanityFetchMetadata({
-    query: queryDocBySlug,
-    params: { slug: slugString },
-    perspective,
-  });
+  const data = await fetchDocMetadata(slugString, perspective);
+
+  if (!data) {
+    return {
+      title: "Page not found",
+      robots: "noindex, nofollow",
+      alternates: {},
+    };
+  }
+
   return seoFromDocument(data, { slug: slugString });
+}
+
+/**
+ * No document at this path — consult the same redirect resolver `/api/markdown`
+ * uses, so both surfaces agree the moment an editor publishes. Returns only
+ * when nothing matches, leaving the caller to fall through to `notFound()`.
+ */
+async function redirectIfMoved(slug: string[]): Promise<void> {
+  const target = await resolveRedirect(`/${slug.join("/")}`);
+  if (!target) {
+    return;
+  }
+  if (target.permanent) {
+    permanentRedirect(target.destination);
+  }
+  redirect(target.destination);
 }
 
 export default async function DocPage({
@@ -79,6 +122,7 @@ export default async function DocPage({
     ]);
     const { data, tree } = await getDocPage(slug, options);
     if (!data) {
+      await redirectIfMoved(slug);
       notFound();
     }
     return <DocContent data={data} slug={slug} tree={tree} />;
@@ -90,6 +134,7 @@ export default async function DocPage({
     stega: false,
   });
   if (!data) {
+    await redirectIfMoved(slug);
     notFound();
   }
   return <DocContent data={data} slug={slug} tree={tree} />;
@@ -122,31 +167,45 @@ function DocContent({
   const previous = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const body = data.body as SanityRichTextProps;
+  // Same test the client TOC runs; without it a heading-less doc still reserves
+  // the 14rem gutter and the article sits left of centre.
+  const showToc = hasTocHeadings(body, TOC_MAX_DEPTH);
 
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
-      <main className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,48rem)_14rem] xl:justify-center xl:gap-16">
-        <article className="min-w-0">
+      <main
+        className={cn(
+          "grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:justify-center xl:gap-16",
+          showToc
+            ? "xl:grid-cols-[minmax(0,37.5rem)_14rem]"
+            : "xl:grid-cols-[minmax(0,37.5rem)]"
+        )}
+      >
+        {/* 37.5rem = 600px, measured at ~80 characters per line for 16px
+            Geist. The cap lives here, not only on the xl grid column, because
+            below xl the article would otherwise run the full viewport
+            (~101 characters per line at 1279px). */}
+        <article className="mx-auto w-full min-w-0 max-w-[37.5rem]">
           <DocsBreadcrumbs slug={slug} title={data.title} />
           <header className="mb-10 border-b pb-8">
-            <h1 className="text-balance font-semibold text-4xl tracking-tight sm:text-5xl">
+            <h1 className="text-balance font-semibold text-h1 sm:text-display">
               {data.title}
             </h1>
             {data.description ? (
-              <p className="mt-4 max-w-2xl text-pretty text-lg text-muted-foreground leading-8">
+              <p className="mt-4 max-w-2xl text-pretty text-lede text-muted-foreground">
                 {data.description}
               </p>
             ) : null}
           </header>
           <MobileTableOfContent
             className="mb-8 xl:hidden"
-            maxDepth={3}
+            maxDepth={TOC_MAX_DEPTH}
             richText={body}
             shareTitle={data.title ?? undefined}
           />
           <RichText
-            className="prose-lg prose-headings:font-semibold prose-headings:tracking-tight prose-p:leading-8"
+            className="prose-p:text-body prose-li:text-body"
             richText={body}
           />
           {data.pageBuilder?.length ? (
@@ -160,7 +219,7 @@ function DocContent({
           ) : null}
           <DocsPager next={next} previous={previous} />
         </article>
-        <DocsToc body={body} title={data.title} />
+        {showToc ? <DocsToc body={body} title={data.title} /> : null}
       </main>
     </>
   );

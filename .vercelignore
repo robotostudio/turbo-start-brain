@@ -1,0 +1,6 @@
+.turbo
+.pnpm-store
+.scratch
+.next
+node_modules
+.git

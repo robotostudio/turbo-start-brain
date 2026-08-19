@@ -20,6 +20,7 @@ type SanityButtonsProps = {
   className?: string;
   buttonClassName?: string;
   size?: "sm" | "lg" | "default" | "icon" | null;
+  onClick?: () => void;
 };
 
 type SanityButtonRenderProps = {
@@ -29,6 +30,7 @@ type SanityButtonRenderProps = {
   openInNewTab?: boolean | null;
   className?: string;
   size?: SanityButtonsProps["size"];
+  onClick?: () => void;
 };
 
 const VALID_VARIANTS = [
@@ -53,6 +55,7 @@ function SanityButton({
   openInNewTab,
   className,
   size,
+  onClick,
 }: Readonly<SanityButtonRenderProps>) {
   const safeHref = sanitizeHref(href);
   if (!safeHref) {
@@ -68,6 +71,7 @@ function SanityButton({
     >
       <Link
         href={safeHref}
+        onClick={onClick}
         rel={openInNewTab ? "noopener noreferrer" : undefined}
         target={openInNewTab ? "_blank" : "_self"}
       >
@@ -85,6 +89,7 @@ export function SanityButtons({
   className,
   buttonClassName,
   size = "default",
+  onClick,
 }: Readonly<SanityButtonsProps>) {
   if (!buttons?.length) {
     return null;
@@ -97,6 +102,7 @@ export function SanityButtons({
           className={buttonClassName}
           href={button.href}
           key={button._key ?? `button-${index}`}
+          onClick={onClick}
           openInNewTab={button.openInNewTab}
           size={size}
           text={button.text}

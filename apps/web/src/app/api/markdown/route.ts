@@ -4,15 +4,12 @@ import {
   getDynamicFetchOptions,
   sanityFetch,
 } from "@workspace/sanity/live";
-import {
-  queryDocBySlug,
-  queryDocsIndex,
-  queryRedirects,
-} from "@workspace/sanity/query";
+import { queryDocBySlug, queryDocsIndex } from "@workspace/sanity/query";
 import { draftMode } from "next/headers";
 
 import { type MarkdownDocument, pageToMarkdown } from "@/lib/markdown";
 import { normalizeMarkdownPath } from "@/lib/markdown-path";
+import { resolveRedirect } from "@/lib/redirects";
 
 const logger = new Logger("MarkdownRoute");
 const PUBLISHED: DynamicFetchOptions = {
@@ -32,12 +29,6 @@ async function buildMarkdown(
     ...options,
   });
   return data ? pageToMarkdown(data as MarkdownDocument) : null;
-}
-
-async function findRedirect(path: string) {
-  "use cache";
-  const { data } = await sanityFetch({ query: queryRedirects, ...PUBLISHED });
-  return (data ?? []).find((redirect) => redirect.source === path) ?? null;
 }
 
 async function resolveFetchOptions(): Promise<DynamicFetchOptions> {
@@ -86,14 +77,18 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    const redirect = await findRedirect(path);
-    if (redirect) {
-      const target = new URL(redirect.destination, url);
+    // Same resolver the HTML route uses, so `.md` and the page agree.
+    const moved = await resolveRedirect(path);
+    if (moved) {
+      const target = new URL(moved.destination, url);
+      // An internal destination keeps the Markdown representation; an external
+      // one is handed over as authored.
       if (target.origin === url.origin) {
-        const normalized = normalizeMarkdownPath(target.pathname);
-        target.pathname = representationOf(normalized);
-        return Response.redirect(target, redirect.permanent ? 308 : 307);
+        target.pathname = representationOf(
+          normalizeMarkdownPath(target.pathname)
+        );
       }
+      return Response.redirect(target, moved.permanent ? 308 : 307);
     }
   } catch (error) {
     logger.error("Markdown build failed", error);

@@ -51,14 +51,14 @@ async function DocsIndexContent({
   return (
     <main className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-24">
       <header className="max-w-3xl">
-        <p className="mb-4 font-mono text-muted-foreground text-sm uppercase tracking-widest">
+        <p className="mb-4 font-mono text-micro text-muted-foreground uppercase tracking-widest">
           Knowledge base
         </p>
-        <h1 className="text-balance font-semibold text-5xl tracking-tight sm:text-6xl">
+        <h1 className="text-balance font-semibold text-display sm:text-hero">
           {data?.title ?? "Documentation"}
         </h1>
         {data?.description ? (
-          <p className="mt-6 text-pretty text-muted-foreground text-xl leading-8">
+          <p className="mt-6 max-w-[37.5rem] text-pretty text-lede text-muted-foreground">
             {data.description}
           </p>
         ) : null}
@@ -66,14 +66,14 @@ async function DocsIndexContent({
 
       {data?.intro?.length ? (
         <RichText
-          className="mt-10 max-w-3xl prose-lg"
+          className="mt-10 max-w-[37.5rem] prose-p:text-body prose-li:text-body"
           richText={data.intro as SanityRichTextProps}
         />
       ) : null}
 
       {data?.featuredLinks?.length ? (
         <section aria-labelledby="featured-heading" className="mt-16">
-          <h2 className="font-semibold text-2xl" id="featured-heading">
+          <h2 className="font-semibold text-h2" id="featured-heading">
             Featured
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -88,10 +88,10 @@ async function DocsIndexContent({
                     {link.icon ? (
                       <SanityIcon className="size-5" icon={link.icon} />
                     ) : null}
-                    <h3 className="font-medium text-lg">{link.title}</h3>
+                    <h3 className="font-medium text-h4">{link.title}</h3>
                   </div>
                   {link.description ? (
-                    <p className="mt-3 line-clamp-2 text-muted-foreground text-sm leading-6">
+                    <p className="mt-3 line-clamp-2 text-muted-foreground text-small">
                       {link.description}
                     </p>
                   ) : null}
@@ -103,7 +103,7 @@ async function DocsIndexContent({
       ) : null}
 
       <section aria-labelledby="sections-heading" className="mt-16">
-        <h2 className="font-semibold text-2xl" id="sections-heading">
+        <h2 className="font-semibold text-h2" id="sections-heading">
           Browse sections
         </h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -117,14 +117,14 @@ async function DocsIndexContent({
                 {section.icon ? (
                   <SanityIcon className="size-5" icon={section.icon} />
                 ) : null}
-                <h3 className="font-medium text-lg">{section.title}</h3>
+                <h3 className="font-medium text-h4">{section.title}</h3>
               </div>
               {section.description ? (
-                <p className="mt-3 line-clamp-2 text-muted-foreground text-sm leading-6">
+                <p className="mt-3 line-clamp-2 text-muted-foreground text-small">
                   {section.description}
                 </p>
               ) : null}
-              <span className="mt-auto flex items-center gap-2 pt-5 font-medium text-sm">
+              <span className="mt-auto flex items-center gap-2 pt-5 font-medium text-small">
                 Explore
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
               </span>

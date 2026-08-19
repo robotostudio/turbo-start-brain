@@ -1,22 +1,20 @@
 "use client";
 
 import { SanityButtons } from "@workspace/sanity-blocks/internal/sanity-buttons";
-import { Github, SunMoon } from "lucide-react";
+import { Github } from "lucide-react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 
 import { DocsSearch } from "@/components/docs/docs-search";
-import { DocsMobileSidebar } from "@/components/docs/docs-sidebar";
+import {
+  DocsMobileSidebar,
+  type MobileNavLink,
+} from "@/components/docs/docs-sidebar";
 import { Logo } from "@/components/logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { DocsTreeNode } from "@/lib/docs-tree";
 import type { NavigationData } from "@/types";
 
-type HeaderLink = {
-  _key: string;
-  name?: string | null;
-  href?: string | null;
-  openInNewTab?: boolean | null;
-};
+type HeaderLink = MobileNavLink;
 
 /**
  * The navbar singleton stores either standalone links or titled columns of
@@ -51,14 +49,17 @@ export function DocsHeader({
   settings: NavigationData["settingsData"];
   tree: DocsTreeNode[];
 }>) {
-  const { setTheme, resolvedTheme } = useTheme();
   const { logos, siteTitle } = settings ?? {};
   const links = flattenNavbarLinks(navbar);
 
   return (
     <header className="sticky top-0 z-40 h-14 border-b bg-background/90 backdrop-blur-lg">
       <div className="flex h-full items-center gap-3 px-4 sm:px-6">
-        <DocsMobileSidebar tree={tree} />
+        <DocsMobileSidebar
+          buttons={navbar?.buttons}
+          links={links}
+          tree={tree}
+        />
         <Logo
           alt={siteTitle ?? "Turbo Start Brain"}
           className="max-h-6 w-auto"
@@ -105,16 +106,7 @@ export function DocsHeader({
               <Github className="size-4" />
             </a>
           ) : null}
-          <button
-            aria-label="Toggle color theme"
-            className="focus-ring grid size-9 shrink-0 place-items-center rounded-md hover:bg-muted"
-            onClick={() =>
-              setTheme(resolvedTheme === "dark" ? "light" : "dark")
-            }
-            type="button"
-          >
-            <SunMoon className="size-4" />
-          </button>
+          <ThemeToggle />
         </div>
       </div>
     </header>

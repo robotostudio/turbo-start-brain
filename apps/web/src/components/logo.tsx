@@ -63,14 +63,20 @@ export function Logo({
           />
         </>
       ) : (
-        <SanityImage
-          className={cn("h-auto w-44", className)}
-          height={32}
-          image={{ ...image, alt: alt ?? image.alt }}
-          loading={loading}
-          sizes="210px"
-          width={210}
-        />
+        /* Only a light asset was uploaded, so a dark-ink logo would vanish
+           against the dark ground. Give it a light plaque to sit on rather
+           than a CSS `invert`, which mangles any logo that isn't monochrome.
+           The real fix is uploading a `logoDark` in Studio. */
+        <span className="inline-block rounded-md dark:bg-foreground dark:px-2 dark:py-1">
+          <SanityImage
+            className={cn("h-auto w-44", className)}
+            height={32}
+            image={{ ...image, alt: alt ?? image.alt }}
+            loading={loading}
+            sizes="210px"
+            width={210}
+          />
+        </span>
       )}
     </Link>
   );

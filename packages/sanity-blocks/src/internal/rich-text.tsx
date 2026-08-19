@@ -1,7 +1,3 @@
-"use client";
-
-import { Tabs } from "@base-ui/react/tabs";
-import MuxPlayer from "@mux/mux-player-react/lazy";
 import { Logger } from "@workspace/logger";
 import { cn } from "@workspace/tailwind-config/utils";
 import Link from "next/link";
@@ -10,34 +6,41 @@ import {
   PortableText,
   type PortableTextBlock,
   type PortableTextReactComponents,
-} from "next-sanity";
+} from "@portabletext/react";
 
 import { CodeBlock } from "./code-block";
 import { headingChildrenToSlug as parseChildrenToSlug } from "./heading-slug";
+import { MuxVideo } from "./mux-video";
+import { RichTextTabs } from "./rich-text-tabs";
 import { sanitizeHref } from "./safe-href";
 import { SanityImage } from "./sanity-image";
 
 const logger = new Logger("RichText");
 
+/** Driven by the `--info`/`--warning`/`--success`/`--danger` theme tokens and
+ * their `-surface` companions rather than the raw Tailwind palette, so each
+ * variant is re-tuned per theme in one place (globals.css). The surfaces are
+ * opaque mixes against `--background`, not alpha washes — an 8% wash was
+ * invisible on the dark ground. */
 const calloutStyles = {
   info: {
-    className: "border-blue-500/40 bg-blue-500/8",
-    iconClassName: "text-blue-600 dark:text-blue-400",
+    className: "border-info/35 bg-info-surface",
+    iconClassName: "text-info",
     Icon: Info,
   },
   warning: {
-    className: "border-amber-500/50 bg-amber-500/10",
-    iconClassName: "text-amber-600 dark:text-amber-400",
+    className: "border-warning/40 bg-warning-surface",
+    iconClassName: "text-warning",
     Icon: TriangleAlert,
   },
   success: {
-    className: "border-emerald-500/40 bg-emerald-500/8",
-    iconClassName: "text-emerald-600 dark:text-emerald-400",
+    className: "border-success/35 bg-success-surface",
+    iconClassName: "text-success",
     Icon: CircleCheck,
   },
   danger: {
-    className: "border-red-500/40 bg-red-500/8",
-    iconClassName: "text-red-600 dark:text-red-400",
+    className: "border-danger/35 bg-danger-surface",
+    iconClassName: "text-danger",
     Icon: OctagonAlert,
   },
 } as const;
@@ -71,7 +74,7 @@ const components: Partial<PortableTextReactComponents> = {
       const slug = parseChildrenToSlug(value.children);
       return (
         <h2
-          className="mt-12 mb-8 scroll-m-20 font-medium text-4xl leading-[48px] tracking-[-0.24px] first:mt-0"
+          className="mt-10 mb-3 scroll-m-24 font-semibold text-h3 first:mt-0 sm:text-h2"
           id={slug}
         >
           {children}
@@ -82,7 +85,7 @@ const components: Partial<PortableTextReactComponents> = {
       const slug = parseChildrenToSlug(value.children);
       return (
         <h2
-          className="mt-12 mb-8 scroll-m-20 font-medium text-4xl leading-[48px] tracking-[-0.24px] first:mt-0"
+          className="mt-10 mb-3 scroll-m-24 font-semibold text-h3 first:mt-0 sm:text-h2"
           id={slug}
         >
           {children}
@@ -93,7 +96,7 @@ const components: Partial<PortableTextReactComponents> = {
       const slug = parseChildrenToSlug(value.children);
       return (
         <h3
-          className="scroll-m-20 font-medium text-3xl leading-10 tracking-[-0.24px]"
+          className="mt-8 mb-2 scroll-m-24 font-semibold text-h4 sm:text-h3"
           id={slug}
         >
           {children}
@@ -104,7 +107,7 @@ const components: Partial<PortableTextReactComponents> = {
       const slug = parseChildrenToSlug(value.children);
       return (
         <h4
-          className="scroll-m-20 font-medium text-2xl leading-8 tracking-[-0.24px]"
+          className="mt-6 mb-2 scroll-m-24 font-semibold text-body sm:text-h4"
           id={slug}
         >
           {children}
@@ -114,7 +117,7 @@ const components: Partial<PortableTextReactComponents> = {
     h5: ({ children, value }) => {
       const slug = parseChildrenToSlug(value.children);
       return (
-        <h5 className="scroll-m-20 font-medium text-xl leading-7" id={slug}>
+        <h5 className="mt-6 mb-2 scroll-m-24 font-semibold text-body" id={slug}>
           {children}
         </h5>
       );
@@ -122,7 +125,10 @@ const components: Partial<PortableTextReactComponents> = {
     h6: ({ children, value }) => {
       const slug = parseChildrenToSlug(value.children);
       return (
-        <h6 className="scroll-m-20 font-medium text-lg leading-7" id={slug}>
+        <h6
+          className="mt-6 mb-2 scroll-m-24 font-semibold text-small"
+          id={slug}
+        >
           {children}
         </h6>
       );
@@ -171,7 +177,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <aside
           className={cn(
-            "not-prose my-6 flex gap-3 rounded-xl border p-4 text-sm",
+            "not-prose my-6 flex gap-3 rounded-xl border p-4 text-small",
             variant.className
           )}
         >
@@ -180,7 +186,7 @@ const components: Partial<PortableTextReactComponents> = {
             className={cn("mt-0.5 size-5 shrink-0", variant.iconClassName)}
           />
           <RichText
-            className="min-w-0 flex-1 prose-p:my-2 prose-p:text-foreground/80 prose-p:text-sm prose-p:leading-6 prose-p:first:mt-0 prose-p:last:mb-0"
+            className="min-w-0 flex-1 prose-p:my-2 prose-p:text-foreground/80 prose-p:text-small prose-p:first:mt-0 prose-p:last:mb-0"
             richText={value?.body}
           />
         </aside>
@@ -226,10 +232,9 @@ const components: Partial<PortableTextReactComponents> = {
       }
       return (
         <figure className="not-prose my-8">
-          <MuxPlayer
+          <MuxVideo
             className="aspect-video w-full overflow-hidden rounded-xl border bg-black"
             playbackId={playbackId}
-            streamType="on-demand"
           />
           {value?.caption ? (
             <figcaption className="mt-2 text-center text-sm text-muted-foreground">
@@ -251,8 +256,13 @@ const components: Partial<PortableTextReactComponents> = {
               <span className="absolute top-0 -left-4 flex size-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm ring-4 ring-background">
                 {index + 1}
               </span>
-              <h3 className="mb-2 pt-1 font-medium text-base">{item.title}</h3>
-              <RichText richText={item.content} />
+              <h3 className="mb-2 pt-1 font-semibold text-h4">{item.title}</h3>
+              {/* Inherit the page body step so copy inside a step is the same
+                  size as copy outside it. */}
+              <RichText
+                className="prose-p:text-body prose-li:text-body"
+                richText={item.content}
+              />
             </li>
           ))}
         </ol>
@@ -263,36 +273,16 @@ const components: Partial<PortableTextReactComponents> = {
       if (items.length === 0) {
         return null;
       }
-      const defaultValue = items[0]?._key;
+      // Panels are rendered here, on the server, and handed to the client
+      // shell as nodes — the tab state is the only thing that ships.
       return (
-        <Tabs.Root className="not-prose my-8" defaultValue={defaultValue}>
-          {/* The underline indicator: each tab draws a 2px bottom border on
-              the same edge as the list's 1px rule, drawn as an inset shadow
-              so the active border overlaps it even while the list scrolls. */}
-          <Tabs.List
-            aria-label="Content options"
-            className="flex gap-4 overflow-x-auto shadow-[inset_0_-1px_0_0_var(--color-border)]"
-          >
-            {items.map((item) => (
-              <Tabs.Tab
-                className="whitespace-nowrap border-transparent border-b-2 px-1 pt-1 pb-2.5 font-medium text-muted-foreground text-sm outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:border-primary data-active:text-foreground"
-                key={item._key}
-                value={item._key}
-              >
-                {item.title}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-          {items.map((item) => (
-            <Tabs.Panel
-              className="pt-4 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-              key={item._key}
-              value={item._key}
-            >
-              <RichText richText={item.content} />
-            </Tabs.Panel>
-          ))}
-        </Tabs.Root>
+        <RichTextTabs
+          items={items.map((item) => ({
+            key: item._key,
+            title: item.title,
+            content: <RichText richText={item.content} />,
+          }))}
+        />
       );
     },
   },

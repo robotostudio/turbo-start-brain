@@ -80,7 +80,7 @@ export function ChatComposer({
               blur masks the swap and scale-on-press confirms the tap. */}
           <InputGroupButton
             aria-label={isBusy ? "Stop generating" : "Send message"}
-            className="transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94]"
+            className="size-10 sm:size-8 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94]"
             disabled={!isBusy && !canSend}
             onClick={isBusy ? onStop : undefined}
             size="icon-sm"

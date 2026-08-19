@@ -11,10 +11,30 @@ import {
 } from "@workspace/ui/components/dialog";
 import { FileText, Loader2, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 const SEARCH_DEBOUNCE_MS = 200;
 const MIN_QUERY_LENGTH = 2;
+const SKELETON_ROWS = [0, 1, 2];
+
+/**
+ * Any client component can open the palette (optionally seeded with a query)
+ * by dispatching this event on `window` — see `openDocsSearch`.
+ */
+export const DOCS_SEARCH_OPEN_EVENT = "docs-search:open";
+
+export function openDocsSearch(query?: string) {
+  window.dispatchEvent(
+    new CustomEvent(DOCS_SEARCH_OPEN_EVENT, { detail: { query } })
+  );
+}
 
 type SearchResult = {
   title: string | null;
@@ -25,10 +45,36 @@ type SearchResult = {
 
 type SearchState = "idle" | "loading" | "done";
 
+/** Screen-reader status text for the current search state. */
+function describeResults({
+  count,
+  isSearching,
+  query,
+  showEmpty,
+}: {
+  count: number;
+  isSearching: boolean;
+  query: string;
+  showEmpty: boolean;
+}): string {
+  if (isSearching) {
+    return "Searching the docs…";
+  }
+  if (showEmpty) {
+    return `No results for ${query}`;
+  }
+  if (count > 0) {
+    return `${count} result${count === 1 ? "" : "s"} for ${query}. Use the arrow keys to review results, Enter to open.`;
+  }
+  return "";
+}
+
 /**
  * Docs search palette: a header trigger opening a centered dialog that
  * queries `/api/docs/search` as you type. Results support arrow-key
- * navigation; Enter opens the highlighted doc.
+ * navigation; Enter opens the highlighted doc. The palette stays open with a
+ * pending row until the navigation commits, so choosing a result never leaves
+ * the reader staring at the old page with no feedback.
  */
 export function DocsSearch() {
   const router = useRouter();
@@ -39,6 +85,8 @@ export function DocsSearch() {
   const [state, setState] = useState<SearchState>("idle");
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMac, setIsMac] = useState(true);
+  const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  const [isNavigating, startNavigation] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,8 +98,19 @@ export function DocsSearch() {
         setOpen((wasOpen) => !wasOpen);
       }
     };
+    const onOpenRequest = (event: Event) => {
+      const seed = (event as CustomEvent<{ query?: string }>).detail?.query;
+      if (seed) {
+        setQuery(seed);
+      }
+      setOpen(true);
+    };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
+    };
   }, []);
 
   useEffect(() => {
@@ -85,31 +144,51 @@ export function DocsSearch() {
     };
   }, [query]);
 
-  const onOpenChange = (nextOpen: boolean) => {
+  const onOpenChange = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) {
       setQuery("");
       setResults([]);
       setState("idle");
       setActiveIndex(0);
+      setPendingSlug(null);
     }
-  };
+  }, []);
+
+  // The palette holds itself open (pending) while the route resolves; close it
+  // only once React has committed the navigation.
+  useEffect(() => {
+    if (pendingSlug && !isNavigating) {
+      onOpenChange(false);
+    }
+  }, [isNavigating, onOpenChange, pendingSlug]);
 
   const navigateTo = (slug: string | null) => {
-    if (!slug) {
+    if (!slug || pendingSlug) {
       return;
     }
-    onOpenChange(false);
-    router.push(slug);
+    setPendingSlug(slug);
+    startNavigation(() => {
+      router.push(slug);
+    });
   };
 
   const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (results.length === 0 && event.key !== "Enter") {
+      return;
+    }
     if (event.key === "ArrowDown") {
       event.preventDefault();
       setActiveIndex((index) => Math.min(index + 1, results.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      setActiveIndex(0);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      setActiveIndex(results.length - 1);
     } else if (event.key === "Enter") {
       event.preventDefault();
       navigateTo(results[activeIndex]?.slug ?? null);
@@ -122,10 +201,21 @@ export function DocsSearch() {
       ?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, listboxId]);
 
+  const trimmedQuery = query.trim();
+  const isSearching = state === "loading";
   const showEmpty =
     state === "done" &&
     results.length === 0 &&
-    query.trim().length >= MIN_QUERY_LENGTH;
+    trimmedQuery.length >= MIN_QUERY_LENGTH;
+  const showIdle = state === "idle" && results.length === 0;
+  const hasResults = results.length > 0;
+
+  const announcement = describeResults({
+    count: results.length,
+    isSearching,
+    query: trimmedQuery,
+    showEmpty,
+  });
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
@@ -151,22 +241,26 @@ export function DocsSearch() {
         <DialogPopup aria-label="Search documentation">
           <DialogTitle className="sr-only">Search documentation</DialogTitle>
           <div className="flex items-center gap-2 border-b px-4">
-            {state === "loading" ? (
+            {isSearching ? (
               <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
             ) : (
               <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
             )}
             <input
               aria-activedescendant={
-                results.length > 0
-                  ? `${listboxId}-option-${activeIndex}`
-                  : undefined
+                hasResults ? `${listboxId}-option-${activeIndex}` : undefined
               }
+              aria-autocomplete="list"
               aria-controls={listboxId}
-              aria-expanded={results.length > 0}
+              aria-expanded={hasResults}
               autoComplete="off"
               autoFocus
-              className="h-12 w-full bg-transparent text-foreground text-sm outline-none placeholder:text-muted-foreground"
+              // text-base below sm keeps the field at 16px so iOS Safari does
+              // not zoom the page when the palette autofocuses.
+              className={cn(
+                "h-12 w-full bg-transparent text-base text-foreground outline-none",
+                "placeholder:text-muted-foreground sm:text-sm"
+              )}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={onInputKeyDown}
               placeholder="Search documentation…"
@@ -183,7 +277,7 @@ export function DocsSearch() {
             aria-label="Search results"
             className={cn(
               "max-h-[50dvh] overflow-y-auto overscroll-contain p-2",
-              results.length === 0 && !showEmpty && "hidden"
+              !(hasResults || showEmpty) && "hidden"
             )}
             id={listboxId}
             ref={listRef}
@@ -192,7 +286,7 @@ export function DocsSearch() {
           >
             {showEmpty ? (
               <p className="px-3 py-8 text-center text-muted-foreground text-sm">
-                No results for “{query.trim()}”
+                No results for “{trimmedQuery}”
               </p>
             ) : null}
             {results.map((result, index) => (
@@ -202,7 +296,8 @@ export function DocsSearch() {
                   "grid cursor-pointer gap-1 rounded-md px-3 py-2.5",
                   index === activeIndex
                     ? "bg-muted text-foreground"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground",
+                  pendingSlug && pendingSlug !== result.slug && "opacity-50"
                 )}
                 id={`${listboxId}-option-${index}`}
                 key={result.slug ?? index}
@@ -217,7 +312,11 @@ export function DocsSearch() {
                 tabIndex={-1}
               >
                 <span className="flex items-center gap-2 font-medium text-foreground text-sm">
-                  <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  {pendingSlug === result.slug ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                  ) : (
+                    <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  )}
                   {result.title}
                 </span>
                 {result.snippet ? (
@@ -228,11 +327,24 @@ export function DocsSearch() {
               </div>
             ))}
           </div>
-          {results.length === 0 && !showEmpty ? (
+          {isSearching ? (
+            <div className="grid gap-1 p-2" data-testid="search-skeleton">
+              {SKELETON_ROWS.map((row) => (
+                <div className="grid gap-2 px-3 py-2.5" key={row}>
+                  <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                  <div className="h-3 w-4/5 animate-pulse rounded bg-muted/60" />
+                </div>
+              ))}
+            </div>
+          ) : null}
+          {showIdle ? (
             <p className="px-4 py-8 text-center text-muted-foreground text-sm">
               Type to search the docs…
             </p>
           ) : null}
+          <p aria-live="polite" className="sr-only" role="status">
+            {pendingSlug ? "Opening result…" : announcement}
+          </p>
         </DialogPopup>
       </DialogPortal>
     </Dialog>

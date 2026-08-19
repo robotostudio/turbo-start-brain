@@ -1,13 +1,12 @@
-"use client";
-
-import { useOptimistic } from "@sanity/visual-editing/react";
 import { env } from "@workspace/env/client";
 import { FaqAccordion } from "@workspace/sanity-blocks/faq-accordion/index";
 import { FeatureCardsWithIcon } from "@workspace/sanity-blocks/feature-cards-icon/index";
 import { RichTextBlock } from "@workspace/sanity-blocks/rich-text-block/index";
 import { cn } from "@workspace/tailwind-config/utils";
+import { draftMode } from "next/headers";
 import { createDataAttribute } from "next-sanity";
 
+import { OptimisticBlocksLoader } from "@/components/pagebuilder-optimistic-loader";
 import type { PageBuilderBlock, PagebuilderType } from "@/types";
 
 export type PageBuilderProps = {
@@ -27,11 +26,7 @@ type SanityDataAttributeConfig = {
  * against its PagebuilderType so a GROQ or schema rename breaks the build
  * instead of silently passing through `any`.
  */
-function renderBlockComponent(
-  block: PageBuilderBlock,
-  _isFirst: boolean,
-  _dataSanity?: string
-) {
+function renderBlockComponent(block: PageBuilderBlock) {
   switch (block?._type) {
     case "faqAccordion":
       return <FaqAccordion {...(block as PagebuilderType<"faqAccordion">)} />;
@@ -83,103 +78,78 @@ function UnknownBlockError({
   );
 }
 
-function useOptimisticPageBuilder(
-  initialBlocks: PageBuilderBlock[],
-  documentId: string
-) {
-  // biome-ignore lint/suspicious/noExplicitAny: <any is used to allow for dynamic component rendering>
-  return useOptimistic<PageBuilderBlock[], any>(
-    initialBlocks,
-    (currentBlocks, action) => {
-      // `action` is untyped and comes off the mutation stream, so a truthy
-      // non-array `pageBuilder` would throw out of `for...of` mid-render.
-      if (
-        action.id !== documentId ||
-        !Array.isArray(action.document?.pageBuilder)
-      ) {
-        return currentBlocks;
-      }
+function renderBlock(block: PageBuilderBlock, dataSanity?: string) {
+  const content = block && renderBlockComponent(block);
+  const key = `${block?._type}-${block?._key}`;
 
-      // The action carries the raw document, not the GROQ projection the page
-      // rendered from, so only its `_key` order is usable — take that and keep
-      // the resolved blocks. Keys with no resolved block (a just-inserted one)
-      // are dropped until revalidation projects them.
-      const resolved = new Map(
-        currentBlocks.map((block) => [block._key, block])
-      );
-      const reordered: PageBuilderBlock[] = [];
-      for (const raw of action.document.pageBuilder) {
-        const block = raw?._key ? resolved.get(raw._key) : undefined;
-        if (block) {
-          reordered.push(block);
-        }
-      }
-      return reordered;
-    }
-  );
-}
-
-function useBlockRenderer(id: string, type: string) {
-  const createBlockDataAttribute = (blockKey: string) =>
-    createSanityDataAttribute({
-      id,
-      type,
-      path: `pageBuilder[_key=="${blockKey}"]`,
-    });
-
-  const renderBlock = (block: PageBuilderBlock, index: number) => {
-    const dataSanity = block && createBlockDataAttribute(block._key);
-    const content =
-      block && renderBlockComponent(block, index === 0, dataSanity);
-
-    if (!content) {
-      return (
-        <UnknownBlockError
-          blockKey={block?._key ?? ""}
-          blockType={block?._type ?? "unknown"}
-          key={`${block?._type}-${block?._key}`}
-        />
-      );
-    }
-
+  if (!content) {
     return (
-      <div
-        className={cn("relative z-10 min-w-0 bg-background")}
-        data-sanity={dataSanity}
-        key={`${block._type}-${block._key}`}
-      >
-        {content}
-      </div>
+      <UnknownBlockError
+        blockKey={block?._key ?? ""}
+        blockType={block?._type ?? "unknown"}
+        key={key}
+      />
     );
-  };
-
-  return { renderBlock };
-}
-
-export function PageBuilder({
-  pageBuilder: initialBlocks = [],
-  id,
-  type,
-}: PageBuilderProps) {
-  const blocks = useOptimisticPageBuilder(initialBlocks, id);
-  const { renderBlock } = useBlockRenderer(id, type);
-
-  const containerDataAttribute = createSanityDataAttribute({
-    id,
-    type,
-    path: "pageBuilder",
-  });
-
-  if (!blocks.length) {
-    return null;
   }
 
   return (
     <div
-      className="grid min-w-0 grid-cols-1"
-      data-sanity={containerDataAttribute}
+      className={cn("relative z-10 min-w-0 bg-background")}
+      data-sanity={dataSanity}
+      key={key}
     >
-      {blocks.map(renderBlock)}
+      {content}
     </div>
+  );
+}
+
+/**
+ * Server component. Blocks render on the server for every visitor; the
+ * `data-sanity` attributes and the `useOptimistic` reorder wrapper — the only
+ * parts that need Presentation — are added on top of that server output, and
+ * only for a draft-mode session. An anonymous reader therefore downloads no
+ * visual-editing runtime for this tree at all.
+ */
+export async function PageBuilder({
+  pageBuilder: initialBlocks = [],
+  id,
+  type,
+}: PageBuilderProps) {
+  const { isEnabled: isDraftMode } = await draftMode();
+
+  if (!initialBlocks.length) {
+    return null;
+  }
+
+  if (!isDraftMode) {
+    return (
+      <div className="grid min-w-0 grid-cols-1">
+        {initialBlocks.map((block) => renderBlock(block))}
+      </div>
+    );
+  }
+
+  const blocks = initialBlocks.map((block) => ({
+    key: block?._key ?? "",
+    node: renderBlock(
+      block,
+      createSanityDataAttribute({
+        id,
+        type,
+        path: `pageBuilder[_key=="${block?._key}"]`,
+      })
+    ),
+  }));
+
+  return (
+    <OptimisticBlocksLoader
+      blocks={blocks}
+      containerDataAttribute={createSanityDataAttribute({
+        id,
+        type,
+        path: "pageBuilder",
+      })}
+      documentId={id}
+    />
   );
 }

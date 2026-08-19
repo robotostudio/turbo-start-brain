@@ -1,5 +1,4 @@
 "use client";
-import { env } from "@workspace/env/client";
 import { cn } from "@workspace/tailwind-config/utils";
 import type { ElementType } from "react";
 import {
@@ -7,8 +6,13 @@ import {
   type WrapperProps,
 } from "sanity-image";
 
+// Read straight off `process.env` rather than through `@workspace/env/client`:
+// this module ends up in the browser bundle, and importing the validated env
+// object drags @t3-oss/env + zod (~27 KB gzip) in with it. Next inlines these
+// two `NEXT_PUBLIC_*` reads at build time; they are validated at startup by
+// `next.config.ts`, which imports `@workspace/env/client` on the server.
 const SANITY_BASE_URL =
-  `https://cdn.sanity.io/images/${env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${env.NEXT_PUBLIC_SANITY_DATASET}/` as const;
+  `https://cdn.sanity.io/images/${process.env.NEXT_PUBLIC_SANITY_PROJECT_ID}/${process.env.NEXT_PUBLIC_SANITY_DATASET}/` as const;
 
 export interface SanityImageData {
   id?: string | null;

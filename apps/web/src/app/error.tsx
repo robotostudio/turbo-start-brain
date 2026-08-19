@@ -1,50 +1,66 @@
+"use client";
+
+import { Logger } from "@workspace/logger";
 import { Button } from "@workspace/ui/components/button";
-import type { Metadata } from "next";
 import Link from "next/link";
+import { useEffect } from "react";
 
-import { SearchDocsButton } from "@/components/docs/search-docs-button";
+const logger = new Logger("AppError");
 
-export const metadata: Metadata = {
-  title: "Page not found",
-  description: "The page you are looking for does not exist.",
-  robots: "noindex, nofollow",
-  alternates: {},
-};
+export default function RouteError({
+  error,
+  reset,
+}: Readonly<{
+  error: Error & { digest?: string };
+  reset: () => void;
+}>) {
+  useEffect(() => {
+    logger.error("Unhandled route error", error);
+  }, [error]);
 
-const actionClassName =
-  "h-9 rounded-full px-4 font-mono font-normal text-small uppercase tracking-wide";
-
-export default function NotFound() {
   return (
     <main className="flex min-h-[calc(100svh-4rem)] flex-col items-center justify-center px-6 py-24">
       <div className="grid w-full max-w-2xl justify-items-center gap-8 text-center">
         <div className="inline-flex items-center gap-2.5 border border-border px-3 py-1.5 font-light font-mono text-foreground text-small uppercase tracking-[0.28px]">
           <span className="size-2 shrink-0 rounded-[1px] bg-accent-green" />
-          <span>Not found</span>
+          <span>Error</span>
         </div>
 
         <h1 className="font-normal text-[clamp(6rem,26vw,15rem)] text-foreground leading-[0.8] tracking-tighter">
-          {"4"}
+          {"5"}
           <span className="bg-grid-dots bg-clip-text text-foreground [-webkit-text-fill-color:transparent]">
             {"0"}
           </span>
-          {"4"}
+          {"0"}
         </h1>
 
         <h2 className="max-w-2xl text-balance font-normal text-h2 sm:text-h1">
-          The page you are looking for does not exist.
+          Something went wrong on our side.
         </h2>
 
-        <div className="flex flex-wrap items-center justify-center gap-3">
+        {error.digest ? (
+          <p className="font-light font-mono text-muted-foreground text-small uppercase tracking-[0.28px]">
+            Reference {error.digest}
+          </p>
+        ) : null}
+
+        <div className="grid grid-flow-col gap-3">
           <Button
-            asChild
-            className={actionClassName}
+            className="h-9 rounded-full px-4 font-mono font-normal text-small uppercase tracking-wide"
+            onClick={reset}
             size="sm"
             variant="secondary"
           >
+            Try again
+          </Button>
+          <Button
+            asChild
+            className="h-9 rounded-full px-4 font-mono font-normal text-small uppercase tracking-wide"
+            size="sm"
+            variant="ghost"
+          >
             <Link href="/">Return home</Link>
           </Button>
-          <SearchDocsButton className={actionClassName} />
         </div>
       </div>
     </main>

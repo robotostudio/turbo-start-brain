@@ -81,8 +81,7 @@ create API tokens or CORS origins, and the web app will not boot without them.
 2. Note the **Project ID** and the **dataset** name (`production` by default).
 3. Under **API > Tokens**, create a token with the **Viewer** role. This is your
    `SANITY_API_READ_TOKEN`, used for drafts, live preview, and Visual Editing.
-4. Create a second token with the **Editor** role for `SANITY_API_WRITE_TOKEN`.
-5. Under **API > CORS origins**, add `http://localhost:3000` with
+4. Under **API > CORS origins**, add `http://localhost:3000` with
    **Allow credentials** enabled.
 
 ### 3. Configure environment variables
@@ -104,7 +103,6 @@ a required value is missing:
 | `NEXT_PUBLIC_SANITY_API_VERSION` | yes | Pre-filled with a valid date |
 | `NEXT_PUBLIC_SANITY_STUDIO_URL` | yes | `http://localhost:3333` locally |
 | `SANITY_API_READ_TOKEN` | yes | Viewer token — drafts, live preview, Visual Editing |
-| `SANITY_API_WRITE_TOKEN` | yes | Editor token. Validation requires it even though no runtime code reads it yet, so it must be set for `pnpm dev` and `pnpm build` to start |
 | `SANITY_REVALIDATE_SECRET` | no | Shared secret for the `/api/revalidate-sync-tags` webhook. The route rejects all requests while unset |
 
 `apps/studio/.env` — read via plain `process.env`, no schema validation:
@@ -266,8 +264,7 @@ editing requests.
 
 **`pnpm dev` exits immediately with an env validation error.** `apps/web` reads
 `@workspace/env` from `next.config.ts`, so every required variable in the table
-above must be present before the dev server starts — including
-`SANITY_API_WRITE_TOKEN`.
+above must be present before the dev server starts.
 
 **The web app starts but every page 404s or the site looks empty.** The dataset
 has no content yet. Run the seed import in step 4, or publish a `homePage`

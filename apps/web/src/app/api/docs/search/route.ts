@@ -1,3 +1,4 @@
+import { Logger } from "@workspace/logger";
 import {
   type DynamicFetchOptions,
   getDynamicFetchOptions,
@@ -9,6 +10,8 @@ import { NextResponse } from "next/server";
 
 const RESULT_LIMIT = 10;
 const SNIPPET_RADIUS = 60;
+
+const logger = new Logger("DocsSearchApi");
 
 async function getSearchableDocs(
   perspective: DynamicFetchOptions["perspective"]
@@ -62,7 +65,17 @@ export async function GET(request: Request) {
   }
 
   const { perspective } = await getDynamicFetchOptions();
-  const data = await getSearchableDocs(perspective);
+
+  let data: Awaited<ReturnType<typeof getSearchableDocs>>;
+  try {
+    data = await getSearchableDocs(perspective);
+  } catch (error) {
+    logger.error("Error fetching searchable docs", error);
+    return NextResponse.json(
+      { error: "Search is temporarily unavailable" },
+      { status: 503 }
+    );
+  }
 
   if (!data) {
     return NextResponse.json({ error: "No data found" }, { status: 404 });

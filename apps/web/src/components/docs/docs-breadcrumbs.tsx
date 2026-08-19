@@ -38,7 +38,7 @@ export function DocsBreadcrumbs({
                     <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
                   ) : (
                     <Link
-                      className="rounded-sm hover:text-foreground focus-ring"
+                      className="-my-1.5 rounded-sm py-1.5 hover:text-foreground focus-ring"
                       href={crumb.href}
                     >
                       {crumb.label}
