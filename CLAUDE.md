@@ -9,12 +9,17 @@ Turbo Start Brain — a docs/knowledgebase pnpm monorepo (Turborepo) with a Next
 ## Commands
 
 ```bash
-# Development (both apps)
-pnpm dev
-
-# Individual apps
-pnpm dev:web          # Next.js on localhost:3000 (Turbopack)
-pnpm dev:studio       # Sanity Studio on localhost:3333
+# Development (uses portless for local HTTPS domains — install globally: pnpm install -g portless)
+# Run `portless proxy start` once to start the background proxy (listens on :1355)
+pnpm dev              # both apps
+pnpm dev:web          # Next.js  → https://web.brain.localhost:1355
+pnpm dev:studio       # Studio   → https://studio.brain.localhost:1355
+# Each dev server prints its real URL on startup; `portless list` shows live routes.
+# On a non-main branch the host is prefixed by `scripts/portless-prefix.sh`
+# (e.g. feat/chat → https://feat-chat.web.brain.localhost:1355). Keep branch names short.
+# `pnpm --filter web dev:plain` / `--filter studio dev:plain` bypass portless (plain localhost ports).
+# Env files point at the portless URLs (NEXT_PUBLIC_SANITY_STUDIO_URL, SANITY_STUDIO_PRESENTATION_URL);
+# both origins are registered in Sanity CORS. Secrets sync via shelve.cloud (`shelve pull`).
 
 # Build
 pnpm build            # All packages
@@ -113,7 +118,7 @@ Canonical source of truth is `apps/web/.env.example` and `apps/studio/.env.examp
 **`apps/studio`** (plain `process.env`, loaded via `dotenv`/Vite — not `@workspace/env`):
 
 - Required: `SANITY_STUDIO_PROJECT_ID`, `SANITY_STUDIO_DATASET`
-- Optional: `SANITY_STUDIO_TITLE`, `SANITY_STUDIO_API_VERSION` (defaults to `2025-05-08` in `apps/studio/utils/constant.ts`), `SANITY_STUDIO_APP_ID` (written back after the first `sanity deploy`), `SANITY_STUDIO_PRESENTATION_URL` (required whenever `NODE_ENV` is not `development` — `utils/helper.ts` returns `http://localhost:3000` in development and throws otherwise, so an unset or `test` `NODE_ENV` throws too)
+- Optional: `SANITY_STUDIO_TITLE`, `SANITY_STUDIO_API_VERSION` (defaults to `2025-05-08` in `apps/studio/utils/constant.ts`), `SANITY_STUDIO_APP_ID` (written back after the first `sanity deploy`), `SANITY_STUDIO_PRESENTATION_URL` (in `development`, `utils/helper.ts` uses it when set and falls back to `http://localhost:3000`; required otherwise — an unset or `test` `NODE_ENV` throws)
 - `NEXT_PUBLIC_SITE_URL` and `SANITY_REVALIDATE_SECRET` are read only by the deployed Sanity Function `apps/studio/functions/invalidate-tags`, not by the Studio itself
 
 Web env vars are Zod-validated at startup via `@workspace/env` (`@workspace/env/client` and `@workspace/env/server`).

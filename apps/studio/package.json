@@ -5,7 +5,8 @@
   "main": "package.json",
   "license": "MIT",
   "scripts": {
-    "dev": "sanity dev",
+    "dev": "portless $(\"$(git rev-parse --show-toplevel)/scripts/portless-prefix.sh\")studio.brain sh -c 'sanity dev --host \"$HOST\" --port \"$PORT\"'",
+    "dev:plain": "sanity dev",
     "start": "sanity start",
     "build": "sanity build",
     "deploy": "sanity deploy",

@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "portless $(\"$(git rev-parse --show-toplevel)/scripts/portless-prefix.sh\")web.brain next dev --turbopack",
+    "dev:plain": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
@@ -15,7 +16,6 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@ai-sdk/mcp": "catalog:",
     "@ai-sdk/react": "catalog:",
     "@blossom-carousel/react": "^1.5.2",
     "@json-render/core": "catalog:",
