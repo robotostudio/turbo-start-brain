@@ -1,6 +1,5 @@
 "use client";
 
-import type { ChatStatus } from "ai";
 import {
   InputGroup,
   InputGroupAddon,
@@ -8,7 +7,9 @@ import {
   InputGroupTextarea,
 } from "@workspace/ui/components/input-group";
 import { Spinner } from "@workspace/ui/components/spinner";
+import type { ChatStatus } from "ai";
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 // Keyed remount per state so the icon crossfades in via @starting-style; a
 // light blur masks the swap between the two shapes.
@@ -47,6 +48,16 @@ export function ChatComposer({
 }>) {
   const isBusy = status === "submitted" || status === "streaming";
   const canSend = input.trim().length > 0 && !isBusy;
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // `autoFocus` is unreliable here: with streaming SSR + hydration React can
+  // mount this textarea after the browser's autofocus window has closed, so
+  // the page whose only job is typing a question opened with nothing focused
+  // (audit: activeElement was BODY, 69 Tabs from the input). Focus once on
+  // mount instead; `preventScroll` keeps a restored scroll position intact.
+  useEffect(() => {
+    textareaRef.current?.focus({ preventScroll: true });
+  }, []);
 
   return (
     <form
@@ -60,7 +71,7 @@ export function ChatComposer({
       <InputGroup className="bg-background">
         <InputGroupTextarea
           aria-label="Ask the docs assistant"
-          autoFocus
+          ref={textareaRef}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey) {

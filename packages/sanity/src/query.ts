@@ -136,6 +136,18 @@ export const queryDocBySlug = defineQuery(`
   }
   `);
 
+// The chat corpus. The filter is the security boundary — hidden and draft
+// documents must never reach the prompt — and `order(slug.current asc)` keeps
+// the assembled corpus byte-stable for prompt caching (a prefix match).
+export const queryCorpusDocs = defineQuery(`
+  *[_type == "doc" && defined(slug.current) && hidden != true] | order(slug.current asc){
+    ...,
+    "slug": slug.current,
+    body[]{${portableTextFragment}},
+    ${pageBuilderFragment}
+  }
+`);
+
 export const queryDocPaths = defineQuery(`
   *[_type == "doc" && defined(slug.current)].slug.current
 `);

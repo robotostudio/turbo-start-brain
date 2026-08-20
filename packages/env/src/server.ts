@@ -17,11 +17,21 @@ const env = createEnv({
     // Vercel AI Gateway key for the `/api/chat` docs assistant. Optional so
     // keyless dev/builds still boot; the chat route fails closed when unset.
     AI_GATEWAY_API_KEY: z.string().min(1).optional(),
+    // AI Gateway model id for the `/api/chat` docs assistant, e.g.
+    // `anthropic/claude-sonnet-5`. Optional so Haiku and Sonnet can be A/B'd
+    // from project settings; the route defaults to `anthropic/claude-haiku-4.5`.
+    CHAT_MODEL: z.string().min(1).optional(),
   },
 
   experimental__runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
   },
+
+  // `.env.example` ships the optional keys as bare `NAME=` lines, and copying
+  // it verbatim would otherwise hand Zod an empty string — which passes
+  // `.optional()` but fails `.min(1)`, throwing at import instead of falling
+  // back to the code default. Treat "set to nothing" as "not set".
+  emptyStringAsUndefined: true,
 
   extends: [vercel()],
 });

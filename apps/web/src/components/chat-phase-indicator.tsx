@@ -6,14 +6,10 @@ import type { ChatPhase } from "@/lib/ai/chat-phase";
 
 /**
  * Each chat phase gets its own hand-tuned orb animation:
- * - searching → a scan meridian sweeps a dotted globe
- * - reading   → a constellation wires itself (pulling tool results in)
- * - thinking  → particles on tilted orbits
- * - cards     → a dotted outline morphs circle → triangle → square
+ * - thinking → particles on tilted orbits
+ * - cards    → a dotted outline morphs circle → triangle → square
  */
 const ORB_STATE: Record<ChatPhase["key"], OrbState> = {
-  searching: "searching",
-  reading: "connecting",
   thinking: "working",
   cards: "shaping",
 };
