@@ -173,9 +173,9 @@ function DocContent({
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
       <main
-        // Equal side columns keep the article centred; the TOC hangs in the
-        // right one.
-        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)] xl:gap-16"
+        // Off-centre by design: the TOC column is wider than the left
+        // spacer, which is what stops its entries wrapping.
+        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,20rem)] xl:gap-10"
       >
         {/* 48rem = 768px, the same text width as the chat column. The cap
             lives here, not only on the xl grid column, because below xl the
