@@ -204,9 +204,6 @@ export function ChatPanel() {
           onSubmit={handleSubmit}
           status={status}
         />
-        <p className="mt-2 text-center text-muted-foreground text-xs">
-          Answers are generated from the documentation and may be incomplete.
-        </p>
       </div>
     </div>
   );
