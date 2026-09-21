@@ -19,7 +19,6 @@ import {
 } from "@workspace/ui/components/base-drawer";
 import { Button } from "@workspace/ui/components/button";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { Spinner } from "@workspace/ui/components/spinner";
 import {
   Sidebar,
   SidebarGroup,
@@ -27,6 +26,7 @@ import {
   SidebarGroupTrigger,
   SidebarItem,
 } from "@workspace/ui/components/sidebar";
+import { Spinner } from "@workspace/ui/components/spinner";
 import { Menu, X } from "lucide-react";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
@@ -283,13 +283,21 @@ export function DocsMobileSidebar({
                   }
                 />
               </div>
+              <DrawerTree onNavigate={close} tree={tree} />
               {hasSiteNav ? (
-                <div className="grid shrink-0 gap-2 border-b bg-sidebar px-3 py-3">
+                <div className="grid shrink-0 gap-2 border-t bg-sidebar px-3 py-3">
                   {links.length > 0 ? (
                     <nav aria-label="Site" className="grid gap-0.5">
                       {links.map((link) => (
                         <Link
-                          className="focus-ring flex min-h-9 items-center rounded-md px-2 font-medium text-sidebar-foreground/75 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          className={cn(
+                            "focus-ring flex min-h-9 items-center rounded-md px-2 font-medium text-sm transition-colors",
+                            // The header pill's treatment, so the assistant
+                            // reads as the one CTA and not another nav row.
+                            link.href === "/chat"
+                              ? "justify-center rounded-full bg-foreground text-background hover:opacity-90"
+                              : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                          )}
                           href={link.href ?? "#"}
                           key={link._key}
                           onClick={close}
@@ -317,7 +325,6 @@ export function DocsMobileSidebar({
                   ) : null}
                 </div>
               ) : null}
-              <DrawerTree onNavigate={close} tree={tree} />
             </DrawerContent>
           </DrawerPopup>
         </DrawerViewport>
