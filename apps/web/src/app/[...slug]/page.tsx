@@ -10,6 +10,7 @@ import {
 } from "@workspace/sanity/live";
 import { queryDocBySlug, queryDocPaths } from "@workspace/sanity/query";
 import { RichText } from "@workspace/sanity-blocks/internal/rich-text";
+import { cn } from "@workspace/tailwind-config/utils";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
@@ -20,6 +21,7 @@ import { DocsToc } from "@/components/docs/docs-toc";
 import { MobileTableOfContent } from "@/components/elements/table-of-content";
 import { PageBuilderJsonLd } from "@/components/page-builder-json-ld";
 import { PageBuilder } from "@/components/pagebuilder";
+import { DOC_GRID, DOC_GRID_WITH_TOC } from "@/lib/doc-grid";
 import {
   type DocsTreeNode,
   flattenDocsTree,
@@ -172,16 +174,18 @@ function DocContent({
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
-      <main
-        // Rail only from 2xl — below it a 768px article and a usable rail
-        // don't both fit, so the mobile disclosure carries it. Its track is
-        // wider than the left spacer, which is what stops entries wrapping.
-        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 2xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,20rem)] 2xl:gap-10"
-      >
+      <main className={cn(DOC_GRID, showToc ? DOC_GRID_WITH_TOC : "")}>
         {/* 48rem = 768px, the same text width as the chat column. The cap
             lives here, not only on the xl grid column, because below xl the
             article would otherwise run the full viewport. */}
-        <article className="mx-auto w-full min-w-0 max-w-3xl 2xl:col-start-2">
+        <article
+          className={cn(
+            "mx-auto w-full min-w-0 max-w-3xl",
+            // Only the TOC layout has a middle column; pinning without it adds
+            // an implicit column and shoves the article right.
+            showToc && "3xl:col-start-2"
+          )}
+        >
           <DocsBreadcrumbs slug={slug} title={data.title} />
           <header className="mb-10 border-b pb-8">
             <h1 className="text-balance font-semibold text-h1 sm:text-display">
@@ -194,7 +198,7 @@ function DocContent({
             ) : null}
           </header>
           <MobileTableOfContent
-            className="mb-8 2xl:hidden"
+            className="mb-8 xl:hidden"
             maxDepth={TOC_MAX_DEPTH}
             richText={body}
           />

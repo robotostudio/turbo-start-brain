@@ -204,6 +204,9 @@
  * small   14  chrome, captions, code
  * micro   12  labels, badges */
 @theme {
+  /* Wide enough (1712px) for the docs article to centre with its 14rem TOC
+     hanging right; a named breakpoint so it sorts after xl. */
+  --breakpoint-3xl: 107rem;
   --text-hero: 3.5rem;
   --text-hero--line-height: 1.04;
   --text-hero--letter-spacing: -0.035em;
