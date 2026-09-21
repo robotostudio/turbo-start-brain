@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@ai-sdk/mcp':
+      specifier: 2.0.31
+      version: 2.0.31
     '@ai-sdk/react':
       specifier: ^4.0.68
       version: 4.0.68
@@ -192,6 +195,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@ai-sdk/mcp':
+        specifier: 'catalog:'
+        version: 2.0.31(zod@4.3.6)
       '@ai-sdk/react':
         specifier: 'catalog:'
         version: 4.0.68(react@19.2.8)(zod@4.3.6)

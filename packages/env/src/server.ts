@@ -21,6 +21,12 @@ const env = createEnv({
     // `anthropic/claude-sonnet-5`. Optional so Haiku and Sonnet can be A/B'd
     // from project settings; the route defaults to `anthropic/claude-haiku-4.5`.
     CHAT_MODEL: z.string().min(1).optional(),
+    // Sanity Context MCP endpoint serving the docs Knowledge Base, and the
+    // organisation token (Context Viewer) the `/api/chat` assistant reads it
+    // with. Both optional so keyless dev/builds still boot; the chat route
+    // fails closed when either is unset.
+    SANITY_CONTEXT_MCP_URL: z.url().optional(),
+    SANITY_ORGANIZATION_TOKEN: z.string().min(1).optional(),
   },
 
   experimental__runtimeEnv: {
