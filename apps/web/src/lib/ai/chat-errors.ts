@@ -7,7 +7,7 @@
 export const CHAT_ERROR = {
   /** No `AI_GATEWAY_API_KEY` — the model call cannot succeed. */
   notConfigured: "chat_not_configured",
-  /** The docs corpus could not be assembled; answering would be improvisation. */
+  /** The Knowledge Base or the page index was unreachable; answering would be improvisation. */
   corpusUnavailable: "corpus_unavailable",
   /** Request body was not a usable `{ messages: UIMessage[] }`. */
   invalidBody: "invalid_body",
