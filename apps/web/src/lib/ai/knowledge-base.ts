@@ -80,7 +80,9 @@ export async function getDocsPageIndex(): Promise<string> {
     lines.unshift(`/ — ${indexTitle}`);
   }
 
-  if (lines.length === 0) {
+  // Guard on `pages`, not `lines`: the index title alone would satisfy a
+  // `lines` check and ship a page index whose only link is the site root.
+  if (pages.length === 0) {
     throw new PageIndexUnavailableError("Page index query returned no pages");
   }
 
