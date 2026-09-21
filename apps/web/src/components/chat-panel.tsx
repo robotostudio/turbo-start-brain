@@ -66,6 +66,7 @@ function speakableText(message: UIMessage | undefined) {
 export function ChatPanel() {
   const [input, setInput] = useState("");
   const [clickedPills, setClickedPills] = useState<string[]>([]);
+  const [hasTyped, setHasTyped] = useState(false);
   const { messages, sendMessage, setMessages, status, stop, error } = useChat({
     // Stable id: useChat otherwise generates a random one at render time,
     // which Cache Components rejects during prerender.
@@ -127,9 +128,9 @@ export function ChatPanel() {
   const announcedAnswer = status === "ready" ? speakableText(lastMessage) : "";
 
   // Once the conversation starts, the starter questions not yet clicked show as
-  // pills above the composer.
+  // pills above the composer, until the user types their own question.
   const followUps =
-    messages.length > 0
+    messages.length > 0 && !hasTyped
       ? EXAMPLE_QUESTIONS.filter((question) => !clickedPills.includes(question))
       : [];
   const isBusy = status === "submitted" || status === "streaming";
@@ -237,7 +238,12 @@ export function ChatPanel() {
         ) : null}
         <ChatComposer
           input={input}
-          onInputChange={setInput}
+          onInputChange={(value) => {
+            setInput(value);
+            if (value.trim()) {
+              setHasTyped(true);
+            }
+          }}
           onStop={handleStop}
           onSubmit={handleSubmit}
           status={status}
