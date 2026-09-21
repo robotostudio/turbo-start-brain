@@ -34,12 +34,15 @@ function phaseForPart(part: Part): ChatPhase | null | undefined {
     case "text":
       return part.text.trim().length > 0 ? undefined : null;
     default:
-      // json-render streams the doc-card spec as data parts after the prose;
-      // the MCP tool calls arrive as `tool-<name>` parts before it.
+      // json-render streams the doc-card spec as data parts after the prose.
       if (part.type.startsWith("data-")) {
         return CARDS;
       }
-      return part.type.startsWith("tool-") ? READING : null;
+      // Runtime-discovered MCP tools stream as `dynamic-tool`, not
+      // `tool-<name>` — matching only the latter would never fire.
+      return part.type === "dynamic-tool" || part.type.startsWith("tool-")
+        ? READING
+        : null;
   }
 }
 
