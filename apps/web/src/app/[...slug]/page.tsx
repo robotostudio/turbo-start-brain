@@ -175,13 +175,12 @@ function DocContent({
       <main
         // Equal side columns keep the article centred; the TOC hangs in the
         // right one.
-        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,37.5rem)_minmax(0,1fr)] xl:gap-16"
+        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)] xl:gap-16"
       >
-        {/* 37.5rem = 600px, measured at ~80 characters per line for 16px
-            Geist. The cap lives here, not only on the xl grid column, because
-            below xl the article would otherwise run the full viewport
-            (~101 characters per line at 1279px). */}
-        <article className="mx-auto w-full min-w-0 max-w-[37.5rem] xl:col-start-2">
+        {/* 48rem = 768px, the same text width as the chat column. The cap
+            lives here, not only on the xl grid column, because below xl the
+            article would otherwise run the full viewport. */}
+        <article className="mx-auto w-full min-w-0 max-w-3xl xl:col-start-2">
           <DocsBreadcrumbs slug={slug} title={data.title} />
           <header className="mb-10 border-b pb-8">
             <h1 className="text-balance font-semibold text-h1 sm:text-display">

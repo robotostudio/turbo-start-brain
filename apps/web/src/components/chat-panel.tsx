@@ -150,7 +150,7 @@ export function ChatPanel() {
             role="region"
             tabIndex={0}
           >
-            <MessageScrollerContent className="mx-auto w-full max-w-3xl px-5 py-6 sm:px-8">
+            <MessageScrollerContent className="mx-auto w-full max-w-[832px] px-5 py-6 sm:px-8">
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
                   <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
@@ -218,7 +218,7 @@ export function ChatPanel() {
       <output aria-live="polite" className="sr-only">
         {announcedAnswer}
       </output>
-      <div className="mx-auto w-full max-w-3xl px-5 pb-4 sm:px-8">
+      <div className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8">
         {followUps.length > 0 ? (
           <ul className="mb-2 flex flex-wrap gap-2">
             {followUps.map((question) => (

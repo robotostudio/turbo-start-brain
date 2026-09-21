@@ -21,13 +21,13 @@ export default function DocLoading() {
   return (
     <div
       // Same grid as the page: article centred, TOC in the right column.
-      className="grid min-h-[calc(100dvh-3.5rem)] animate-pulse grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,37.5rem)_minmax(0,1fr)] xl:gap-16"
+      className="grid min-h-[calc(100dvh-3.5rem)] animate-pulse grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,1fr)] xl:gap-16"
       role="status"
     >
       <span className="sr-only">Loading page</span>
       <div
         aria-hidden="true"
-        className="mx-auto w-full min-w-0 max-w-[37.5rem] xl:col-start-2"
+        className="mx-auto w-full min-w-0 max-w-3xl xl:col-start-2"
       >
         <div className="flex items-center gap-2">
           <Bar className="h-4 w-16" />
