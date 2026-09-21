@@ -21,13 +21,13 @@ export default function DocLoading() {
   return (
     <div
       // Same grid as the page — keep both in sync.
-      className="grid min-h-[calc(100dvh-3.5rem)] animate-pulse grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,20rem)] xl:gap-10"
+      className="grid min-h-[calc(100dvh-3.5rem)] animate-pulse grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 2xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,20rem)] 2xl:gap-10"
       role="status"
     >
       <span className="sr-only">Loading page</span>
       <div
         aria-hidden="true"
-        className="mx-auto w-full min-w-0 max-w-3xl xl:col-start-2"
+        className="mx-auto w-full min-w-0 max-w-3xl 2xl:col-start-2"
       >
         <div className="flex items-center gap-2">
           <Bar className="h-4 w-16" />
@@ -50,7 +50,7 @@ export default function DocLoading() {
           ))}
         </div>
       </div>
-      <div aria-hidden="true" className="hidden w-80 max-w-full xl:block">
+      <div aria-hidden="true" className="hidden w-80 max-w-full 2xl:block">
         <div className="sticky top-20 grid gap-3">
           <Bar className="h-4 w-28" />
           {TOC_LINE_WIDTHS.map((width) => (

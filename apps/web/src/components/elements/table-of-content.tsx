@@ -802,7 +802,9 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
   return (
     <details
       className={cn(
-        "bg-grid-dots p-2.5 text-zinc-800 lg:hidden dark:text-zinc-50",
+        // No breakpoint here: the one caller decides where the rail takes
+        // over, and a hardcoded `lg:hidden` would silently win over it.
+        "bg-grid-dots p-2.5 text-zinc-800 dark:text-zinc-50",
         className
       )}
       open
