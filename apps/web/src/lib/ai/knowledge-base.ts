@@ -1,6 +1,7 @@
 import { createMCPClient } from "@ai-sdk/mcp";
 import { type DynamicFetchOptions, sanityFetch } from "@workspace/sanity/live";
 import { queryDocsIndex } from "@workspace/sanity/query";
+import type { ToolSet } from "ai";
 import { cacheLife } from "next/cache";
 
 import { flattenDocsTree, getDocsNavigation } from "@/lib/docs-tree";
@@ -17,6 +18,13 @@ export class PageIndexUnavailableError extends Error {
   }
 }
 
+export class OutlineUnavailableError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "OutlineUnavailableError";
+  }
+}
+
 // Published + stega off: stega threads invisible characters through every
 // string, which would break the byte-stable cached prefix.
 const PUBLISHED: DynamicFetchOptions = {
@@ -26,6 +34,13 @@ const PUBLISHED: DynamicFetchOptions = {
 
 const PAGE_INDEX_PREAMBLE =
   "Every page on this site, as `/slug — Title` (a description follows where the page has one). These slugs are the only link targets that exist — the Knowledge Base entries you read are keyed by their own paths, which are NOT site URLs and must never be linked.";
+
+const OUTLINE_PREAMBLE =
+  "The Knowledge Base outline follows — its id, every entry path, and what each entry covers. This is the `initial_context` payload, already fetched, so never ask for it. Pick the entry paths that fit the question and read them with `knowledge_base_read`.";
+
+// Long enough for a cold Sanity fetch, short enough that a stalled endpoint
+// fails before the 30s function budget is spent waiting on it.
+const CONNECT_TIMEOUT_MS = 10_000;
 
 /**
  * The link table, not the knowledge: answers come from the Knowledge Base
@@ -73,18 +88,89 @@ export async function getDocsPageIndex(): Promise<string> {
 }
 
 /**
- * Connects to the Sanity Context endpoint serving the docs Knowledge Base. In
- * Knowledge Base mode it offers two tools: `initial_context` (the outline,
- * which names the Knowledge Base id) and `knowledge_base_read`.
- *
- * The caller must `close()` the client, or the connection outlives the request.
+ * The `initial_context` payload over plain HTTP, so its ~80KB rides in the
+ * cached prompt prefix instead of a tool call per conversation.
  */
-export function connectKnowledgeBase(url: string, token: string) {
-  return createMCPClient({
+export async function getKnowledgeBaseOutline(
+  url: string,
+  token: string
+): Promise<string> {
+  "use cache";
+  cacheLife("hours");
+
+  let response: Response;
+  try {
+    response = await fetch(`${url}/initial-context`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: AbortSignal.timeout(CONNECT_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new OutlineUnavailableError("Outline fetch failed", { cause: error });
+  }
+  if (!response.ok) {
+    throw new OutlineUnavailableError(
+      `Outline fetch returned ${response.status}`
+    );
+  }
+
+  const outline = (await response.text()).trim();
+  if (!outline) {
+    throw new OutlineUnavailableError("Outline fetch returned an empty body");
+  }
+  return `${OUTLINE_PREAMBLE}\n\n${outline}\n`;
+}
+
+/** The only tool the model is given. Anything else the endpoint advertises —
+ * GROQ mode serves four — is dropped rather than handed an org-scoped token. */
+const ALLOWED_TOOL = "knowledge_base_read";
+
+/** Only what the route uses. Naming the client's own type would drag a
+ * non-portable path into the declaration. */
+type KnowledgeBaseConnection = {
+  client: { close: () => Promise<void> };
+  tools: ToolSet;
+};
+
+/**
+ * Connects and returns only the entry-reading tool — `initial_context` is
+ * absent because `getKnowledgeBaseOutline` already supplied its payload.
+ *
+ * Rejects rather than hanging on a stalled endpoint, closing the client on that
+ * path. The caller must `close()` it on every other path.
+ */
+export async function connectKnowledgeBase(
+  url: string,
+  token: string
+): Promise<KnowledgeBaseConnection> {
+  const client = await createMCPClient({
     transport: {
       type: "http",
       url,
       headers: { Authorization: `Bearer ${token}` },
     },
   });
+
+  try {
+    const discovered = await Promise.race([
+      client.tools(),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Timed out listing Knowledge Base tools")),
+          CONNECT_TIMEOUT_MS
+        )
+      ),
+    ]);
+
+    const read = discovered[ALLOWED_TOOL];
+    if (!read) {
+      throw new Error(`Endpoint does not serve ${ALLOWED_TOOL}`);
+    }
+    return { client, tools: { [ALLOWED_TOOL]: read } };
+  } catch (error) {
+    // Connected by this point, so a failure here leaks the transport.
+    await client.close().catch(() => {
+      // Already failing; the close error would only mask the real cause.
+    });
+    throw error;
+  }
 }

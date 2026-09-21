@@ -24,6 +24,7 @@ import {
 import {
   connectKnowledgeBase,
   getDocsPageIndex,
+  getKnowledgeBaseOutline,
 } from "@/lib/ai/knowledge-base";
 
 export const maxDuration = 30;
@@ -34,14 +35,13 @@ const logger = new Logger("ChatRoute");
 // project. Gateway model ids, not first-party Anthropic ids.
 const DEFAULT_CHAT_MODEL = "anthropic/claude-haiku-4.5";
 
-// initial_context, then one or two knowledge_base_read calls, then the answer.
-// A cap rather than a target: the stop condition only bites on a model that
-// keeps fetching, and every extra step is a billed round trip.
+// A cap, not a target: one or two knowledge_base_read calls then the answer,
+// and every extra step is a billed round trip.
 const MAX_STEPS = 5;
 
 const BASE_INSTRUCTIONS = `You are the docs assistant for Turbo Start Brain, a documentation site.
 
-Your knowledge lives in a Sanity Knowledge Base you read through tools, and it is the only thing you may answer from. Call \`initial_context\` first — it returns the Knowledge Base id and an outline of every entry — then \`knowledge_base_read\` with that id and the entry paths that fit the question. When two to five entries might hold the answer, read them in one call rather than one at a time. Never describe or announce the tool calls; just answer.
+Your knowledge lives in a Sanity Knowledge Base, and it is the only thing you may answer from. Its outline — the Knowledge Base id and every entry path — is already below, so read the entries you need with \`knowledge_base_read\`, passing that id and the paths that fit the question. When two to five entries might hold the answer, read them in one call rather than one at a time. Never describe or announce the tool call; just answer.
 
 Two rules hold for every answer, including ones where the question never mentions pages:
 
@@ -115,17 +115,22 @@ export async function POST(req: Request) {
     return chatErrorResponse(CHAT_ERROR.invalidBody, 400);
   }
 
-  // Fail closed on either half of the knowledge path: no page index means no
-  // links, and no Knowledge Base connection means no grounding.
+  // Fail closed: answering without links, an entry map or a connection is
+  // worse than an error. `connectKnowledgeBase` closes its own client if it
+  // throws.
   let pageIndex: string;
+  let outline: string;
   let knowledgeBase: Awaited<ReturnType<typeof connectKnowledgeBase>>;
   let tools: ToolSet;
   try {
     // The `use cache` boundary can reshape the thrown error, so the cause is
     // logged rather than matched on.
-    pageIndex = await getDocsPageIndex();
-    knowledgeBase = await connectKnowledgeBase(endpoint, token);
-    tools = await knowledgeBase.tools();
+    [pageIndex, outline, knowledgeBase] = await Promise.all([
+      getDocsPageIndex(),
+      getKnowledgeBaseOutline(endpoint, token),
+      connectKnowledgeBase(endpoint, token),
+    ]);
+    tools = knowledgeBase.tools;
   } catch (error) {
     logger.error("Knowledge Base unavailable; refusing to answer", { error });
     return chatErrorResponse(CHAT_ERROR.corpusUnavailable, 503);
@@ -140,7 +145,7 @@ export async function POST(req: Request) {
     }
     closed = true;
     try {
-      await knowledgeBase.close();
+      await knowledgeBase.client.close();
     } catch (error) {
       logger.warn("Closing the Knowledge Base connection failed", { error });
     }
@@ -148,12 +153,14 @@ export async function POST(req: Request) {
 
   // Object form, not a string: only a SystemModelMessage can carry
   // providerOptions. Exactly one cache breakpoint, on the last system message,
-  // so the cached prefix covers the static instructions *and* the page index.
+  // so the cached prefix covers the instructions, the page index *and* the
+  // ~80KB outline.
   const instructions: SystemModelMessage[] = [
     { role: "system", content: STATIC_INSTRUCTIONS },
+    { role: "system", content: pageIndex },
     {
       role: "system",
-      content: pageIndex,
+      content: outline,
       providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } },
     },
   ];
