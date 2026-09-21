@@ -5,17 +5,18 @@ import type { ChatStatus, UIMessage } from "ai";
  * client-side from the last assistant message's streamed parts. Drives the
  * thinking-orb indicator: each phase maps to an orb state + label.
  *
- * The route is a single-shot, full-corpus call with no tools, so there is no
- * retrieval to narrate: the only observable states are "the model hasn't
- * emitted prose yet" and "the model is emitting the doc-card spec".
+ * The route reads a Sanity Knowledge Base over MCP before it answers, so the
+ * observable states are "the model hasn't emitted prose yet", "it is reading
+ * the Knowledge Base" and "it is emitting the doc-card spec".
  */
 export type ChatPhase = {
   /** Stable key — used to key label crossfades and pick the orb state. */
-  key: "thinking" | "cards";
+  key: "thinking" | "reading" | "cards";
   label: string;
 };
 
 const THINKING: ChatPhase = { key: "thinking", label: "Thinking" };
+const READING: ChatPhase = { key: "reading", label: "Reading the docs" };
 const CARDS: ChatPhase = { key: "cards", label: "Preparing doc cards" };
 
 type Part = UIMessage["parts"][number];
@@ -34,7 +35,14 @@ function phaseForPart(part: Part): ChatPhase | null | undefined {
       return part.text.trim().length > 0 ? undefined : null;
     default:
       // json-render streams the doc-card spec as data parts after the prose.
-      return part.type.startsWith("data-") ? CARDS : null;
+      if (part.type.startsWith("data-")) {
+        return CARDS;
+      }
+      // Runtime-discovered MCP tools stream as `dynamic-tool`, not
+      // `tool-<name>` — matching only the latter would never fire.
+      return part.type === "dynamic-tool" || part.type.startsWith("tool-")
+        ? READING
+        : null;
   }
 }
 

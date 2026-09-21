@@ -221,7 +221,9 @@ export function DocsSearch() {
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogTrigger
         className={cn(
-          "focus-ring inline-flex h-9 items-center gap-2 rounded-md border bg-muted/50 px-3",
+          // Below sm the label and kbd are hidden, so the asymmetric padding
+          // that balances them would push the lone icon off centre.
+          "focus-ring inline-flex h-9 items-center gap-2 rounded-full border bg-muted/50 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:pr-[5px] sm:pl-3 md:w-56 lg:w-64 xl:w-80",
           "text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
         )}
       >
@@ -229,7 +231,7 @@ export function DocsSearch() {
         <span className="hidden sm:inline">Search</span>
         <kbd
           className={cn(
-            "pointer-events-none ml-2 hidden items-center gap-0.5 rounded border bg-background px-1.5",
+            "pointer-events-none ml-auto hidden h-6 items-center gap-0.5 rounded-full border bg-background px-2",
             "font-medium font-sans text-[11px] text-muted-foreground sm:inline-flex"
           )}
         >

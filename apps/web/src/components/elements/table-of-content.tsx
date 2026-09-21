@@ -5,29 +5,12 @@ import {
   headingTextToSlug,
 } from "@workspace/sanity-blocks/internal/heading-slug";
 import {
-  CopyIcon,
-  InstagramIcon,
-  LinkedInIcon,
-  RedditIcon,
-  XIcon,
-} from "@workspace/sanity-blocks/internal/icons";
-import {
-  COPY_STATUS_CLASS,
-  useCopyToClipboard,
-} from "@workspace/sanity-blocks/internal/use-copy";
-import {
   DISCLOSURE_ANIMATION_MS,
   useDisclosureAnimation,
 } from "@workspace/sanity-blocks/internal/use-disclosure-animation";
 import { cn } from "@workspace/tailwind-config/utils";
-import { Check, ChevronDown } from "lucide-react";
-import {
-  type FC,
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { ChevronDown } from "lucide-react";
+import { type FC, type MouseEvent, useEffect, useState } from "react";
 
 import type { SanityRichTextBlock, SanityRichTextProps } from "@/types";
 
@@ -35,8 +18,6 @@ type TableOfContentProps = {
   richText?: SanityRichTextProps;
   className?: string;
   maxDepth?: number;
-  shareTitle?: string;
-  shareUrl?: string;
 };
 
 type ProcessedHeading = {
@@ -387,19 +368,50 @@ export function useTableOfContentState(
 }
 
 export function useActiveHeading(slugKey: string): string | null {
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const { active } = useHeadingsInView(slugKey);
+  return active === -1 ? null : (slugKey.split("|")[active] ?? null);
+}
+
+type HeadingsInView = {
+  /** First heading whose section is on screen (-1 above the first heading). */
+  readonly first: number;
+  /** Last heading that has scrolled into the viewport. */
+  readonly last: number;
+  /** The single current heading: `first`, or the last one at page bottom. */
+  readonly active: number;
+};
+
+const NONE_IN_VIEW: HeadingsInView = { first: -1, last: -1, active: -1 };
+
+/** Index of the last heading whose top is at or above `y` (-1 if none). */
+function lastIndexAtOrAbove(tops: readonly number[], y: number): number {
+  return tops.findLastIndex((top) => top <= y);
+}
+
+function sameInView(a: HeadingsInView, b: HeadingsInView): boolean {
+  return a.first === b.first && a.last === b.last && a.active === b.active;
+}
+
+export function useHeadingsInView(slugKey: string): HeadingsInView {
+  const [inView, setInView] = useState<HeadingsInView>(NONE_IN_VIEW);
 
   useEffect(() => {
     const slugs = slugKey ? slugKey.split("|") : [];
     if (slugs.length === 0) {
       return;
     }
-    const elements = slugs
-      .map((slug) => document.getElementById(slug))
-      .filter((element): element is HTMLElement => element !== null);
-    if (elements.length === 0) {
+    // Headings missing from the DOM are skipped, but every index reported back
+    // must still point into `slugs`, which the TOC renders in full.
+    const found = slugs.flatMap((slug, index) => {
+      const element = document.getElementById(slug);
+      return element ? [{ element, index }] : [];
+    });
+    if (found.length === 0) {
       return;
     }
+    const elements = found.map(({ element }) => element);
+    const toSlugIndex = (i: number) =>
+      i === -1 ? -1 : (found[i]?.index ?? -1);
 
     // Measured once and refreshed only when layout moves, so scrolling is pure
     // arithmetic over the cache and never forces a layout read.
@@ -414,21 +426,21 @@ export function useActiveHeading(slugKey: string): string | null {
     const update = () => {
       frame = 0;
       const line = window.scrollY + READING_LINE;
-      let index = -1;
-      for (const [i, top] of tops.entries()) {
-        if (top <= line + READING_LINE_SLACK) {
-          index = i;
-        }
-      }
+      const viewportBottom = window.scrollY + window.innerHeight;
+      const first = lastIndexAtOrAbove(tops, line + READING_LINE_SLACK);
+      const last = lastIndexAtOrAbove(tops, viewportBottom - 1);
       // The last heading can't always reach the line — there isn't necessarily
       // a viewport of content beneath it.
       const atBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 2;
-      if (atBottom) {
-        index = tops.length - 1;
-      }
-      setActiveSlug(index === -1 ? null : (slugs[index] ?? null));
+        viewportBottom >= document.documentElement.scrollHeight - 2;
+      const next = {
+        first: last === -1 ? -1 : toSlugIndex(Math.max(first, 0)),
+        last: toSlugIndex(last),
+        active: toSlugIndex(atBottom ? tops.length - 1 : first),
+      };
+      // Same values keep the same object, so scrolling within a section
+      // doesn't re-render the TOC.
+      setInView((current) => (sameInView(current, next) ? current : next));
     };
     const schedule = () => {
       if (!frame) {
@@ -456,7 +468,7 @@ export function useActiveHeading(slugKey: string): string | null {
     };
   }, [slugKey]);
 
-  return activeSlug;
+  return inView;
 }
 
 const TableOfContentAnchor: FC<AnchorProps> = ({
@@ -547,209 +559,6 @@ const TableOfContentAnchor: FC<AnchorProps> = ({
   );
 };
 
-type ShareTarget = {
-  readonly network: string;
-  readonly label: string;
-  readonly icon: FC<{ className?: string }>;
-  readonly url: (encodedUrl: string, encodedTitle: string) => string;
-  // Networks with no web share-URL endpoint (Instagram) use the native Web
-  // Share sheet instead of a plain link.
-  readonly webShare?: boolean;
-};
-
-const SHARE_TARGETS: readonly ShareTarget[] = [
-  {
-    network: "X",
-    label: "Post",
-    icon: XIcon,
-    url: (u, t) => `https://twitter.com/intent/tweet?url=${u}&text=${t}`,
-  },
-  {
-    network: "Instagram",
-    label: "Post",
-    icon: InstagramIcon,
-    url: () => "https://www.instagram.com/",
-    webShare: true,
-  },
-  {
-    network: "LinkedIn",
-    label: "Share",
-    icon: LinkedInIcon,
-    url: (u) => `https://www.linkedin.com/sharing/share-offsite/?url=${u}`,
-  },
-  {
-    network: "Reddit",
-    label: "Post",
-    icon: RedditIcon,
-    url: (u, t) => `https://www.reddit.com/submit?url=${u}&title=${t}`,
-  },
-] as const;
-
-export function ShareOptions({
-  title,
-  shareUrl,
-}: Readonly<{ title?: string; shareUrl?: string }>) {
-  const [url, setUrl] = useState(shareUrl ?? "");
-
-  useEffect(() => {
-    setUrl(window.location.href);
-  }, []);
-
-  const getShareUrl = useCallback(() => url || window.location.href, [url]);
-  const { status: copyStatus, copy } = useCopyToClipboard(getShareUrl);
-  const copied = copyStatus === "copied";
-
-  const encodedUrl = encodeURIComponent(url);
-  const encodedTitle = encodeURIComponent(title ?? "");
-
-  const handleWebShare = async (fallbackUrl: string) => {
-    const resolvedUrl = url || window.location.href;
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: title || undefined, url: resolvedUrl });
-        return;
-      } catch {
-        // Cancelled or the share failed — fall through to the fallback link.
-      }
-    }
-    window.open(fallbackUrl, "_blank", "noopener,noreferrer");
-  };
-
-  return (
-    <div className="flex items-center justify-between border-t border-zinc-900 px-1 pt-4 dark:border-zinc-50">
-      {SHARE_TARGETS.map((target) => {
-        const shareClass =
-          "focus-ring-inset flex flex-col items-center justify-center gap-1 rounded-none px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground";
-        if (target.webShare) {
-          return (
-            <button
-              aria-label={`Share on ${target.network}`}
-              className={shareClass}
-              key={target.network}
-              onClick={() =>
-                handleWebShare(target.url(encodedUrl, encodedTitle))
-              }
-              type="button"
-            >
-              <target.icon className="size-4.5" />
-              <span className="text-xs tracking-[0.02em]">{target.label}</span>
-            </button>
-          );
-        }
-        return (
-          <a
-            aria-label={`Share on ${target.network}`}
-            className={shareClass}
-            href={target.url(encodedUrl, encodedTitle)}
-            key={target.network}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <target.icon className="size-4.5" />
-            <span className="text-xs tracking-[0.02em]">{target.label}</span>
-          </a>
-        );
-      })}
-      <button
-        aria-label="Copy link to clipboard"
-        className={cn(
-          "focus-ring-inset flex flex-col items-center justify-center gap-1 rounded-none px-3 py-1.5 text-muted-foreground transition-colors hover:text-foreground",
-          COPY_STATUS_CLASS[copyStatus]
-        )}
-        onClick={copy}
-        type="button"
-      >
-        <span className="grid size-4.5 place-items-center">
-          {copied ? (
-            <Check aria-hidden="true" className="size-4.5" />
-          ) : (
-            <CopyIcon className="size-4.5" />
-          )}
-        </span>
-        <span className="grid text-xs tracking-[0.02em]">
-          <span
-            className={cn(
-              "col-start-1 row-start-1",
-              copied ? "visible" : "invisible"
-            )}
-          >
-            Copied
-          </span>
-          <span
-            className={cn(
-              "col-start-1 row-start-1",
-              copied ? "invisible" : "visible"
-            )}
-          >
-            Copy
-          </span>
-        </span>
-        <output className="sr-only">
-          {copyStatus === "copied" ? "Link copied to clipboard" : ""}
-          {copyStatus === "error" ? "Could not copy link" : ""}
-        </output>
-      </button>
-    </div>
-  );
-}
-
-export const TableOfContent: FC<TableOfContentProps> = ({
-  richText,
-  className,
-  maxDepth = DEFAULT_MAX_DEPTH,
-  shareTitle,
-  shareUrl,
-}) => {
-  const { shouldShow, headings, error } = useTableOfContentState(
-    richText,
-    maxDepth
-  );
-
-  const slugKey = flattenSlugs(headings).join("|");
-  const activeSlug = useActiveHeading(slugKey);
-
-  if (error) {
-    return null;
-  }
-
-  if (!shouldShow || headings.length === 0) {
-    return null;
-  }
-
-  return (
-    <div
-      className={cn(
-        "bg-grid-dots p-6 text-zinc-800 dark:text-zinc-50",
-        className
-      )}
-    >
-      <aside
-        aria-labelledby="toc-heading"
-        className="flex flex-col gap-12 bg-background p-4"
-      >
-        <nav aria-labelledby="toc-heading">
-          <p className="text-foreground text-lg" id="toc-heading">
-            On this page
-          </p>
-          <ul className="mt-6 flex flex-col gap-2">
-            {headings.map((heading, index) => (
-              <TableOfContentAnchor
-                activeSlug={activeSlug}
-                currentDepth={1}
-                heading={heading}
-                key={heading.id || `${heading.text}-${index}`}
-                maxDepth={maxDepth}
-              />
-            ))}
-          </ul>
-        </nav>
-
-        <ShareOptions shareUrl={shareUrl} title={shareTitle} />
-      </aside>
-    </div>
-  );
-};
-
 export const MobileTableOfContent: FC<TableOfContentProps> = ({
   richText,
   className,
@@ -777,7 +586,9 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
   return (
     <details
       className={cn(
-        "bg-grid-dots p-2.5 text-zinc-800 lg:hidden dark:text-zinc-50",
+        // No breakpoint here: the one caller decides where the rail takes
+        // over, and a hardcoded `lg:hidden` would silently win over it.
+        "overflow-hidden rounded-lg border text-zinc-800 dark:text-zinc-50",
         className
       )}
       open
@@ -785,7 +596,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: summary is natively interactive */}
       <summary
-        className="focus-ring-inset flex cursor-pointer list-none items-center justify-between gap-2 bg-background px-4 py-3 text-foreground text-lg [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer list-none items-center justify-between gap-2 bg-background px-3 py-2.5 text-base text-foreground outline-none focus-visible:bg-accent [&::-webkit-details-marker]:hidden"
         onClick={handleSummaryClick}
       >
         On this page
@@ -798,7 +609,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
         />
       </summary>
       <div className="overflow-hidden" ref={contentRef}>
-        <div className="flex flex-col gap-8 bg-background px-4 pb-4">
+        <div className="flex flex-col gap-8 bg-background px-3 pb-3">
           <nav aria-label="On this page">
             <ul className="flex flex-col gap-2">
               {headings.map((heading, index) => (

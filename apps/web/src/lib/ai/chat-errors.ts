@@ -2,12 +2,12 @@
  * Machine-readable failure codes the chat route hands the client. They travel
  * as a JSON body (`{"code":"…"}`) on rejected requests and as the error
  * message on an already-open stream, so one `JSON.parse` on the client covers
- * both paths. Prettifying them into human copy is a later ticket.
+ * both paths. The chat panel maps them to human copy.
  */
 export const CHAT_ERROR = {
   /** No `AI_GATEWAY_API_KEY` — the model call cannot succeed. */
   notConfigured: "chat_not_configured",
-  /** The docs corpus could not be assembled; answering would be improvisation. */
+  /** The Knowledge Base or the page index was unreachable; answering would be improvisation. */
   corpusUnavailable: "corpus_unavailable",
   /** Request body was not a usable `{ messages: UIMessage[] }`. */
   invalidBody: "invalid_body",
@@ -107,8 +107,8 @@ const CHAT_ERROR_CODES: readonly string[] = Object.values(CHAT_ERROR);
  * `undefined` for anything that is not one of ours (a dropped connection, say),
  * so the caller can tell "the route said no" from "the network did".
  *
- * The client needs this to keep the raw `{"code":"…"}` off the screen; turning
- * codes into designed copy is a later ticket.
+ * The client needs this to keep the raw `{"code":"…"}` off the screen and to
+ * pick the copy for each code.
  */
 export function parseChatErrorCode(
   message: string | undefined

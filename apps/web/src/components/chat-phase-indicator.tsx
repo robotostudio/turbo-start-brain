@@ -7,10 +7,12 @@ import type { ChatPhase } from "@/lib/ai/chat-phase";
 /**
  * Each chat phase gets its own hand-tuned orb animation:
  * - thinking → particles on tilted orbits
+ * - reading  → a sweep, while the model reads the Knowledge Base
  * - cards    → a dotted outline morphs circle → triangle → square
  */
 const ORB_STATE: Record<ChatPhase["key"], OrbState> = {
   thinking: "working",
+  reading: "searching",
   cards: "shaping",
 };
 

@@ -10,7 +10,6 @@ import {
 } from "@workspace/sanity/live";
 import { queryDocBySlug, queryDocPaths } from "@workspace/sanity/query";
 import { RichText } from "@workspace/sanity-blocks/internal/rich-text";
-import { cn } from "@workspace/tailwind-config/utils";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
@@ -22,9 +21,9 @@ import { MobileTableOfContent } from "@/components/elements/table-of-content";
 import { PageBuilderJsonLd } from "@/components/page-builder-json-ld";
 import { PageBuilder } from "@/components/pagebuilder";
 import {
+  type DocsTreeNode,
   flattenDocsTree,
   getDocsNavigation,
-  type DocsTreeNode,
 } from "@/lib/docs-tree";
 import { resolveRedirect } from "@/lib/redirects";
 import { seoFromDocument } from "@/lib/seo";
@@ -167,26 +166,22 @@ function DocContent({
   const previous = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const body = data.body as SanityRichTextProps;
-  // Same test the client TOC runs; without it a heading-less doc still reserves
-  // the 14rem gutter and the article sits left of centre.
+  // Same test the client TOC runs, so a heading-less doc renders no empty TOC.
   const showToc = hasTocHeadings(body, TOC_MAX_DEPTH);
 
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
       <main
-        className={cn(
-          "grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 xl:justify-center xl:gap-16",
-          showToc
-            ? "xl:grid-cols-[minmax(0,37.5rem)_14rem]"
-            : "xl:grid-cols-[minmax(0,37.5rem)]"
-        )}
+        // Rail only from 2xl — below it a 768px article and a usable rail
+        // don't both fit, so the mobile disclosure carries it. Its track is
+        // wider than the left spacer, which is what stops entries wrapping.
+        className="grid min-h-[calc(100dvh-3.5rem)] grid-cols-1 gap-12 px-5 py-10 sm:px-8 lg:px-12 2xl:grid-cols-[minmax(0,1fr)_minmax(0,48rem)_minmax(0,20rem)] 2xl:gap-10"
       >
-        {/* 37.5rem = 600px, measured at ~80 characters per line for 16px
-            Geist. The cap lives here, not only on the xl grid column, because
-            below xl the article would otherwise run the full viewport
-            (~101 characters per line at 1279px). */}
-        <article className="mx-auto w-full min-w-0 max-w-[37.5rem]">
+        {/* 48rem = 768px, the same text width as the chat column. The cap
+            lives here, not only on the xl grid column, because below xl the
+            article would otherwise run the full viewport. */}
+        <article className="mx-auto w-full min-w-0 max-w-3xl 2xl:col-start-2">
           <DocsBreadcrumbs slug={slug} title={data.title} />
           <header className="mb-10 border-b pb-8">
             <h1 className="text-balance font-semibold text-h1 sm:text-display">
@@ -199,10 +194,9 @@ function DocContent({
             ) : null}
           </header>
           <MobileTableOfContent
-            className="mb-8 xl:hidden"
+            className="mb-8 2xl:hidden"
             maxDepth={TOC_MAX_DEPTH}
             richText={body}
-            shareTitle={data.title ?? undefined}
           />
           <RichText
             className="prose-p:text-body prose-li:text-body"

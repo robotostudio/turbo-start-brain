@@ -5,6 +5,7 @@ packages:
 catalog:
   ai: ^7.0.65
   "@ai-sdk/react": ^4.0.68
+  "@ai-sdk/mcp": 2.0.31 # exact: matches the copy @ai-sdk/react pins, one @ai-sdk/provider in the tree
   "@json-render/core": ^0.19.0
   "@json-render/react": ^0.19.0
   "@sanity/client": ^7.26.2

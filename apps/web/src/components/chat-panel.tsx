@@ -15,7 +15,7 @@ import { useState } from "react";
 
 import { ChatComposer } from "@/components/chat-composer";
 import { ChatPhaseIndicator } from "@/components/chat-phase-indicator";
-import { parseChatErrorCode } from "@/lib/ai/chat-errors";
+import { CHAT_ERROR, parseChatErrorCode } from "@/lib/ai/chat-errors";
 import { finalizeAbortedMessages } from "@/lib/ai/chat-history";
 import { deriveChatPhase } from "@/lib/ai/chat-phase";
 
@@ -30,14 +30,17 @@ const ChatMessage = dynamic(
   { ssr: false }
 );
 
-// Starting points for the empty state, one per top-level docs section, so a
-// first-time visitor has something to click instead of a blank column.
+// Starter questions, one per top-level docs section: the empty state's list,
+// then the pill row above the composer until each one is clicked.
 const EXAMPLE_QUESTIONS = [
   "What should I do in my first week?",
   "How does a migration project get sequenced?",
   "Which tools do I need accounts for?",
   "How do we talk to clients?",
 ] as const;
+
+const QUESTION_PILL =
+  "rounded-full border bg-card px-4 py-2 text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
 
 // Speakable text of an assistant message for the screen-reader mirror below:
 // fenced blocks (the doc-card spec is machine data) dropped, markdown links
@@ -62,6 +65,7 @@ function speakableText(message: UIMessage | undefined) {
 
 export function ChatPanel() {
   const [input, setInput] = useState("");
+  const [clickedPills, setClickedPills] = useState<string[]>([]);
   const { messages, sendMessage, setMessages, status, stop, error } = useChat({
     // Stable id: useChat otherwise generates a random one at render time,
     // which Cache Components rejects during prerender.
@@ -73,10 +77,13 @@ export function ChatPanel() {
   // `useChat` hands over as `error.message`. Keep that out of the UI copy — it
   // is a debugging signal, not a sentence.
   const errorCode = parseChatErrorCode(error?.message);
-  const errorMessage =
-    errorCode || !error?.message
-      ? "Something went wrong. Please try again."
-      : error.message;
+  let errorMessage = "Something went wrong. Please try again.";
+  if (errorCode === CHAT_ERROR.budgetExhausted) {
+    errorMessage =
+      "The assistant has reached its usage limit. Please try again later.";
+  } else if (!errorCode && error?.message) {
+    errorMessage = error.message;
+  }
 
   const lastMessage = messages.at(-1);
   // What the assistant is doing right now (thinking / preparing doc cards),
@@ -97,6 +104,13 @@ export function ChatPanel() {
     setMessages(finalizeAbortedMessages);
   };
 
+  // A clicked starter question leaves the pill row for good; typed messages
+  // never remove one.
+  const askQuestion = (question: string) => {
+    setClickedPills((clicked) => [...clicked, question]);
+    sendMessage({ text: question });
+  };
+
   const handleSubmit = () => {
     const text = input.trim();
     if (!text) {
@@ -111,6 +125,14 @@ export function ChatPanel() {
   // Announcing per token would be unbearable; instead mirror the finished
   // answer once into a visually-hidden polite region when the stream settles.
   const announcedAnswer = status === "ready" ? speakableText(lastMessage) : "";
+
+  // Once the conversation starts, the starter questions not yet clicked show as
+  // pills above the composer.
+  const followUps =
+    messages.length > 0
+      ? EXAMPLE_QUESTIONS.filter((question) => !clickedPills.includes(question))
+      : [];
+  const isBusy = status === "submitted" || status === "streaming";
 
   return (
     <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
@@ -128,7 +150,7 @@ export function ChatPanel() {
             role="region"
             tabIndex={0}
           >
-            <MessageScrollerContent className="py-6">
+            <MessageScrollerContent className="mx-auto w-full max-w-[832px] px-5 py-6 sm:px-8">
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
                   <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
@@ -143,8 +165,8 @@ export function ChatPanel() {
                       {EXAMPLE_QUESTIONS.map((question) => (
                         <li key={question}>
                           <button
-                            className="w-full rounded-lg border bg-card px-3 py-2 text-left text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.98]"
-                            onClick={() => sendMessage({ text: question })}
+                            className={`w-full text-left ${QUESTION_PILL}`}
+                            onClick={() => askQuestion(question)}
                             type="button"
                           >
                             {question}
@@ -179,8 +201,8 @@ export function ChatPanel() {
                 <MessageScrollerItem messageId="error">
                   <p
                     className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
-                    // Machine-readable code for whoever is debugging; the copy
-                    // stays generic until the error-state ticket designs it.
+                    // Machine-readable code for whoever is debugging; only the
+                    // spent-budget case has its own copy so far.
                     data-error-code={errorCode}
                     role="alert"
                   >
@@ -190,13 +212,29 @@ export function ChatPanel() {
               ) : null}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton />
+          <MessageScrollerButton className="rounded-full" />
         </MessageScroller>
       </MessageScrollerProvider>
       <output aria-live="polite" className="sr-only">
         {announcedAnswer}
       </output>
-      <div className="pb-4">
+      <div className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8">
+        {followUps.length > 0 ? (
+          <ul className="mb-2 flex flex-wrap gap-2">
+            {followUps.map((question) => (
+              <li className="min-w-0 max-w-full" key={question}>
+                <button
+                  className={`max-w-full truncate ${QUESTION_PILL}`}
+                  disabled={isBusy}
+                  onClick={() => askQuestion(question)}
+                  type="button"
+                >
+                  {question}
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <ChatComposer
           input={input}
           onInputChange={setInput}
@@ -204,9 +242,6 @@ export function ChatPanel() {
           onSubmit={handleSubmit}
           status={status}
         />
-        <p className="mt-2 text-center text-muted-foreground text-xs">
-          Answers are generated from the documentation and may be incomplete.
-        </p>
       </div>
     </div>
   );

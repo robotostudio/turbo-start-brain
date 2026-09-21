@@ -13,7 +13,7 @@ import {
 import {
   type FlatHeading,
   flattenHeadings,
-  useActiveHeading,
+  useHeadingsInView,
   useTableOfContentState,
 } from "@/components/elements/table-of-content";
 import type { SanityRichTextProps } from "@/types";
@@ -65,8 +65,8 @@ type MeasuredRail = {
 };
 
 // Measures the rendered anchors and builds one SVG path tracing the whole
-// rail. The primary-colored copy of that path is clipped to the active item's
-// segment; animating clip-path slides the indicator between items.
+// rail. The primary-colored copy of that path is clipped to the span of
+// headings in view; animating clip-path grows and shrinks the indicator.
 function useMeasuredRail(items: FlatHeading[]) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [rail, setRail] = useState<MeasuredRail | null>(null);
@@ -87,7 +87,7 @@ function useMeasuredRail(items: FlatHeading[]) {
         `a[data-toc-slug="${CSS.escape(item.slug)}"]`
       );
       if (!element) {
-        // Keep positions index-aligned with items so the active-index lookup
+        // Keep positions index-aligned with items so the in-view range lookup
         // stays valid even if an anchor is missing.
         positions.push(positions.at(-1) ?? [0, 0]);
         continue;
@@ -140,16 +140,20 @@ function useMeasuredRail(items: FlatHeading[]) {
   return { containerRef, rail };
 }
 
+// Clipped to the span of headings currently on screen, so the highlight grows
+// and shrinks with the viewport rather than hopping between single items.
 function ThumbTrack({
   rail,
-  activeIndex,
-}: Readonly<{ rail: MeasuredRail; activeIndex: number }>) {
-  const segment = activeIndex >= 0 ? rail.positions[activeIndex] : undefined;
+  first,
+  last,
+}: Readonly<{ rail: MeasuredRail; first: number; last: number }>) {
+  const top = first >= 0 ? rail.positions[first]?.[0] : undefined;
+  const bottom = last >= 0 ? rail.positions[last]?.[1] : undefined;
   const style = {
     width: rail.width,
     height: rail.height,
-    "--track-top": `${segment?.[0] ?? 0}px`,
-    "--track-bottom": `${segment?.[1] ?? 0}px`,
+    "--track-top": `${top ?? 0}px`,
+    "--track-bottom": `${bottom ?? 0}px`,
   } as CSSProperties;
 
   return (
@@ -229,14 +233,12 @@ export function TocClerk({ richText, className, maxDepth = 3 }: TocClerkProps) {
   );
   const flat = useStableItems(flattenHeadings(headings));
   const slugKey = flat.map((item) => item.slug).join("|");
-  const activeSlug = useActiveHeading(slugKey);
+  const { first, last } = useHeadingsInView(slugKey);
   const { containerRef, rail } = useMeasuredRail(flat);
 
   if (error || !shouldShow || flat.length === 0) {
     return null;
   }
-
-  const activeIndex = flat.findIndex((item) => item.slug === activeSlug);
 
   return (
     <nav aria-labelledby="toc-heading" className={cn("text-sm", className)}>
@@ -248,9 +250,9 @@ export function TocClerk({ richText, className, maxDepth = 3 }: TocClerkProps) {
         On this page
       </p>
       <div className="relative flex flex-col" ref={containerRef}>
-        {rail ? <ThumbTrack activeIndex={activeIndex} rail={rail} /> : null}
+        {rail ? <ThumbTrack first={first} last={last} rail={rail} /> : null}
         {flat.map((item, index) => {
-          const isActive = activeSlug === item.slug;
+          const isActive = index >= first && index <= last;
           return (
             <a
               aria-current={isActive ? "location" : undefined}
