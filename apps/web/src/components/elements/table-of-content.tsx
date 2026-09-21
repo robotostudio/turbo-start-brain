@@ -387,7 +387,32 @@ export function useTableOfContentState(
 }
 
 export function useActiveHeading(slugKey: string): string | null {
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const { active } = useHeadingsInView(slugKey);
+  return active === -1 ? null : (slugKey.split("|")[active] ?? null);
+}
+
+type HeadingsInView = {
+  /** First heading whose section is on screen (-1 above the first heading). */
+  readonly first: number;
+  /** Last heading that has scrolled into the viewport. */
+  readonly last: number;
+  /** The single current heading: `first`, or the last one at page bottom. */
+  readonly active: number;
+};
+
+const NONE_IN_VIEW: HeadingsInView = { first: -1, last: -1, active: -1 };
+
+/** Index of the last heading whose top is at or above `y` (-1 if none). */
+function lastIndexAtOrAbove(tops: readonly number[], y: number): number {
+  return tops.findLastIndex((top) => top <= y);
+}
+
+function sameInView(a: HeadingsInView, b: HeadingsInView): boolean {
+  return a.first === b.first && a.last === b.last && a.active === b.active;
+}
+
+export function useHeadingsInView(slugKey: string): HeadingsInView {
+  const [inView, setInView] = useState<HeadingsInView>(NONE_IN_VIEW);
 
   useEffect(() => {
     const slugs = slugKey ? slugKey.split("|") : [];
@@ -414,21 +439,21 @@ export function useActiveHeading(slugKey: string): string | null {
     const update = () => {
       frame = 0;
       const line = window.scrollY + READING_LINE;
-      let index = -1;
-      for (const [i, top] of tops.entries()) {
-        if (top <= line + READING_LINE_SLACK) {
-          index = i;
-        }
-      }
+      const viewportBottom = window.scrollY + window.innerHeight;
+      const first = lastIndexAtOrAbove(tops, line + READING_LINE_SLACK);
+      const last = lastIndexAtOrAbove(tops, viewportBottom - 1);
       // The last heading can't always reach the line — there isn't necessarily
       // a viewport of content beneath it.
       const atBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - 2;
-      if (atBottom) {
-        index = tops.length - 1;
-      }
-      setActiveSlug(index === -1 ? null : (slugs[index] ?? null));
+        viewportBottom >= document.documentElement.scrollHeight - 2;
+      const next = {
+        first: last === -1 ? -1 : Math.max(first, 0),
+        last,
+        active: atBottom ? tops.length - 1 : first,
+      };
+      // Same values keep the same object, so scrolling within a section
+      // doesn't re-render the TOC.
+      setInView((current) => (sameInView(current, next) ? current : next));
     };
     const schedule = () => {
       if (!frame) {
@@ -456,7 +481,7 @@ export function useActiveHeading(slugKey: string): string | null {
     };
   }, [slugKey]);
 
-  return activeSlug;
+  return inView;
 }
 
 const TableOfContentAnchor: FC<AnchorProps> = ({

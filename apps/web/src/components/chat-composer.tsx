@@ -6,32 +6,9 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@workspace/ui/components/input-group";
-import { Spinner } from "@workspace/ui/components/spinner";
 import type { ChatStatus } from "ai";
 import { ArrowUpIcon, SquareIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
-
-// Keyed remount per state so the icon crossfades in via @starting-style; a
-// light blur masks the swap between the two shapes.
-function ComposerIcon({ status }: Readonly<{ status: ChatStatus }>) {
-  let key = "send";
-  let icon = <ArrowUpIcon />;
-  if (status === "submitted") {
-    key = "wait";
-    icon = <Spinner />;
-  } else if (status === "streaming") {
-    key = "stop";
-    icon = <SquareIcon className="size-3.5" />;
-  }
-  return (
-    <span
-      className="grid place-items-center transition-[opacity,filter] duration-200 ease-out starting:opacity-0 starting:blur-[2px]"
-      key={key}
-    >
-      {icon}
-    </span>
-  );
-}
 
 export function ChatComposer({
   input,
@@ -68,13 +45,16 @@ export function ChatComposer({
         }
       }}
     >
-      <InputGroup className="bg-background">
+      <InputGroup className="rounded-[26px] border-border/60 bg-muted shadow-sm dark:bg-muted">
         <InputGroupTextarea
           aria-label="Ask the docs assistant"
+          className="max-h-40 min-h-0 py-3 pl-5 text-base md:text-[15px]"
           ref={textareaRef}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
+            if (event.key === "Escape" && isBusy) {
+              onStop();
+            } else if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();
               if (canSend) {
                 onSubmit();
@@ -85,20 +65,27 @@ export function ChatComposer({
           rows={1}
           value={input}
         />
-        <InputGroupAddon align="inline-end">
-          {/* One button whose icon crossfades between states (keyed remount +
-              @starting-style) instead of two hard-swapped buttons; a light
-              blur masks the swap and scale-on-press confirms the tap. */}
+        <InputGroupAddon
+          align="inline-end"
+          className="mr-0! self-end pr-1.5 pb-1.5"
+        >
+          {/* One button: send when idle, stop for the whole request. The keyed
+              icon crossfades in via @starting-style. */}
           <InputGroupButton
             aria-label={isBusy ? "Stop generating" : "Send message"}
-            className="size-10 sm:size-8 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94]"
+            className="size-10 rounded-full transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94] disabled:opacity-40 sm:size-9"
             disabled={!isBusy && !canSend}
             onClick={isBusy ? onStop : undefined}
             size="icon-sm"
             type={isBusy ? "button" : "submit"}
-            variant={isBusy ? "outline" : "default"}
+            variant="default"
           >
-            <ComposerIcon status={status} />
+            <span
+              className="grid place-items-center transition-[opacity,filter] duration-200 ease-out starting:opacity-0 starting:blur-[2px]"
+              key={isBusy ? "stop" : "send"}
+            >
+              {isBusy ? <SquareIcon className="size-3.5" /> : <ArrowUpIcon />}
+            </span>
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>

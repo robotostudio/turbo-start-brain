@@ -419,6 +419,10 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Thin thumb, no track or arrow buttons, on every scroller. */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 20%, transparent)
+      transparent;
   }
   body {
     @apply bg-background text-foreground;

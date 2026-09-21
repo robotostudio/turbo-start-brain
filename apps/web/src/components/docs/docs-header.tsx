@@ -54,7 +54,7 @@ export function DocsHeader({
 
   return (
     <header className="sticky top-0 z-40 h-14 border-b bg-background/90 backdrop-blur-lg">
-      <div className="flex h-full items-center gap-3 px-4 sm:px-6">
+      <div className="relative flex h-full items-center gap-3 px-4 sm:px-6">
         <DocsMobileSidebar
           buttons={navbar?.buttons}
           links={links}
@@ -86,8 +86,12 @@ export function DocsHeader({
             ))}
           </nav>
         ) : null}
-        <div className="ml-auto flex items-center gap-1">
+        {/* Centred over the content column (right of the 17rem sidebar from
+            lg); beside the actions on mobile. */}
+        <div className="ml-auto md:absolute md:left-1/2 md:-translate-x-1/2 lg:left-[calc(50%+8.5rem)]">
           <DocsSearch />
+        </div>
+        <div className="flex items-center gap-1 md:ml-auto">
           {navbar?.buttons?.length ? (
             <SanityButtons
               buttons={navbar.buttons}
