@@ -1,4 +1,6 @@
 import { createMCPClient } from "@ai-sdk/mcp";
+import { type DynamicFetchOptions, sanityFetch } from "@workspace/sanity/live";
+import { queryDocsIndex } from "@workspace/sanity/query";
 import { cacheLife } from "next/cache";
 
 import { flattenDocsTree, getDocsNavigation } from "@/lib/docs-tree";
@@ -15,6 +17,13 @@ export class PageIndexUnavailableError extends Error {
   }
 }
 
+// Published + stega off: stega threads invisible characters through every
+// string, which would break the byte-stable cached prefix.
+const PUBLISHED: DynamicFetchOptions = {
+  perspective: "published",
+  stega: false,
+};
+
 const PAGE_INDEX_PREAMBLE =
   "Every page on this site, as `/slug — Title` (a description follows where the page has one). These slugs are the only link targets that exist — the Knowledge Base entries you read are keyed by their own paths, which are NOT site URLs and must never be linked.";
 
@@ -28,14 +37,14 @@ export async function getDocsPageIndex(): Promise<string> {
   cacheLife("hours");
 
   let pages: ReturnType<typeof flattenDocsTree>;
+  let index: unknown;
   try {
-    // Published + stega off: stega threads invisible characters through every
-    // string, which would break the cached prefix.
-    const tree = await getDocsNavigation({
-      perspective: "published",
-      stega: false,
-    });
+    const [tree, { data }] = await Promise.all([
+      getDocsNavigation(PUBLISHED),
+      sanityFetch({ query: queryDocsIndex, ...PUBLISHED }),
+    ]);
     pages = flattenDocsTree(tree);
+    index = data;
   } catch (error) {
     throw new PageIndexUnavailableError("Page index fetch failed", {
       cause: error,
@@ -48,6 +57,13 @@ export async function getDocsPageIndex(): Promise<string> {
       return `${page.slug} — ${page.title}${description ? ` — ${description}` : ""}`;
     })
     .sort();
+
+  // The docs index is a `docsIndex` singleton, not a `doc`, so `queryDocsTree`
+  // never sees it — without this line the site root has no link.
+  const indexTitle = (index as { title?: string } | null)?.title?.trim();
+  if (indexTitle) {
+    lines.unshift(`/ — ${indexTitle}`);
+  }
 
   if (lines.length === 0) {
     throw new PageIndexUnavailableError("Page index query returned no pages");
