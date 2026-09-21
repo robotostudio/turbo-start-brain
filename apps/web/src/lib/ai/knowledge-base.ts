@@ -1,6 +1,6 @@
 import { createMCPClient } from "@ai-sdk/mcp";
 import { type DynamicFetchOptions, sanityFetch } from "@workspace/sanity/live";
-import { queryDocsIndex } from "@workspace/sanity/query";
+import { queryDocsIndexTitle } from "@workspace/sanity/query";
 import type { ToolSet } from "ai";
 import { cacheLife } from "next/cache";
 
@@ -56,7 +56,7 @@ export async function getDocsPageIndex(): Promise<string> {
   try {
     const [tree, { data }] = await Promise.all([
       getDocsNavigation(PUBLISHED),
-      sanityFetch({ query: queryDocsIndex, ...PUBLISHED }),
+      sanityFetch({ query: queryDocsIndexTitle, ...PUBLISHED }),
     ]);
     pages = flattenDocsTree(tree);
     index = data;

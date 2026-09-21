@@ -136,6 +136,12 @@ export const queryDocBySlug = defineQuery(`
   }
   `);
 
+// Title only: the chat page index needs one string, and `queryDocsIndex`
+// drags the whole page builder and portable text along to get it.
+export const queryDocsIndexTitle = defineQuery(`
+  *[_type == "docsIndex" && _id == "docsIndex"][0]{title}
+`);
+
 export const queryDocPaths = defineQuery(`
   *[_type == "doc" && defined(slug.current)].slug.current
 `);
