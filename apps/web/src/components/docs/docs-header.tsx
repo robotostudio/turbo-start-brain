@@ -109,12 +109,12 @@ export function DocsHeader({
             ))}
           </nav>
         ) : null}
-        {/* Centred over the content column (right of the 17rem sidebar from
-            lg); beside the actions on mobile. */}
-        <div className="ml-auto md:absolute md:left-1/2 md:-translate-x-1/2 lg:left-[calc(50%+8.5rem)]">
+        {/* From lg (when the 17rem sidebar appears) centred over the content
+            column; below that it sits with the actions, clear of the logo. */}
+        <div className="ml-auto lg:absolute lg:left-[calc(50%+8.5rem)] lg:-translate-x-1/2">
           <DocsSearch />
         </div>
-        <div className="flex items-center gap-1 md:ml-auto">
+        <div className="flex items-center gap-1 lg:ml-auto">
           {navbar?.buttons?.length ? (
             <SanityButtons
               buttons={navbar.buttons}
@@ -133,16 +133,17 @@ export function DocsHeader({
               <Github className="size-4" />
             </a>
           ) : null}
-          <ThemeToggle />
-          {/* The assistant is the one link we want found: a pill at the end. */}
+          <ThemeToggle className="hidden md:grid" />
+          {/* The assistant is the one link we want found: a pill at the end, an
+              icon-only circle below md. */}
           {chatLink ? (
             <Link
-              className="ml-2 hidden items-center gap-1.5 rounded-full bg-foreground py-1.5 pr-3.5 pl-2.5 font-medium text-background text-sm transition-[opacity,scale] hover:opacity-90 active:scale-[0.97] md:inline-flex"
+              className="ml-1 inline-flex size-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground font-medium text-background text-sm transition-[opacity,scale] hover:opacity-90 active:scale-[0.97] md:ml-2 md:w-auto md:pr-3.5 md:pl-3"
               href={chatLink.href ?? "/chat"}
               prefetch={false}
             >
               <ChatBubblesIcon className="size-4" />
-              {chatLink.name}
+              <span className="sr-only md:not-sr-only">{chatLink.name}</span>
             </Link>
           ) : null}
         </div>

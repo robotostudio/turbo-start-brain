@@ -223,7 +223,7 @@ export function DocsSearch() {
         className={cn(
           // Below sm the label and kbd are hidden, so the asymmetric padding
           // that balances them would push the lone icon off centre.
-          "focus-ring inline-flex h-9 items-center gap-2 rounded-full border bg-muted/50 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:pr-[5px] sm:pl-3 md:w-80",
+          "focus-ring inline-flex h-9 items-center gap-2 rounded-full border bg-muted/50 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:pr-[5px] sm:pl-3 md:w-56 lg:w-64 xl:w-80",
           "text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
         )}
       >

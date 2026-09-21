@@ -197,7 +197,6 @@ function DocContent({
             className="mb-8 2xl:hidden"
             maxDepth={TOC_MAX_DEPTH}
             richText={body}
-            shareTitle={data.title ?? undefined}
           />
           <RichText
             className="prose-p:text-body prose-li:text-body"

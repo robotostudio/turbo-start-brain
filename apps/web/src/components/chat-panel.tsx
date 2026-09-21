@@ -30,8 +30,8 @@ const ChatMessage = dynamic(
   { ssr: false }
 );
 
-// Starting points for the empty state, one per top-level docs section, so a
-// first-time visitor has something to click instead of a blank column.
+// Starter questions, one per top-level docs section: the empty state's list,
+// then the pill row above the composer until each one is clicked.
 const EXAMPLE_QUESTIONS = [
   "What should I do in my first week?",
   "How does a migration project get sequenced?",
@@ -201,8 +201,8 @@ export function ChatPanel() {
                 <MessageScrollerItem messageId="error">
                   <p
                     className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
-                    // Machine-readable code for whoever is debugging; the copy
-                    // stays generic until the error-state ticket designs it.
+                    // Machine-readable code for whoever is debugging; only the
+                    // spent-budget case has its own copy so far.
                     data-error-code={errorCode}
                     role="alert"
                   >
@@ -222,9 +222,9 @@ export function ChatPanel() {
         {followUps.length > 0 ? (
           <ul className="mb-2 flex flex-wrap gap-2">
             {followUps.map((question) => (
-              <li key={question}>
+              <li className="min-w-0 max-w-full" key={question}>
                 <button
-                  className={`whitespace-nowrap ${QUESTION_PILL}`}
+                  className={`max-w-full truncate ${QUESTION_PILL}`}
                   disabled={isBusy}
                   onClick={() => askQuestion(question)}
                   type="button"

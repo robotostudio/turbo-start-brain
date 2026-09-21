@@ -32,6 +32,7 @@ import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { DocsTreeNode } from "@/lib/docs-tree";
 
 export type MobileNavLink = {
@@ -261,7 +262,11 @@ export function DocsMobileSidebar({
     <Drawer onOpenChange={setOpen} open={open} swipeDirection="left">
       <DrawerTrigger
         render={
-          <Button className="lg:hidden" size="icon" variant="ghost">
+          <Button
+            className="size-9 rounded-full lg:hidden"
+            size="icon"
+            variant="ghost"
+          >
             <Menu className="size-5" />
             <span className="sr-only">Open documentation navigation</span>
           </Button>
@@ -274,14 +279,22 @@ export function DocsMobileSidebar({
             <DrawerContent>
               <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
                 <DrawerTitle>Documentation</DrawerTitle>
-                <DrawerClose
-                  render={
-                    <Button size="icon" variant="ghost">
-                      <X className="size-4" />
-                      <span className="sr-only">Close navigation</span>
-                    </Button>
-                  }
-                />
+                <div className="flex items-center gap-2">
+                  {/* The header hides the toggle below md to make room. */}
+                  <ThemeToggle className="md:hidden" />
+                  <DrawerClose
+                    render={
+                      <Button
+                        className="size-9 rounded-full"
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <X className="size-4" />
+                        <span className="sr-only">Close navigation</span>
+                      </Button>
+                    }
+                  />
+                </div>
               </div>
               <DrawerTree onNavigate={close} tree={tree} />
               {hasSiteNav ? (
