@@ -744,7 +744,7 @@ export const TableOfContent: FC<TableOfContentProps> = ({
   return (
     <div
       className={cn(
-        "bg-grid-dots p-6 text-zinc-800 dark:text-zinc-50",
+        "rounded-lg border p-4 text-zinc-800 dark:text-zinc-50",
         className
       )}
     >
@@ -804,7 +804,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
       className={cn(
         // No breakpoint here: the one caller decides where the rail takes
         // over, and a hardcoded `lg:hidden` would silently win over it.
-        "bg-grid-dots p-2.5 text-zinc-800 dark:text-zinc-50",
+        "overflow-hidden rounded-lg border text-zinc-800 dark:text-zinc-50",
         className
       )}
       open
@@ -812,7 +812,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: summary is natively interactive */}
       <summary
-        className="focus-ring-inset flex cursor-pointer list-none items-center justify-between gap-2 bg-background px-4 py-3 text-foreground text-lg [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer list-none items-center justify-between gap-2 bg-background px-3 py-2.5 text-base text-foreground outline-none focus-visible:bg-accent [&::-webkit-details-marker]:hidden"
         onClick={handleSummaryClick}
       >
         On this page
@@ -825,7 +825,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
         />
       </summary>
       <div className="overflow-hidden" ref={contentRef}>
-        <div className="flex flex-col gap-8 bg-background px-4 pb-4">
+        <div className="flex flex-col gap-8 bg-background px-3 pb-3">
           <nav aria-label="On this page">
             <ul className="flex flex-col gap-2">
               {headings.map((heading, index) => (
