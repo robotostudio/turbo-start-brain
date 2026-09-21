@@ -5,18 +5,12 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
-// "system" is a real option: once light or dark is picked, it is the only way
-// back to following the OS.
 const OPTIONS = [
   { value: "light", label: "Light", Icon: Sun },
   { value: "dark", label: "Dark", Icon: Moon },
   { value: "system", label: "System", Icon: Monitor },
 ] as const;
 
-// Colours snap on a theme switch: fading them lets text sit dark-on-dark for a
-// moment. next-themes' `disableTransitionOnChange` would do this but also stop
-// the thumb sliding, so switch with every transition off except the thumb's,
-// for the frames it takes the new theme to apply.
 function switchWithoutFade(apply: () => void) {
   const style = document.createElement("style");
   style.textContent =
@@ -34,8 +28,6 @@ function switchWithoutFade(apply: () => void) {
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
-  // `theme` is unknown until next-themes reads localStorage on the client, so
-  // the first paint shows "system" — what the server rendered too.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const [picked, setPicked] = useState(false);
@@ -53,12 +45,9 @@ export function ThemeToggle({ className }: { className?: string }) {
         className
       )}
     >
-      {/* Every option is the same width, so the thumb slides by whole widths. */}
       <span
         aria-hidden="true"
         data-theme-thumb=""
-        // Animate only once the user picks a theme, so the jump from the
-        // server's "system" default to the stored theme never slides on load.
         className={cn(
           "absolute top-0.5 left-0.5 size-[30px] rounded-full bg-background shadow-sm",
           picked &&

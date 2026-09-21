@@ -373,17 +373,13 @@ export function useActiveHeading(slugKey: string): string | null {
 }
 
 type HeadingsInView = {
-  /** First heading whose section is on screen (-1 above the first heading). */
   readonly first: number;
-  /** Last heading that has scrolled into the viewport. */
   readonly last: number;
-  /** The single current heading: `first`, or the last one at page bottom. */
   readonly active: number;
 };
 
 const NONE_IN_VIEW: HeadingsInView = { first: -1, last: -1, active: -1 };
 
-/** Index of the last heading whose top is at or above `y` (-1 if none). */
 function lastIndexAtOrAbove(tops: readonly number[], y: number): number {
   return tops.findLastIndex((top) => top <= y);
 }
@@ -438,8 +434,6 @@ export function useHeadingsInView(slugKey: string): HeadingsInView {
         last: toSlugIndex(last),
         active: toSlugIndex(atBottom ? tops.length - 1 : first),
       };
-      // Same values keep the same object, so scrolling within a section
-      // doesn't re-render the TOC.
       setInView((current) => (sameInView(current, next) ? current : next));
     };
     const schedule = () => {

@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/message-scroller";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { ChatComposer } from "@/components/chat-composer";
 import { ChatPhaseIndicator } from "@/components/chat-phase-indicator";
@@ -30,8 +30,6 @@ const ChatMessage = dynamic(
   { ssr: false }
 );
 
-// Starter questions, one per top-level docs section: the empty state's list,
-// then the pill row above the composer until each one is clicked.
 const EXAMPLE_QUESTIONS = [
   "What should I do in my first week?",
   "How does a migration project get sequenced?",
@@ -63,7 +61,29 @@ function speakableText(message: UIMessage | undefined) {
     .trim();
 }
 
+function subscribeToViewport(onChange: () => void) {
+  const viewport = window.visualViewport;
+  viewport?.addEventListener("resize", onChange);
+  viewport?.addEventListener("scroll", onChange);
+  return () => {
+    viewport?.removeEventListener("resize", onChange);
+    viewport?.removeEventListener("scroll", onChange);
+  };
+}
+function getKeyboardInset() {
+  const viewport = window.visualViewport;
+  if (!viewport || viewport.scale > 1) {
+    return 0;
+  }
+  return Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+}
+
 export function ChatPanel() {
+  const keyboardInset = useSyncExternalStore(
+    subscribeToViewport,
+    getKeyboardInset,
+    () => 0
+  );
   const [input, setInput] = useState("");
   const [clickedPills, setClickedPills] = useState<string[]>([]);
   const [hasTyped, setHasTyped] = useState(false);
@@ -105,8 +125,6 @@ export function ChatPanel() {
     setMessages(finalizeAbortedMessages);
   };
 
-  // A clicked starter question leaves the pill row for good; typed messages
-  // never remove one.
   const askQuestion = (question: string) => {
     setClickedPills((clicked) => [...clicked, question]);
     sendMessage({ text: question });
@@ -127,8 +145,6 @@ export function ChatPanel() {
   // answer once into a visually-hidden polite region when the stream settles.
   const announcedAnswer = status === "ready" ? speakableText(lastMessage) : "";
 
-  // Once the conversation starts, the starter questions not yet clicked show as
-  // pills above the composer, until the user types their own question.
   const followUps =
     messages.length > 0 && !hasTyped
       ? EXAMPLE_QUESTIONS.filter((question) => !clickedPills.includes(question))
@@ -158,15 +174,15 @@ export function ChatPanel() {
                     <h2 className="font-semibold text-foreground text-lg">
                       Ask the docs
                     </h2>
-                    <p className="mt-2 text-muted-foreground text-sm">
+                    <p className="mt-2 text-balance text-muted-foreground text-sm">
                       Answers come straight from this knowledge base, with links
                       to the pages they were found on.
                     </p>
-                    <ul className="mt-6 grid gap-2 text-left">
+                    <ul className="mt-6 grid justify-items-center gap-2">
                       {EXAMPLE_QUESTIONS.map((question) => (
                         <li key={question}>
                           <button
-                            className={`w-full text-left ${QUESTION_PILL}`}
+                            className={`text-center ${QUESTION_PILL}`}
                             onClick={() => askQuestion(question)}
                             type="button"
                           >
@@ -202,8 +218,6 @@ export function ChatPanel() {
                 <MessageScrollerItem messageId="error">
                   <p
                     className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
-                    // Machine-readable code for whoever is debugging; only the
-                    // spent-budget case has its own copy so far.
                     data-error-code={errorCode}
                     role="alert"
                   >
@@ -219,7 +233,10 @@ export function ChatPanel() {
       <output aria-live="polite" className="sr-only">
         {announcedAnswer}
       </output>
-      <div className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8">
+      <div
+        className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8"
+        style={{ translate: `0 -${keyboardInset}px` }}
+      >
         {followUps.length > 0 ? (
           <ul className="mb-2 flex flex-wrap gap-2">
             {followUps.map((question) => (

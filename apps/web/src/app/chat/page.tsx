@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 import { ChatPanel } from "@/components/chat-panel";
 
@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   description:
     "Ask the docs assistant questions and get answers grounded in this knowledge base.",
   robots: { index: false },
+};
+
+export const viewport: Viewport = {
+  interactiveWidget: "resizes-content",
 };
 
 export default function ChatPage() {

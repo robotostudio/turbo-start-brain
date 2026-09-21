@@ -140,8 +140,6 @@ function useMeasuredRail(items: FlatHeading[]) {
   return { containerRef, rail };
 }
 
-// Clipped to the span of headings currently on screen, so the highlight grows
-// and shrinks with the viewport rather than hopping between single items.
 function ThumbTrack({
   rail,
   first,

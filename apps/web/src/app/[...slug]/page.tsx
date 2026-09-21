@@ -168,16 +168,12 @@ function DocContent({
   const previous = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const body = data.body as SanityRichTextProps;
-  // Same test the client TOC runs, so a heading-less doc renders no empty TOC.
   const showToc = hasTocHeadings(body, TOC_MAX_DEPTH);
 
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
       <main className={cn(DOC_GRID, showToc ? DOC_GRID_WITH_TOC : "")}>
-        {/* 48rem = 768px, the same text width as the chat column. The cap
-            lives here, not only on the xl grid column, because below xl the
-            article would otherwise run the full viewport. */}
         <article
           className={cn(
             "mx-auto w-full min-w-0 max-w-3xl",

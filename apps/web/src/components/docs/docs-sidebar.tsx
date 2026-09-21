@@ -280,7 +280,6 @@ export function DocsMobileSidebar({
               <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
                 <DrawerTitle>Documentation</DrawerTitle>
                 <div className="flex items-center gap-2">
-                  {/* The header hides the toggle below md to make room. */}
                   <ThemeToggle className="md:hidden" />
                   <DrawerClose
                     render={

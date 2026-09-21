@@ -16,8 +16,6 @@ import type { NavigationData } from "@/types";
 
 type HeaderLink = MobileNavLink;
 
-// Two round speech bubbles in lucide's style (lucide only ships square ones);
-// the back bubble's outline stops where the front one overlaps it.
 function ChatBubblesIcon({ className }: Readonly<{ className?: string }>) {
   return (
     <svg
@@ -88,7 +86,7 @@ export function DocsHeader({
           className="max-h-6 w-auto"
           image={logos?.logo}
           imageDark={logos?.logoDark}
-          linkClassName="shrink-0"
+          linkClassName="min-w-0 truncate"
         />
         {navLinks.length > 0 ? (
           <nav
@@ -109,8 +107,6 @@ export function DocsHeader({
             ))}
           </nav>
         ) : null}
-        {/* From lg (when the 17rem sidebar appears) centred over the content
-            column; below that it sits with the actions, clear of the logo. */}
         <div className="ml-auto lg:absolute lg:left-[calc(50%+8.5rem)] lg:-translate-x-1/2">
           <DocsSearch />
         </div>
@@ -134,8 +130,6 @@ export function DocsHeader({
             </a>
           ) : null}
           <ThemeToggle className="hidden md:grid" />
-          {/* The assistant is the one link we want found: a pill at the end, an
-              icon-only circle below md. */}
           {chatLink ? (
             <Link
               className="ml-1 inline-flex size-9 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-foreground font-medium text-background text-sm transition-[opacity,scale] hover:opacity-90 active:scale-[0.97] md:ml-2 md:w-auto md:pr-3.5 md:pl-3"

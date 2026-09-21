@@ -69,8 +69,6 @@ export function ChatComposer({
           align="inline-end"
           className="mr-0! self-end pr-1.5 pb-1.5"
         >
-          {/* One button: send when idle, stop for the whole request. The keyed
-              icon crossfades in via @starting-style. */}
           <InputGroupButton
             aria-label={isBusy ? "Stop generating" : "Send message"}
             className="size-10 rounded-full transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94] disabled:opacity-40 sm:size-9"

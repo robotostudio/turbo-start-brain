@@ -49,8 +49,6 @@ export function ChatMessage({
       <Message align="end" className={MESSAGE_ENTER}>
         <MessageContent>
           <Bubble align="end" variant="default">
-            {/* Radius = half the one-line height: a pill on one line, a soft
-                rounded rectangle (not a stadium) once it wraps. */}
             <BubbleContent className="rounded-[20px] px-4">
               {text}
             </BubbleContent>

@@ -24,7 +24,6 @@ function Bar({ className }: Readonly<{ className: string }>) {
 export default function DocLoading() {
   return (
     <div
-      // Same grid as the page, shaped for a doc with a TOC.
       className={cn("animate-pulse", DOC_GRID, DOC_GRID_WITH_TOC)}
       role="status"
     >

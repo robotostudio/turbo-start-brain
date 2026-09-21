@@ -173,7 +173,6 @@ async function CachedDocsShell({
   return (
     <div className="min-h-dvh bg-background">
       <DocsHeader navbar={navbar} settings={settings} tree={tree} />
-      {/* Sidebar pinned left; each page centres its own content in the rest. */}
       <div className="grid grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)]">
         {/* usePathname() makes the sidebar URL-dependent; the fallback is the
             same nav without the active row, so the shell still prerenders. */}
