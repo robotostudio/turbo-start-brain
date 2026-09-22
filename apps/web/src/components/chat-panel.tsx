@@ -63,25 +63,34 @@ function speakableText(message: UIMessage | undefined) {
 
 function subscribeToViewport(onChange: () => void) {
   const viewport = window.visualViewport;
-  viewport?.addEventListener("resize", onChange);
-  viewport?.addEventListener("scroll", onChange);
+  if (!viewport) {
+    return () => {};
+  }
+  const onScroll = () => {
+    if (viewport.scale <= 1 && viewport.offsetTop > 0) {
+      window.scrollTo(0, 0);
+    }
+    onChange();
+  };
+  viewport.addEventListener("resize", onChange);
+  viewport.addEventListener("scroll", onScroll);
   return () => {
-    viewport?.removeEventListener("resize", onChange);
-    viewport?.removeEventListener("scroll", onChange);
+    viewport.removeEventListener("resize", onChange);
+    viewport.removeEventListener("scroll", onScroll);
   };
 }
-function getKeyboardInset() {
+function getViewportHeight() {
   const viewport = window.visualViewport;
   if (!viewport || viewport.scale > 1) {
     return 0;
   }
-  return Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+  return Math.round(viewport.height);
 }
 
 export function ChatPanel() {
-  const keyboardInset = useSyncExternalStore(
+  const viewportHeight = useSyncExternalStore(
     subscribeToViewport,
-    getKeyboardInset,
+    getViewportHeight,
     () => 0
   );
   const [input, setInput] = useState("");
@@ -152,7 +161,14 @@ export function ChatPanel() {
   const isBusy = status === "submitted" || status === "streaming";
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]">
+    <div
+      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-out motion-reduce:transition-none"
+      style={{
+        height: viewportHeight
+          ? `calc(${viewportHeight}px - 3.5rem)`
+          : undefined,
+      }}
+    >
       <MessageScrollerProvider
         autoScroll
         defaultScrollPosition="last-anchor"
@@ -233,10 +249,7 @@ export function ChatPanel() {
       <output aria-live="polite" className="sr-only">
         {announcedAnswer}
       </output>
-      <div
-        className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8"
-        style={{ translate: `0 -${keyboardInset}px` }}
-      >
+      <div className="mx-auto w-full max-w-[832px] px-5 pb-4 sm:px-8">
         {followUps.length > 0 ? (
           <ul className="mb-2 flex flex-wrap gap-2">
             {followUps.map((question) => (

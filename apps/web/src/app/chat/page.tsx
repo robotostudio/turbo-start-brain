@@ -17,7 +17,7 @@ export default function ChatPage() {
   return (
     // 3.5rem offsets the sticky h-14 site header so the transcript gets a
     // fixed height for the message scroller to fill.
-    <main className="grid h-[calc(100dvh-3.5rem)] w-full min-h-0">
+    <main className="grid h-[calc(100dvh-3.5rem)] w-full min-h-0 overflow-clip">
       <ChatPanel />
     </main>
   );
