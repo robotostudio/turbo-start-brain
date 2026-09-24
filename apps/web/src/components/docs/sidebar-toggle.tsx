@@ -22,6 +22,13 @@ function setCollapsed(collapsed: boolean) {
   } catch {
     // Storage blocked (private mode): the toggle still works for this page.
   }
+  // The pressed button just hid itself; hand focus to its counterpart so
+  // keyboard users are not dropped back to <body>.
+  document
+    .querySelector<HTMLElement>(
+      `[data-sidebar-toggle="${collapsed ? "expand" : "collapse"}"]`
+    )
+    ?.focus();
 }
 
 const SIDEBAR_ICON_BUTTON_CLASS =
@@ -32,8 +39,10 @@ export function CollapseSidebarButton({
 }: Readonly<{ className?: string }>) {
   return (
     <button
+      aria-expanded="true"
       aria-label="Collapse sidebar"
       className={cn(SIDEBAR_ICON_BUTTON_CLASS, className)}
+      data-sidebar-toggle="collapse"
       onClick={() => setCollapsed(true)}
       title="Collapse sidebar"
       type="button"
@@ -46,8 +55,10 @@ export function CollapseSidebarButton({
 export function ExpandSidebarButton() {
   return (
     <button
+      aria-expanded="false"
       aria-label="Expand sidebar"
       className={`${SIDEBAR_ICON_BUTTON_CLASS} fixed top-3 left-3 z-40 hidden lg:in-data-[sidebar=collapsed]:grid`}
+      data-sidebar-toggle="expand"
       onClick={() => setCollapsed(false)}
       title="Expand sidebar"
       type="button"
