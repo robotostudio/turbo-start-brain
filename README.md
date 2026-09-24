@@ -126,16 +126,17 @@ The template ships without content, so a new project starts empty. In Studio:
 3. **Docs by Path**: your pages. A slug like `/getting-started/setup` nests the
    page under `/getting-started` in the sidebar.
 4. **Site Configuration → Navigation**: links shown at the bottom of the
-   sidebar. A link to `/chat` turns on the Ask AI button and sets its label.
-5. **Site Configuration → Chat** (optional): the Ask AI welcome text, input
-   placeholder, suggested questions and extra instructions.
+   sidebar.
+5. **Site Configuration → Chat** (optional): the Ask AI button label, welcome
+   text, input placeholder, suggested questions and extra instructions.
 
 ## Ask AI (optional)
 
 Ask AI answers only from a Sanity Context
 [Knowledge Base](https://www.sanity.io/docs/ai/sanity-context-knowledge-bases)
 built from your docs, through the Vercel AI Gateway. Until it's configured the
-site runs docs-only and `/api/chat` returns `503`.
+site runs docs-only: the Ask AI button stays hidden and `/api/chat` returns
+`503`. Setting the three variables below turns it on.
 
 1. **Enable Knowledge Bases.** They are an opt-in beta: an organisation admin
    turns them on from the [Labs page](https://www.sanity.io/manage/org/labs) in
@@ -155,11 +156,9 @@ site runs docs-only and `/api/chat` returns `503`.
 5. **Create an AI Gateway key** (Vercel dashboard → AI Gateway → API keys) and
    set it as `AI_GATEWAY_API_KEY`. Optionally set `CHAT_MODEL` to another
    Gateway model id (default `anthropic/claude-haiku-4.5`).
-6. **Turn on the button:** in Studio, add a link to `/chat` under
-   **Site Configuration → Navigation**; its label becomes the button text.
-7. **Customise it (optional)** under **Site Configuration → Chat**: welcome
-   heading and text, input placeholder, suggested questions and extra
-   instructions for the assistant. Chat settings are read from the
+6. **Customise it (optional)** under **Site Configuration → Chat**: button
+   label (default "Ask AI"), welcome heading and text, input placeholder,
+   suggested questions and extra instructions for the assistant. Chat settings are read from the
    **published** document, so publish to see changes.
 
 ## Commands

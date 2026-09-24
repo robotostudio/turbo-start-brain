@@ -101,7 +101,7 @@ Any page is also served as Markdown for LLMs/agents: append `.md` to the URL (`/
 **Page builder blocks**: `richTextBlock`, `faqAccordion`
 **Docs** use nested slug-based structure (`apps/studio/components/nested-pages-structure.ts`)
 
-Site branding and copy are Studio-managed: `settings` (title, description, logos, favicon, social links), `docsIndex` (home page, eyebrow), `navbar` (sidebar site links; a `/chat` link turns on Ask AI and names it) and `chat` (Ask AI copy and extra instructions). Code only holds neutral fallbacks.
+Site branding and copy are Studio-managed: `settings` (title, description, logos, favicon, social links), `docsIndex` (home page, eyebrow), `navbar` (sidebar site links) and `chat` (Ask AI button label, copy and extra instructions). Ask AI shows once its three env vars are set (`isChatConfigured` in `apps/web/src/lib/ai/chat-settings.ts`). Code only holds neutral fallbacks.
 
 ### Docs shell
 
