@@ -445,15 +445,18 @@ function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
     <>
       <SearchIcon className="size-4 shrink-0" />
       <span>Search docs</span>
-      {/* Phones have no keyboard to press it on. */}
-      <kbd
-        className={cn(
-          "pointer-events-none ml-auto inline-flex h-6 items-center gap-0.5 border bg-background px-1.5",
-          "font-medium font-sans text-micro text-muted-foreground max-sm:hidden"
-        )}
-      >
-        {isMac ? "⌘" : "Ctrl"} K
-      </kbd>
+      {/* Phones have no keyboard to press it on. Hidden from the accessible
+          name so it matches the visible "Search docs" label. */}
+      <span aria-hidden="true" className="contents">
+        <kbd
+          className={cn(
+            "pointer-events-none ml-auto inline-flex h-6 items-center gap-0.5 border bg-background px-1.5",
+            "font-medium font-sans text-micro text-muted-foreground max-sm:hidden"
+          )}
+        >
+          {isMac ? "⌘" : "Ctrl"} K
+        </kbd>
+      </span>
     </>
   );
 }
