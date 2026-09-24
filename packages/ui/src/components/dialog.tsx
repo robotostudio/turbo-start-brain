@@ -29,7 +29,7 @@ function DialogBackdrop({
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 min-h-dvh sm:bg-background/80 sm:backdrop-blur-sm",
+        "fixed inset-0 z-50 min-h-dvh sm:bg-background/50 sm:backdrop-blur-[2px]",
         "transition-opacity duration-(--duration-fast) ease-(--ease-smooth-out) data-ending-style:duration-(--duration-quick) motion-reduce:transition-none",
         "data-ending-style:opacity-0 data-starting-style:opacity-0",
         className
