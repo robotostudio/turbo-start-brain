@@ -177,7 +177,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <aside
           className={cn(
-            "not-prose my-6 flex max-w-160 gap-3 border p-4 text-small",
+            "not-prose my-8 flex gap-3 border p-4 text-small",
             variant.className
           )}
         >
@@ -209,7 +209,7 @@ const components: Partial<PortableTextReactComponents> = {
         return null;
       }
       return (
-        <figure className="my-4">
+        <figure className="my-8">
           <SanityImage
             className="h-auto w-full outline outline-1 -outline-offset-1 outline-[oklch(0_0_0/0.1)] dark:outline-[oklch(1_0_0/0.1)]"
             height={900}
@@ -218,7 +218,7 @@ const components: Partial<PortableTextReactComponents> = {
             width={1600}
           />
           {value?.caption && (
-            <figcaption className="mt-2 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            <figcaption className="mt-2 text-center text-sm text-muted-foreground">
               {value.caption}
             </figcaption>
           )}

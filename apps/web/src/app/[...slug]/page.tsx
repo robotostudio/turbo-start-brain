@@ -175,18 +175,18 @@ function DocContent({
               <CopyMarkdownButton className="justify-self-start max-sm:order-first" />
             </div>
             {data.description ? (
-              <p className="mt-4 max-w-2xl text-pretty text-lede text-muted-foreground">
+              <p className="mt-4 text-pretty text-lede text-muted-foreground">
                 {data.description}
               </p>
             ) : null}
           </header>
           <MobileTableOfContent
-            className="mb-8 max-w-160 xl:hidden"
+            className="mb-8 xl:hidden"
             maxDepth={TOC_MAX_DEPTH}
             richText={body}
           />
           <RichText
-            className="prose-p:max-w-160 prose-p:text-body prose-li:max-w-160 prose-li:text-body"
+            className="prose-p:text-body prose-li:text-body"
             richText={body}
           />
           {data.pageBuilder?.length ? (

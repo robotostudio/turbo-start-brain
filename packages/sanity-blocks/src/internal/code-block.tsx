@@ -68,7 +68,7 @@ async function highlight(
   }
 }
 
-export interface CodeBlockValue {
+interface CodeBlockValue {
   code?: string | null;
   language?: string | null;
   filename?: string | null;
@@ -91,7 +91,7 @@ export async function CodeBlock({
   const lineCount = code.replace(/\n$/, "").split("\n").length;
 
   return (
-    <figure className="not-prose relative my-6 overflow-hidden border border-border bg-background">
+    <figure className="not-prose relative my-8 overflow-hidden border border-border bg-background">
       {filename ? (
         <div className="flex items-center gap-2 border-border border-b bg-muted px-3 py-1.5">
           <span
