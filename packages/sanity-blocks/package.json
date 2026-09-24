@@ -40,7 +40,7 @@
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "^5.0.4",
     "@workspace/typescript-config": "workspace:*",
-    "next": "16.1.7",
+    "next": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   },
