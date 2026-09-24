@@ -96,7 +96,7 @@ async function DocsIndexContent({
                       <h3 className="font-medium text-h4">{link.title}</h3>
                     </div>
                     {link.description ? (
-                      <p className="mt-3 line-clamp-2 text-muted-foreground text-small">
+                      <p className="mt-3 line-clamp-2 text-base text-muted-foreground sm:text-small">
                         {link.description}
                       </p>
                     ) : null}
@@ -127,11 +127,11 @@ async function DocsIndexContent({
                   <h3 className="font-medium text-h4">{section.title}</h3>
                 </div>
                 {section.description ? (
-                  <p className="mt-3 line-clamp-2 text-muted-foreground text-small">
+                  <p className="mt-3 line-clamp-2 text-base text-muted-foreground sm:text-small">
                     {section.description}
                   </p>
                 ) : null}
-                <span className="mt-auto flex items-center gap-2 pt-5 font-medium text-small">
+                <span className="mt-auto flex items-center gap-2 pt-5 font-medium text-base sm:text-small">
                   Explore
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </span>

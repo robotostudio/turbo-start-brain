@@ -43,7 +43,7 @@ export default function RouteError({
 
         <div className="grid grid-flow-col gap-3">
           <Button
-            className="h-9 px-4 font-mono font-normal text-small uppercase tracking-wide"
+            className="h-11 px-4 font-mono sm:h-9 font-normal text-small uppercase tracking-wide"
             onClick={reset}
             size="sm"
             variant="secondary"
@@ -52,7 +52,7 @@ export default function RouteError({
           </Button>
           <Button
             asChild
-            className="h-9 px-4 font-mono font-normal text-small uppercase tracking-wide"
+            className="h-11 px-4 font-mono sm:h-9 font-normal text-small uppercase tracking-wide"
             size="sm"
             variant="ghost"
           >

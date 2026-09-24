@@ -46,14 +46,18 @@ export const { registry } = defineRegistry(docsCatalog, {
       }
       return (
         <Link
-          className="grid! w-64 shrink-0 snap-start gap-1 border bg-card p-4 transition-[opacity,translate,scale,background-color,border-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 hover:border-foreground/20 hover:bg-accent active:scale-[0.96] motion-reduce:starting:translate-y-0"
+          className="grid! w-64 shrink-0 snap-start gap-1 border bg-card p-4 transition-[opacity,translate,scale,background-color,border-color] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 hover:border-foreground/20 hover:bg-accent active:scale-[0.96] motion-reduce:starting:translate-y-0"
           data-blossom-slide
           href={href}
           onClick={closeAskAi}
         >
-          <span className="text-muted-foreground text-xs">{props.section}</span>
-          <span className="font-medium text-sm">{props.title}</span>
-          <span className="line-clamp-2 text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-sm sm:text-xs">
+            {props.section}
+          </span>
+          <span className="font-medium text-base sm:text-sm">
+            {props.title}
+          </span>
+          <span className="line-clamp-2 text-muted-foreground text-sm sm:text-xs">
             {props.description}
           </span>
         </Link>

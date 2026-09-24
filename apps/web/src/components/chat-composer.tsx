@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
 import { ThinkingOrb } from "thinking-orbs";
 
 const SHOWN = "scale-100 opacity-100 blur-none";
-const HIDDEN = "scale-[0.25] opacity-0 blur-[4px]";
+const HIDDEN = "scale-[0.25] opacity-0 blur-[2px]";
 
 export function ChatComposer({
   input,
@@ -54,7 +54,7 @@ export function ChatComposer({
       <InputGroup className="border-border/60 bg-muted shadow-sm dark:bg-muted">
         <InputGroupTextarea
           aria-label="Ask the docs assistant"
-          className="max-h-40 min-h-0 py-3 pl-5 text-base"
+          className="max-h-40 min-h-0 py-2.5 pl-4 text-base"
           ref={textareaRef}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
@@ -73,11 +73,11 @@ export function ChatComposer({
         />
         <InputGroupAddon
           align="inline-end"
-          className="mr-0! self-end pr-1.5 pb-1.5"
+          className="mr-0! self-end pr-1 pb-1"
         >
           <InputGroupButton
             aria-label={isBusy ? "Stop generating" : "Send message"}
-            className="size-11 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.96] disabled:opacity-40 sm:size-10"
+            className="size-9 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.96] disabled:opacity-40"
             disabled={!isBusy && !canSend}
             onClick={isBusy ? onStop : undefined}
             size="icon-sm"
@@ -85,7 +85,7 @@ export function ChatComposer({
             // Busy shows the orb on the bar itself, not on a white fill.
             variant={isBusy ? "ghost" : "default"}
           >
-            <span className="grid place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200 *:ease-[cubic-bezier(0.2,0,0,1)]">
+            <span className="grid place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-(--duration-fast) *:ease-in-out">
               <ThinkingOrb
                 aria-hidden
                 className={isBusy ? SHOWN : HIDDEN}

@@ -43,7 +43,7 @@ export default function GlobalError({
             ) : null}
 
             <button
-              className="h-9 border border-border px-4 font-mono font-normal text-foreground text-small uppercase tracking-wide transition-colors hover:bg-secondary"
+              className="h-11 border border-border px-4 font-mono sm:h-9 font-normal text-foreground text-small uppercase tracking-wide transition-colors hover:bg-secondary"
               onClick={reset}
               type="button"
             >

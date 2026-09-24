@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 const actionClassName =
-  "h-9 px-4 font-mono font-normal text-small uppercase tracking-wide";
+  "h-11 px-4 font-mono sm:h-9 font-normal text-small uppercase tracking-wide";
 
 export default function NotFound() {
   return (

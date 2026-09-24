@@ -33,7 +33,7 @@ const ChatMessage = dynamic(
 );
 
 const QUESTION_PILL =
-  "border bg-card px-4 py-2 text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50";
+  "border bg-card px-4 py-2.5 text-base transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 sm:py-2 sm:text-sm";
 
 // Speakable text of an assistant message for the screen-reader mirror below:
 // fenced blocks (the doc-card spec is machine data) dropped, markdown links
@@ -72,7 +72,7 @@ function ChatWelcome({
         <h2 className="font-semibold text-foreground text-lg">{heading}</h2>
       ) : null}
       {intro ? (
-        <p className="mt-2 text-balance text-muted-foreground text-sm">
+        <p className="mt-2 text-balance text-base text-muted-foreground sm:text-sm">
           {intro}
         </p>
       ) : null}
@@ -205,7 +205,7 @@ export function ChatPanel({
 
   return (
     <div
-      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-out motion-reduce:transition-none"
+      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-(--ease-smooth-out) motion-reduce:transition-none"
       style={{
         height:
           fitViewport && viewportHeight
@@ -230,7 +230,7 @@ export function ChatPanel({
             <MessageScrollerContent className="mx-auto w-full max-w-[832px] px-5 py-6 sm:px-8">
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
-                  <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
+                  <div className="max-w-md text-center transition-opacity duration-500 ease-in-out starting:opacity-0">
                     <ChatWelcome heading={heading} intro={intro} />
                     <ul className="mx-auto mt-6 grid w-full max-w-sm gap-2">
                       {suggestedQuestions.map((question) => (
@@ -271,7 +271,7 @@ export function ChatPanel({
               {status === "error" ? (
                 <MessageScrollerItem messageId="error">
                   <p
-                    className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
+                    className="text-base text-destructive transition-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0 sm:text-sm"
                     data-error-code={errorCode}
                     role="alert"
                   >

@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import type * as React from "react";
 
 const sidebarItemVariants = cva(
-  "focus-ring relative flex min-h-9 w-full items-center max-lg:min-h-11 gap-2 px-2 py-1.5 text-left text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+  "focus-ring relative flex min-h-9 w-full items-center max-lg:min-h-11 gap-2 px-2 py-1.5 text-left text-base sm:text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
   {
     variants: {
       active: {
@@ -54,14 +54,14 @@ function SidebarGroupTrigger({
   return (
     <summary
       className={cn(
-        "focus-ring flex min-h-9 cursor-pointer list-none max-lg:min-h-11 items-center gap-2 px-2 py-1.5 text-muted-foreground text-sm transition-colors marker:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&::-webkit-details-marker]:hidden",
+        "focus-ring flex min-h-9 cursor-pointer list-none max-lg:min-h-11 items-center gap-2 px-2 py-1.5 text-base text-muted-foreground transition-colors marker:hidden sm:text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&::-webkit-details-marker]:hidden",
         className
       )}
       data-slot="sidebar-group-trigger"
       {...props}
     >
       {children}
-      <ChevronDown className="ml-auto size-3.5 shrink-0 -rotate-90 opacity-60 transition-transform group-open/sidebar-group:rotate-0" />
+      <ChevronDown className="ml-auto size-3.5 shrink-0 -rotate-90 opacity-60 transition-transform duration-(--duration-fast) ease-(--ease-smooth-out) group-open/sidebar-group:rotate-0 motion-reduce:transition-none" />
     </summary>
   );
 }
