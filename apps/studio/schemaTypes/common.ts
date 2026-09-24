@@ -10,7 +10,6 @@ import {
 } from "@/utils/slug-validation";
 
 export {
-  buttonsField,
   iconField,
   imageWithAltField,
 } from "@workspace/sanity-blocks/internal/schema-fields";

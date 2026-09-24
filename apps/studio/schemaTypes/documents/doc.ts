@@ -20,6 +20,8 @@ export const doc = defineType({
     defineField({
       name: "title",
       type: "string",
+      description:
+        "The page name, shown as the heading, in the sidebar and in search results",
       group: GROUP.MAIN_CONTENT,
       validation: (rule) => rule.required(),
     }),
@@ -27,7 +29,19 @@ export const doc = defineType({
       name: "description",
       type: "text",
       rows: 3,
+      description:
+        "One or two sentences on what the page covers. Shown under the title, in search results, on home page cards and in search engine snippets",
       group: GROUP.MAIN_CONTENT,
+      validation: (rule) => [
+        rule
+          .required()
+          .warning("Add a description so search and cards have a summary"),
+        rule
+          .max(160)
+          .warning(
+            "Search engines cut descriptions after about 160 characters"
+          ),
+      ],
     }),
     documentSlugField("doc", { group: GROUP.MAIN_CONTENT }),
     iconField,

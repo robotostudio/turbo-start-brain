@@ -1,5 +1,4 @@
 import {
-  defineArrayMember,
   defineField,
   type ImageRule,
   type ImageValue,
@@ -7,14 +6,6 @@ import {
 } from "sanity";
 
 export { definePortableTextField } from "./sanity-rich-text";
-
-export const buttonsField = defineField({
-  name: "buttons",
-  type: "array",
-  description:
-    "Add one or more clickable buttons that visitors can use to navigate your website",
-  of: [defineArrayMember({ type: "button" })],
-});
 
 export const iconField = defineField({
   name: "icon",

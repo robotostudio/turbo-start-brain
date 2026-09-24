@@ -96,16 +96,16 @@ Any page is also served as Markdown for LLMs/agents: append `.md` to the URL (`/
 
 ### Sanity Document Types
 
-**Singletons** (one instance each): `docsIndex`, `settings`, `navbar`, `chat`
+**Singletons** (one instance each): `docsIndex`, `settings`, `chat`
 **Documents**: `doc`, `faq`, `redirect`
 **Page builder blocks**: `richTextBlock`, `faqAccordion`
 **Docs** use nested slug-based structure (`apps/studio/components/nested-pages-structure.ts`)
 
-Site branding and copy are Studio-managed: `settings` (title, description, logos, favicon, social links), `docsIndex` (home page, eyebrow), `navbar` (sidebar site links) and `chat` (Ask AI button label, copy and extra instructions). Ask AI shows once its three env vars are set (`isChatConfigured` in `apps/web/src/lib/ai/chat-settings.ts`). Code only holds neutral fallbacks.
+Site branding and copy are Studio-managed: `settings` (title, description, logos, favicon, social links), `docsIndex` (home page, eyebrow) and `chat` (Ask AI button label, copy and extra instructions). Ask AI shows once its three env vars are set (`getChatConfig` in `apps/web/src/lib/ai/chat-settings.ts`). Code only holds neutral fallbacks.
 
 ### Docs shell
 
-- `apps/web/src/app/layout.tsx` renders a full-height sidebar (`DocsSidebarFrame`: logo + collapse button, search + Ask AI, docs tree, site links, full-bleed theme toggle) beside the content column. There is no desktop top bar. Below `lg` a slim header (`DocsHeader`) holds the drawer trigger and logo, search + Ask AI float at the bottom, and the drawer (`DocsMobileSidebar`) renders the same `SidebarPanel` minus search and Ask AI.
+- `apps/web/src/app/layout.tsx` renders a full-height sidebar (`DocsSidebarFrame`: logo + collapse button, search + Ask AI, docs tree, full-bleed theme toggle) beside the content column. There is no desktop top bar. Below `lg` a slim header (`DocsHeader`) holds the drawer trigger and logo, search + Ask AI float at the bottom, and the drawer (`DocsMobileSidebar`) renders the same `SidebarPanel` minus search and Ask AI.
 - Collapsing the sidebar sets `html[data-sidebar="collapsed"]` (saved in localStorage, restored by an inline script before paint); layout reacts via the `in-data-[sidebar=collapsed]:` variant.
 - Every page uses `DOC_GRID` / `DOC_CONTENT` (`apps/web/src/lib/doc-grid.ts`): a 48rem content column from `lg` (full width below, matching the header) plus a TOC column from `xl` that stays reserved even when empty.
 
@@ -162,7 +162,6 @@ All frontend types derive from generated Sanity types. `apps/web/src/types.ts` e
 
 - Prefer `grid` over `flex` unless two sibling elements
 - Use `SanityImage` component for Sanity images (from `sanity-image` library)
-- Use `SanityButtons` resolver for button arrays
 - Shared UI components in `@workspace/ui` (Radix + CVA pattern)
 
 ### Formatting (Biome)

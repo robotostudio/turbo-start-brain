@@ -32,6 +32,13 @@ const CODE_LANGUAGES = [
   { title: "Bash", value: "bash" },
   { title: "JSON", value: "json" },
   { title: "CSS", value: "css" },
+  { title: "HTML", value: "html" },
+  { title: "Python", value: "python" },
+  { title: "YAML", value: "yaml" },
+  { title: "SQL", value: "sql" },
+  { title: "Diff", value: "diff" },
+  { title: "Markdown", value: "markdown" },
+  { title: "Plain text", value: "text" },
 ];
 
 // Members that may appear at any nesting depth. Callout, steps and tabs
@@ -50,6 +57,7 @@ const baseRichTextMembers = [
       { title: "H4", value: "h4" },
       { title: "H5", value: "h5" },
       { title: "H6", value: "h6" },
+      { title: "Quote", value: "blockquote" },
       { title: "Inline", value: "inline" },
     ],
     lists: [
@@ -94,6 +102,13 @@ const baseRichTextMembers = [
         type: "string",
         title: "Alternative Text",
         description: "Describe the image for screen readers and search engines",
+        validation: (rule) =>
+          rule.custom((value, context) => {
+            const parent = context.parent as { asset?: unknown };
+            return parent?.asset && !value?.trim()
+              ? "Alt text is required when an image is set"
+              : true;
+          }),
       }),
       defineField({
         name: "caption",

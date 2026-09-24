@@ -7,7 +7,7 @@ import { API_VERSION } from "@/utils/constant";
 type Redirect = {
   source: SlugValue;
   destination: SlugValue;
-  permanent: boolean;
+  permanent: "true" | "false";
   status: string;
 };
 
@@ -141,7 +141,7 @@ export const redirect = defineType({
     },
     prepare: ({ title, subtitle, permanent, status }) => ({
       title: `${title ?? "Untitled"} to ${subtitle ?? "Untitled"}`,
-      subtitle: `${permanent ? "Permanent" : "Temporary"}, ${status}`,
+      subtitle: `${permanent === "false" ? "Temporary" : "Permanent"}, ${status}`,
       media: TrendingUpDown,
     }),
   },
