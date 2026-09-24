@@ -2,11 +2,9 @@
  * directory (add a `case` + `markdown.ts` for new blocks). Unknown types return "". */
 
 import { faqAccordionToMarkdown } from "../faq-accordion/markdown";
-import { featureCardsIconToMarkdown } from "../feature-cards-icon/markdown";
 import { richTextBlockToMarkdown } from "../rich-text-block/markdown";
 import type { MarkdownBlock, MarkdownOptions } from "./markdown";
 
-export { imageToMarkdown } from "./markdown";
 export type { MarkdownBlock };
 
 function blockToMarkdown(
@@ -16,8 +14,6 @@ function blockToMarkdown(
   switch (block?._type) {
     case "richTextBlock":
       return richTextBlockToMarkdown(block, options);
-    case "featureCardsIcon":
-      return featureCardsIconToMarkdown(block, options);
     case "faqAccordion":
       return faqAccordionToMarkdown(block, options);
     default:

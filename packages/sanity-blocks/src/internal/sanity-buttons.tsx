@@ -59,13 +59,13 @@ function SanityButton({
 }: Readonly<SanityButtonRenderProps>) {
   const safeHref = sanitizeHref(href);
   if (!safeHref) {
-    return <Button>Link Broken</Button>;
+    return <Button>Broken link</Button>;
   }
 
   return (
     <Button
       asChild
-      className={cn("rounded-full", className)}
+      className={className}
       size={size ?? "default"}
       variant={variant ?? "default"}
     >

@@ -136,7 +136,7 @@ const components: Partial<PortableTextReactComponents> = {
   },
   marks: {
     code: ({ children }) => (
-      <code className="rounded-none border border-border bg-zinc-200 px-1.5 py-0.5 font-mono text-[0.85em] text-foreground before:content-none after:content-none lg:whitespace-nowrap dark:bg-zinc-800">
+      <code className="border border-border bg-zinc-200 px-1.5 py-0.5 font-mono text-[0.85em] text-foreground before:content-none after:content-none lg:whitespace-nowrap dark:bg-zinc-800">
         {children}
       </code>
     ),
@@ -145,7 +145,7 @@ const components: Partial<PortableTextReactComponents> = {
       if (!safeHref || safeHref === "#") {
         return (
           <span className="underline decoration-dotted underline-offset-2">
-            Link Broken
+            Broken link
           </span>
         );
       }
@@ -154,7 +154,7 @@ const components: Partial<PortableTextReactComponents> = {
         // replace it with a raw URL, which is what a screen reader would then
         // read out in place of the words the author wrote.
         <Link
-          className="underline decoration-dotted underline-offset-2"
+          className="underline decoration-from-font [text-underline-position:from-font]"
           href={safeHref}
           prefetch={false}
           rel={value.openInNewTab ? "noopener noreferrer" : undefined}
@@ -177,7 +177,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <aside
           className={cn(
-            "not-prose my-6 flex gap-3 rounded-xl border p-4 text-small",
+            "not-prose my-6 flex gap-3 border p-4 text-small",
             variant.className
           )}
         >
@@ -211,7 +211,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <figure className="my-4">
           <SanityImage
-            className="h-auto w-full"
+            className="h-auto w-full outline outline-1 -outline-offset-1 outline-[oklch(0_0_0/0.1)] dark:outline-[oklch(1_0_0/0.1)]"
             height={900}
             image={value}
             sizes="(min-width: 1024px) 900px, calc(100vw - 40px)"
@@ -233,7 +233,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <figure className="not-prose my-8">
           <MuxVideo
-            className="aspect-video w-full overflow-hidden rounded-xl border bg-black"
+            className="aspect-video w-full overflow-hidden border bg-black"
             playbackId={playbackId}
           />
           {value?.caption ? (
@@ -253,7 +253,7 @@ const components: Partial<PortableTextReactComponents> = {
         <ol className="not-prose my-8 ml-4 border-l">
           {items.map((item, index) => (
             <li className="relative pb-8 pl-8 last:pb-0" key={item._key}>
-              <span className="absolute top-0 -left-4 flex size-8 items-center justify-center rounded-full bg-muted font-medium text-muted-foreground text-sm ring-4 ring-background">
+              <span className="absolute top-0 -left-4 flex size-8 items-center justify-center bg-muted font-medium text-muted-foreground text-sm ring-4 ring-background">
                 {index + 1}
               </span>
               <h3 className="mb-2 pt-1 font-semibold text-h4">{item.title}</h3>
@@ -315,7 +315,7 @@ export function RichText<T extends RichTextValue>({
       className={cn(
         // `strong` is the design's highlight treatment: foreground ink at
         // normal weight, not bold.
-        "prose prose-zinc dark:prose-invert max-w-none prose-headings:scroll-m-24 prose-a:decoration-dotted prose-strong:font-normal prose-strong:text-foreground prose-h2:first:mt-0 dark:prose-headings:text-zinc-100",
+        "prose prose-zinc dark:prose-invert max-w-none prose-headings:scroll-m-24 prose-headings:text-balance prose-strong:font-normal prose-strong:text-foreground prose-h2:first:mt-0 dark:prose-headings:text-zinc-100",
         className
       )}
     >

@@ -21,33 +21,11 @@ export interface MarkdownButton {
   href?: string | null;
 }
 
-export interface MarkdownCard {
-  _key?: string | null;
-  title?: string | null;
-  description?: string | null;
-  // Feature-card icon — intentionally dropped from Markdown (a test guards this).
-  icon?: string | null;
-  image?: MarkdownImage | null;
-  richText?: PortableTextValue;
-}
-
 export interface MarkdownFaq {
   _key?: string | null;
   _id?: string;
   title?: string | null;
   richText?: PortableTextValue;
-}
-
-export interface MarkdownLink {
-  title?: string | null;
-  description?: string | null;
-  href?: string | null;
-}
-
-export interface MarkdownFaqCategory {
-  _key?: string | null;
-  title?: string | null;
-  faqs?: MarkdownFaq[] | null;
 }
 
 export interface MarkdownBlock {
@@ -59,9 +37,7 @@ export interface MarkdownBlock {
   subtitle?: string | null;
   richText?: PortableTextValue;
   buttons?: MarkdownButton[] | null;
-  cards?: MarkdownCard[] | null;
-  categories?: MarkdownFaqCategory[] | null;
-  link?: MarkdownLink | null;
+  faqs?: MarkdownFaq[] | null;
 }
 
 /** Joins defined, non-empty sections with a blank line between them. */
@@ -121,15 +97,4 @@ export function imageToMarkdown(
       : img;
   }
   return escapeMarkdown(caption || alt);
-}
-
-/** A Markdown link, or plain escaped text when the href is missing or `#`. */
-export function mdLink(
-  label: string,
-  href: string | null | undefined,
-  options: MarkdownOptions = {}
-): string {
-  return href && href !== "#"
-    ? `[${escapeMarkdown(label)}](${formatUrl(absolutizeUrl(href, options.baseUrl))})`
-    : escapeMarkdown(label);
 }

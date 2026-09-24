@@ -33,12 +33,12 @@ export function CodeBlock({
   const lineCount = code.replace(/\n$/, "").split("\n").length;
 
   return (
-    <figure className="not-prose relative my-6 overflow-hidden rounded-xl border border-border bg-background">
+    <figure className="not-prose relative my-6 overflow-hidden border border-border bg-background">
       {filename ? (
         <div className="flex items-center gap-2 border-border border-b bg-muted px-3 py-1.5">
           <span
             aria-hidden="true"
-            className="grid h-5 min-w-5 place-items-center rounded-md border border-border bg-background px-1 font-mono font-semibold text-[0.625rem] text-muted-foreground uppercase"
+            className="grid h-5 min-w-5 place-items-center border border-border bg-background px-1 font-mono font-semibold text-micro text-muted-foreground uppercase"
           >
             {badge}
           </span>
@@ -50,7 +50,7 @@ export function CodeBlock({
       ) : (
         <div className="absolute top-2 right-2 z-10">
           <CopyButton
-            className="rounded-md border border-border bg-background/80 p-1.5 backdrop-blur-sm"
+            className="border border-border bg-background/80 p-1.5 backdrop-blur-sm"
             code={code}
           />
         </div>

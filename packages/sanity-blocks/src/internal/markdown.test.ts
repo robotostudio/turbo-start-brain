@@ -11,7 +11,6 @@ import {
   joinSections,
   type MarkdownImage,
   type MarkdownOptions,
-  mdLink,
 } from "./markdown";
 
 test("joinSections returns empty string for an empty array", () => {
@@ -128,16 +127,6 @@ test("buttonsToMarkdown absolutizes internal hrefs when baseUrl is set", () => {
       baseUrl: "https://example.com",
     })
   ).toBe("- [Get started](https://example.com/start)");
-});
-
-test("mdLink absolutizes internal hrefs when baseUrl is set", () => {
-  expect(mdLink("About", "/about", { baseUrl: "https://example.com" })).toBe(
-    "[About](https://example.com/about)"
-  );
-  // external href untouched
-  expect(
-    mdLink("Ext", "https://other.com", { baseUrl: "https://example.com" })
-  ).toBe("[Ext](https://other.com)");
 });
 
 test("buttonsToMarkdown renders plain text when href is absent", () => {
@@ -276,34 +265,4 @@ test("imageToMarkdown escapes markdown chars in caption", () => {
   expect(imageToMarkdown(img, { resolveImageUrl })).toBe(
     "![Photo](https://cdn.example.com/abc123.webp)\n\n_\\_Caption\\__"
   );
-});
-
-test("mdLink returns a Markdown link for a valid href", () => {
-  expect(mdLink("Docs", "/docs")).toBe("[Docs](/docs)");
-});
-
-test("mdLink returns escaped plain text for '#' href", () => {
-  expect(mdLink("Anchor", "#")).toBe("Anchor");
-});
-
-test("mdLink returns escaped plain text for null href", () => {
-  expect(mdLink("Label", null)).toBe("Label");
-});
-
-test("mdLink returns escaped plain text for undefined href", () => {
-  expect(mdLink("Label", undefined)).toBe("Label");
-});
-
-test("mdLink returns escaped plain text for empty-string href", () => {
-  expect(mdLink("Label", "")).toBe("Label");
-});
-
-test("mdLink escapes markdown metacharacters in the label", () => {
-  expect(mdLink("user_name [tag]", "/path")).toBe(
-    "[user\\_name \\[tag\\]](/path)"
-  );
-});
-
-test("mdLink wraps href with parentheses in angle brackets", () => {
-  expect(mdLink("Link", "/wiki/foo_(bar)")).toBe("[Link](</wiki/foo_(bar)>)");
 });

@@ -17,7 +17,7 @@ import dynamic from "next/dynamic";
 const MuxPlayer = dynamic(() => import("@mux/mux-player-react/lazy"), {
   ssr: false,
   loading: () => (
-    <div className="aspect-video w-full overflow-hidden rounded-xl border bg-black" />
+    <div className="aspect-video w-full overflow-hidden border bg-black" />
   ),
 });
 

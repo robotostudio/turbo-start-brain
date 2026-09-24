@@ -1,3 +1,5 @@
+"use client";
+
 import { cn } from "@workspace/tailwind-config/utils";
 import { TriangleAlert } from "lucide-react";
 import { DynamicIcon, type IconName } from "lucide-react/dynamic";

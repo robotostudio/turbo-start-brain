@@ -6,6 +6,9 @@ import { Check } from "lucide-react";
 import { CopyIcon } from "./icons";
 import { COPY_STATUS_CLASS, useCopyToClipboard } from "./use-copy";
 
+const SHOWN = "scale-100 opacity-100 blur-none";
+const HIDDEN = "scale-[0.25] opacity-0 blur-[4px]";
+
 export function CopyButton({
   code,
   className,
@@ -20,19 +23,19 @@ export function CopyButton({
     <button
       aria-label="Copy code to clipboard"
       className={cn(
-        "focus-ring inline-flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors hover:text-foreground",
+        "focus-ring inline-flex shrink-0 items-center justify-center p-1 text-muted-foreground transition-colors hover:text-foreground",
         COPY_STATUS_CLASS[status],
         className
       )}
       onClick={copy}
       type="button"
     >
-      <span className="grid size-4 place-items-center">
-        {copied ? (
-          <Check aria-hidden="true" className="size-4" />
-        ) : (
-          <CopyIcon className="size-4" />
-        )}
+      <span className="grid size-4 place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200 *:ease-[cubic-bezier(0.2,0,0,1)]">
+        <Check
+          aria-hidden="true"
+          className={cn("size-4", copied ? SHOWN : HIDDEN)}
+        />
+        <CopyIcon className={cn("size-4", copied ? HIDDEN : SHOWN)} />
       </span>
       <output className="sr-only">{copied ? "Copied to clipboard" : ""}</output>
     </button>
