@@ -1,3 +1,4 @@
+import { Logger } from "@workspace/logger";
 import { type CSSProperties, Fragment } from "react";
 import {
   type BundledLanguage,
@@ -7,6 +8,8 @@ import {
 } from "shiki";
 
 import { CopyButton } from "./copy-button";
+
+const logger = new Logger("CodeBlock");
 
 // Short label shown in the language tile.
 const BADGE_MAP: Record<string, string> = {
@@ -44,7 +47,8 @@ const HIGHLIGHTED = new Set<string>([
 let highlighter: Promise<Highlighter> | undefined;
 
 // Server-only; tokens carry both themes as CSS variables (see globals.css).
-// Cached because Shiki reads the clock, which prerendering rejects.
+// Cached because Shiki reads the clock, which prerendering rejects. Failures
+// throw rather than return null, so a plain fallback is never cached.
 async function highlight(
   code: string,
   language?: string | null
@@ -53,18 +57,20 @@ async function highlight(
   if (!(language && HIGHLIGHTED.has(language))) {
     return null;
   }
+  highlighter ??= createHighlighter({
+    themes: ["github-light", "github-dark"],
+    langs: [...HIGHLIGHTED] as BundledLanguage[],
+  });
   try {
-    highlighter ??= createHighlighter({
-      themes: ["github-light", "github-dark"],
-      langs: [...HIGHLIGHTED] as BundledLanguage[],
-    });
     return (await highlighter).codeToTokens(code, {
       lang: language as BundledLanguage,
       themes: { light: "github-light", dark: "github-dark" },
       defaultColor: false,
     }).tokens;
-  } catch {
-    return null;
+  } catch (error) {
+    // Drop a failed load so the next render retries instead of reusing it.
+    highlighter = undefined;
+    throw error;
   }
 }
 
@@ -84,7 +90,10 @@ export async function CodeBlock({
   }
 
   const badge = (language && BADGE_MAP[language]) || "TXT";
-  const lines = await highlight(code, language);
+  const lines = await highlight(code, language).catch((error: unknown) => {
+    logger.warn("Code highlighting failed; rendering plain text", error);
+    return null;
+  });
 
   // Line numbers are rendered as a fixed gutter column beside the scrolling
   // code, so they stay put during horizontal scroll and are excluded from copy.
