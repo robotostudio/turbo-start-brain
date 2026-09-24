@@ -49,7 +49,7 @@ package's suite with `pnpm --filter @workspace/sanity-blocks test`.
 ```txt
 apps/
   web/         — Next.js 16 (App Router, React 19, React Compiler, Cache Components, Tailwind v4)
-  studio/      — Sanity Studio v6 (Vite, styled-components)
+  studio/      — Sanity Studio v6 (Vite, styled-components); seed/seed.ndjson is importable sample content
 packages/
   env/           — @workspace/env — Zod-validated env vars via @t3-oss/env-nextjs
   sanity/        — @workspace/sanity — Shared Sanity client, GROQ queries, live preview, image utils

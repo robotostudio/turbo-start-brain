@@ -118,7 +118,19 @@ pnpm dev
 
 ### 5. Add your content
 
-The template ships without content, so a new project starts empty. In Studio:
+A new project starts empty. To see the site working straight away, import the
+sample docs (a short guide to using this template) into your dataset:
+
+```sh
+cd apps/studio
+npx sanity dataset import seed/seed.ndjson production
+```
+
+Import into an empty dataset; documents with the same IDs are not overwritten
+unless you add `--replace`. Edit or delete the sample pages in Studio once you
+start writing your own.
+
+To start from scratch instead, in Studio:
 
 1. **Site Configuration → Global Settings**: site title, description, logos,
    favicon and social links.
@@ -237,7 +249,8 @@ Deploy them with the Sanity CLI's blueprints commands from `apps/studio`.
 **`pnpm dev` exits with an env validation error.** A required variable in
 `apps/web/.env` is missing; see the table in step 3.
 
-**The site is empty.** The dataset has no content yet; see step 5.
+**The site is empty.** The dataset has no content yet; import the sample docs
+or add pages as described in step 5.
 
 **Presentation shows a blank or blocked preview.** Add the web URL to
 **API → CORS origins** with credentials allowed, and check
