@@ -181,31 +181,33 @@ const baseRichTextMembers = [
   }),
 ];
 
+const calloutMember = defineArrayMember({
+  name: PORTABLE_TEXT_MEMBER_NAMES.callout,
+  type: "object",
+  title: "Callout",
+  icon: BlockContentIcon,
+  fields: [
+    defineField({
+      name: "variant",
+      type: "string",
+      initialValue: "info",
+      options: {
+        list: ["info", "warning", "success", "danger"],
+        layout: "radio",
+      },
+    }),
+    defineField({
+      name: "body",
+      type: "array",
+      of: baseRichTextMembers,
+      validation: (rule) => rule.required(),
+    }),
+  ],
+});
+
 const richTextMembers = [
   ...baseRichTextMembers,
-  defineArrayMember({
-    name: PORTABLE_TEXT_MEMBER_NAMES.callout,
-    type: "object",
-    title: "Callout",
-    icon: BlockContentIcon,
-    fields: [
-      defineField({
-        name: "variant",
-        type: "string",
-        initialValue: "info",
-        options: {
-          list: ["info", "warning", "success", "danger"],
-          layout: "radio",
-        },
-      }),
-      defineField({
-        name: "body",
-        type: "array",
-        of: baseRichTextMembers,
-        validation: (rule) => rule.required(),
-      }),
-    ],
-  }),
+  calloutMember,
   defineArrayMember({
     name: PORTABLE_TEXT_MEMBER_NAMES.steps,
     type: "object",
@@ -229,7 +231,7 @@ const richTextMembers = [
               defineField({
                 name: "content",
                 type: "array",
-                of: baseRichTextMembers,
+                of: [...baseRichTextMembers, calloutMember],
                 validation: (rule) => rule.required(),
               }),
             ],
@@ -261,7 +263,7 @@ const richTextMembers = [
               defineField({
                 name: "content",
                 type: "array",
-                of: baseRichTextMembers,
+                of: [...baseRichTextMembers, calloutMember],
                 validation: (rule) => rule.required(),
               }),
             ],

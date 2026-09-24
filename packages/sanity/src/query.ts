@@ -54,24 +54,29 @@ const nestedPortableTextFragment = /* groq */ `
   }
 `;
 
-const portableTextFragment = /* groq */ `
-  ${nestedPortableTextFragment},
+// Callouts can also sit inside steps and tabs; their body is one level deep.
+const calloutFragment = /* groq */ `
   _type == "callout" => {
     ...,
     body[]{${nestedPortableTextFragment}}
-  },
+  }
+`;
+
+const portableTextFragment = /* groq */ `
+  ${nestedPortableTextFragment},
+  ${calloutFragment},
   _type == "steps" => {
     ...,
     items[]{
       ...,
-      content[]{${nestedPortableTextFragment}}
+      content[]{${nestedPortableTextFragment}, ${calloutFragment}}
     }
   },
   _type == "tabs" => {
     ...,
     items[]{
       ...,
-      content[]{${nestedPortableTextFragment}}
+      content[]{${nestedPortableTextFragment}, ${calloutFragment}}
     }
   }
 `;
@@ -169,6 +174,7 @@ export const querySearchDocs = defineQuery(`
 // URL in the sitemap while its own robots tag says noindex is a contradiction
 // search engines report as an error.
 export const querySitemapData = defineQuery(`{
+  "homeModified": *[_type == "docsIndex" && _id == "docsIndex"][0]._updatedAt,
   "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{
     "slug": slug.current,
     title,
@@ -176,7 +182,7 @@ export const querySitemapData = defineQuery(`{
   }
 }`);
 export const queryGlobalSeoSettings = defineQuery(`
-  *[_type == "settings"][0]{
+  *[_type == "settings" && _id == "settings"][0]{
     _id,
     _type,
     siteTitle,
@@ -203,7 +209,7 @@ export const queryGlobalSeoSettings = defineQuery(`
 `);
 
 export const querySettingsData = defineQuery(`
-  *[_type == "settings"][0]{
+  *[_type == "settings" && _id == "settings"][0]{
     _id,
     _type,
     siteTitle,
@@ -217,7 +223,7 @@ export const querySettingsData = defineQuery(`
 // One fetch for both the Ask AI dialog (copy) and the chat route (assistant
 // name and extra instructions).
 export const queryChatSettings = defineQuery(`{
-  "siteTitle": *[_type == "settings"][0].siteTitle,
+  "siteTitle": *[_type == "settings" && _id == "settings"][0].siteTitle,
   "chat": *[_type == "chat" && _id == "chat"][0]{
     label,
     heading,

@@ -27,6 +27,9 @@ const hiddenTemplateIds = new Set([
   "media.tag",
 ]);
 
+const singletonTypeSet = new Set<string>(singletonTypes);
+const SINGLETON_BLOCKED_ACTIONS = new Set(["delete", "duplicate", "unpublish"]);
+
 export default defineConfig({
   name: "default",
   title,
@@ -60,6 +63,14 @@ export default defineConfig({
     contextPlugin(),
   ],
   document: {
+    // Singletons are one fixed document each: no duplicates, and nothing that
+    // would leave the site without it.
+    actions: (prev, { schemaType }) =>
+      singletonTypeSet.has(schemaType)
+        ? prev.filter(
+            ({ action }) => !(action && SINGLETON_BLOCKED_ACTIONS.has(action))
+          )
+        : prev,
     newDocumentOptions: (prev, { creationContext }) => {
       const { type } = creationContext;
       if (type === "global") {
