@@ -13,7 +13,7 @@ start.
 
 ```txt
 schemaTypes/
-  documents/       doc, faq, redirect and the docsIndex, settings, navbar, chat singletons
+  documents/       doc, faq, redirect and the docsIndex, settings, chat singletons
   definitions/     Shared field objects and the pageBuilder array
 components/        Custom Studio components and the nested docs structure
 functions/         Sanity Functions (auto-redirect, invalidate-tags)

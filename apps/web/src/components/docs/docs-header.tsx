@@ -1,26 +1,22 @@
-"use client";
-
 import type { ComponentProps } from "react";
 
 import { AskAiDialog } from "@/components/ask-ai-dialog";
 import { DocsSearch } from "@/components/docs/docs-search";
-import { DocsMobileSidebar } from "@/components/docs/docs-sidebar";
+import { DocsMobileSidebar } from "@/components/docs/docs-mobile-sidebar";
 import { Logo } from "@/components/logo";
 import { DOC_CONTENT, DOC_TRACKS } from "@/lib/doc-grid";
 import type { DocsTreeNode } from "@/lib/docs-tree";
-import type { NavigationData } from "@/types";
+import type { SiteSettings } from "@/types";
 
 export function DocsHeader({
   askAiLabel,
   chat,
-  navbar,
   settings,
   tree,
 }: Readonly<{
   askAiLabel: string | null;
   chat: ComponentProps<typeof AskAiDialog>["chat"];
-  navbar: NavigationData["navbarData"];
-  settings: NavigationData["settingsData"];
+  settings: SiteSettings;
   tree: DocsTreeNode[];
 }>) {
   const { logos, siteTitle } = settings ?? {};
@@ -35,11 +31,7 @@ export function DocsHeader({
         {/* Same side padding as the article, so the edges line up. */}
         <div className={`${DOC_TRACKS} h-full`}>
           <div className="flex items-center gap-2">
-            <DocsMobileSidebar
-              navbar={navbar}
-              settings={settings}
-              tree={tree}
-            />
+            <DocsMobileSidebar settings={settings} tree={tree} />
             <Logo
               alt={siteTitle ?? "Home"}
               className="max-h-6 w-auto"

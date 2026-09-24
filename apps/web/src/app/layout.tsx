@@ -26,9 +26,9 @@ import { CombinedJsonLd } from "@/components/json-ld";
 import { PreviewBar } from "@/components/preview-bar";
 import { Providers } from "@/components/providers";
 import { ScrollToTop } from "@/components/scroll-to-top";
-import { getChatSettings, isChatConfigured } from "@/lib/ai/chat-settings";
+import { getChatConfig, getChatSettings } from "@/lib/ai/chat-settings";
 import { getDocsNavigation } from "@/lib/docs-tree";
-import { getNavigationData } from "@/lib/navigation";
+import { getSiteSettings } from "@/lib/site-settings";
 
 // The fallback stack is what the first frame renders under `font-display:
 // swap`, so it has to be the right family: next/font's default is a
@@ -87,8 +87,8 @@ export default async function RootLayout({
 }>) {
   preconnect("https://cdn.sanity.io");
   prefetchDNS("https://cdn.sanity.io");
-  // In local dev, navigation follows drafts too (like page content), so navbar
-  // and settings edits are visible without a Presentation session.
+  // In local dev, the sidebar follows drafts too (like page content), so
+  // settings and docs edits are visible without a Presentation session.
   // Production stays static published.
   const showDrafts = DRAFTS_WITHOUT_SESSION;
   return (
@@ -189,19 +189,16 @@ async function CachedDocsShell({
   stega,
   children,
 }: DynamicFetchOptions & { children: React.ReactNode }) {
-  const { chat, navbar, settings, tree } = await getDocsShellData({
+  const { chat, settings, tree } = await getDocsShellData({
     perspective,
     stega,
   });
-  const askAiLabel = isChatConfigured()
-    ? chat?.label?.trim() || "Ask AI"
-    : null;
+  const askAiLabel = getChatConfig() ? chat?.label?.trim() || "Ask AI" : null;
 
   return (
     <div className="grid min-h-dvh grid-cols-1 bg-background lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-1">
       <DocsSidebarFrame
         askAiLabel={askAiLabel}
-        navbar={navbar}
         settings={settings}
         tree={tree}
       />
@@ -210,7 +207,6 @@ async function CachedDocsShell({
         <DocsHeader
           askAiLabel={askAiLabel}
           chat={chat}
-          navbar={navbar}
           settings={settings}
           tree={tree}
         />
@@ -224,15 +220,14 @@ async function CachedDocsShell({
 
 async function getDocsShellData({ perspective, stega }: DynamicFetchOptions) {
   "use cache";
-  const [{ navbarData, settingsData }, tree, chatSettings] = await Promise.all([
-    getNavigationData({ perspective, stega }),
+  const [settingsData, tree, chatSettings] = await Promise.all([
+    getSiteSettings({ perspective, stega }),
     getDocsNavigation({ perspective, stega }),
-    getChatSettings(),
+    getChatSettings().catch(() => null),
   ]);
 
   return {
     chat: chatSettings?.chat ?? null,
-    navbar: navbarData,
     settings: settingsData,
     tree,
   };

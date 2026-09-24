@@ -2,7 +2,6 @@ import type { FilterByType, Get } from "@sanity/codegen";
 import type {
   QueryGlobalSeoSettingsResult,
   QueryDocBySlugResult,
-  QueryNavbarDataResult,
 } from "@workspace/sanity/types";
 
 export type PageBuilderBlock = Get<QueryDocBySlugResult, "pageBuilder", number>;
@@ -23,7 +22,4 @@ export type SanityRichTextBlock = FilterByType<
 
 export type Maybe<T> = T | null | undefined;
 
-export type NavigationData = {
-  navbarData: QueryNavbarDataResult;
-  settingsData: QueryGlobalSeoSettingsResult;
-};
+export type SiteSettings = QueryGlobalSeoSettingsResult;

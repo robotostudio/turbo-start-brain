@@ -125,9 +125,7 @@ The template ships without content, so a new project starts empty. In Studio:
 2. **Docs Home**: the home page title, intro and featured pages.
 3. **Docs by Path**: your pages. A slug like `/getting-started/setup` nests the
    page under `/getting-started` in the sidebar.
-4. **Site Configuration → Navigation**: links shown at the bottom of the
-   sidebar.
-5. **Site Configuration → Chat** (optional): the Ask AI button label, welcome
+4. **Site Configuration → Chat** (optional): the Ask AI button label, welcome
    text, input placeholder, suggested questions and extra instructions.
 
 ## Ask AI (optional)
@@ -195,7 +193,7 @@ every content type from that file.
 
 ## Content model
 
-- **Singletons:** `docsIndex` (docs home), `settings`, `navbar`, `chat`
+- **Singletons:** `docsIndex` (docs home), `settings`, `chat`
 - **Documents:** `doc` (a docs page), `faq`, `redirect`
 - **Page builder blocks:** `richTextBlock`, `faqAccordion` (one folder each in
   `packages/sanity-blocks/src`)

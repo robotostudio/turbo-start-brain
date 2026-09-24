@@ -21,7 +21,7 @@ import {
   chatErrorResponse,
   streamErrorCode,
 } from "@/lib/ai/chat-errors";
-import { getChatSettings } from "@/lib/ai/chat-settings";
+import { getChatConfig, getChatSettings } from "@/lib/ai/chat-settings";
 import {
   connectKnowledgeBase,
   getDocsPageIndex,
@@ -94,14 +94,12 @@ function buildInstructions(
 }
 
 export async function POST(req: Request) {
-  // Fail closed: without the Gateway key the model call cannot succeed, and
-  // without the endpoint and token it would answer from its own knowledge.
-  const endpoint = env.SANITY_CONTEXT_MCP_URL;
-  const token = env.SANITY_ORGANIZATION_TOKEN;
-  if (!(env.AI_GATEWAY_API_KEY && endpoint && token)) {
+  const config = getChatConfig();
+  if (!config) {
     logger.warn("Rejected chat request: chat assistant is not configured");
     return chatErrorResponse(CHAT_ERROR.notConfigured, 503);
   }
+  const { endpoint, token } = config;
 
   let messages: UIMessage[];
   try {

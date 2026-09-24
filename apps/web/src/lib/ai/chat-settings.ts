@@ -16,12 +16,13 @@ export async function getChatSettings() {
   return data;
 }
 
-/** Without the Gateway key the model call fails; without the endpoint and
- * token it would answer from its own knowledge. */
-export function isChatConfigured() {
-  return Boolean(
-    env.AI_GATEWAY_API_KEY &&
-      env.SANITY_CONTEXT_MCP_URL &&
-      env.SANITY_ORGANIZATION_TOKEN
-  );
+/** Null unless all three are set: without the Gateway key the model call
+ * fails, and without the endpoint and token it would answer from its own
+ * knowledge. */
+export function getChatConfig() {
+  const endpoint = env.SANITY_CONTEXT_MCP_URL;
+  const token = env.SANITY_ORGANIZATION_TOKEN;
+  return env.AI_GATEWAY_API_KEY && endpoint && token
+    ? { endpoint, token }
+    : null;
 }
