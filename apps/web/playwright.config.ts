@@ -2,8 +2,11 @@ import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 
+// Same files as Next.js: `.env.local` overrides `.env`.
 dotenv.config({
-  path: path.resolve(import.meta.dirname, ".env.local"),
+  path: [".env.local", ".env"].map((file) =>
+    path.resolve(import.meta.dirname, file)
+  ),
   quiet: true,
 });
 
