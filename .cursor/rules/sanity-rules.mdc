@@ -46,103 +46,11 @@ When adding icons to a schema, make sure you use the default sanity/icons first,
 
 ### Structuring files and folders
 
-This is a rough idea of how to structure folders and files, ensuring you always have an index within the folder to create an array of documents/blocks. Do not use these as exact names, it's used purely for layout purposes.
-
-    │   ├── studio/
-    │   │   ├── README.md
-    │   │   ├── eslint.config.mjs
-    │   │   ├── location.ts
-    │   │   ├── package.json
-    │   │   ├── prettier.config.mjs
-    │   │   ├── sanity-typegen.json
-    │   │   ├── sanity.cli.ts
-    │   │   ├── sanity.config.ts
-    │   │   ├── schema.json
-    │   │   ├── structure.ts
-    │   │   ├── tsconfig.json
-    │   │   ├── .env.example
-    │   │   ├── .gitignore
-    │   │   ├── components/
-    │   │   │   ├── logo.tsx
-    │   │   │   └── slug-field-component.tsx
-    │   │   ├── plugins/
-    │   │   │   └── presentation-url.ts
-    │   │   ├── schemaTypes/
-    │   │   │   ├── common.ts
-    │   │   │   ├── index.ts
-    │   │   │   ├── blocks/
-    │   │   │   │   ├── cta.ts
-    │   │   │   │   ├── faq-accordion.ts
-    │   │   │   │   ├── feature-cards-icon.ts
-    │   │   │   │   ├── hero.ts
-    │   │   │   │   ├── image-link-cards.ts
-    │   │   │   │   ├── index.ts
-    │   │   │   │   └── subscribe-newsletter.ts
-    │   │   │   ├── definitions/
-    │   │   │   │   ├── button.ts
-    │   │   │   │   ├── custom-url.ts
-    │   │   │   │   ├── index.ts
-    │   │   │   │   ├── pagebuilder.ts
-    │   │   │   │   └── rich-text.ts
-    │   │   │   └── documents/
-    │   │   │       ├── author.ts
-    │   │   │       ├── blog.ts
-    │   │   │       ├── faq.ts
-    │   │   │       └── page.ts
-    │   │   └── utils/
-    │   │       ├── const-mock-data.ts
-    │   │       ├── constant.ts
-    │   │       ├── helper.ts
-    │   │       ├── mock-data.ts
-    │   │       ├── og-fields.ts
-    │   │       ├── parse-body.ts
-    │   │       ├── seo-fields.ts
-    │   │       ├── slug.ts
-    │   │       └── types.ts
-
-### Layout of page builder index example
-
-This is an example of how the blocks index file would be structured, you would create multiple of these on multiple nested routes to make it easier to create an array of files at each level, rather than bundling a large number of imports in a singular index.ts on the root
-
-```typescript
-import { callToAction } from './call-to-action';
-import { exploreHero } from './explore-hero';
-import { faqList } from './faq-list';
-import { htmlEmbed } from './html-embed';
-import { iconGrid } from './icon-grid';
-import { latestDocs } from './latest-docs';
-import { calculator } from './calculator';
-import { navigationCards } from './navigation-cards';
-import { quinstreetEmbed } from './quinstreet-embed';
-import { quote } from './quote';
-import { richTextBlock } from './rich-text-block';
-import { socialProof } from './social-proof';
-import { splitForm } from './split-form';
-import { statsCard } from './stats-card';
-import { trustCard } from './trust-card';
-import { rvEmbed } from './rv-embed';
-
-export const pagebuilderBlocks = [
-  navigationCards,
-  socialProof,
-  quote,
-  latestDocs,
-  faqList,
-  callToAction,
-  trustCard,
-  quinstreetEmbed,
-  statsCard,
-  iconGrid,
-  exploreHero,
-  splitForm,
-  richTextBlock,
-  calculator,
-  htmlEmbed,
-  rvEmbed,
-];
-
-export const blocks = [...pagebuilderBlocks];
-```
+Document and singleton schemas live in `apps/studio/schemaTypes/documents/`.
+Page builder blocks live in `packages/sanity-blocks/src/<block>/` (schema, GROQ
+projection, component, Markdown serializer, thumbnail) and are registered via
+the `blockSchemas` array in `packages/sanity-blocks/src/sanity-blocks.ts`. See
+CLAUDE.md for the full layout and the checklist for adding a block.
 
 ### Common Field Templates
 
@@ -238,7 +146,7 @@ Whenever there is an image within a GROQ query, do not expand it unless explicit
 
 - Import `defineQuery` and `groq` from `next-sanity` at the top of query files
 - Export queries as constants using the `defineQuery` function
-- Organize queries by content type (blogs, pages, products, etc.)
+- Organize queries by content type (docs, settings, navigation, etc.)
 - Group related queries together
 
 ### Naming Conventions

@@ -6,7 +6,7 @@ If you discover a security issue, please email us at <hrithik@robotostudio.com> 
 
 ## Supported Versions
 
-We currently provide security updates for version 1.x of this project.
+We provide security fixes for the latest version on the `main` branch.
 
 ---
 

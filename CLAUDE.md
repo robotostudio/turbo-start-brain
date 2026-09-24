@@ -9,17 +9,11 @@ Turbo Start Brain — a docs/knowledgebase pnpm monorepo (Turborepo) with a Next
 ## Commands
 
 ```bash
-# Development (uses portless for local HTTPS domains — install globally: pnpm install -g portless)
-# Run `portless proxy start` once to start the background proxy (listens on :1355)
+# Development
 pnpm dev              # both apps
-pnpm dev:web          # Next.js  → https://web.brain.localhost:1355
-pnpm dev:studio       # Studio   → https://studio.brain.localhost:1355
-# Each dev server prints its real URL on startup; `portless list` shows live routes.
-# On a non-main branch the host is prefixed by `scripts/portless-prefix.sh`
-# (e.g. feat/chat → https://feat-chat.web.brain.localhost:1355). Keep branch names short.
-# `pnpm --filter web dev:plain` / `--filter studio dev:plain` bypass portless (plain localhost ports).
-# Env files point at the portless URLs (NEXT_PUBLIC_SANITY_STUDIO_URL, SANITY_STUDIO_PRESENTATION_URL);
-# both origins are registered in Sanity CORS. Secrets sync via shelve.cloud (`shelve pull`).
+pnpm dev:web          # Next.js  → http://localhost:3000
+pnpm dev:studio       # Studio   → http://localhost:3333
+# Both origins must be in Sanity CORS. Secrets sync via shelve.cloud (`shelve pull`).
 
 # Build
 pnpm build            # All packages
@@ -36,9 +30,10 @@ pnpm check-types      # TypeScript type checking
 cd apps/web && pnpm lint
 cd apps/studio && pnpm format
 
-# Sanity type generation (run after schema changes)
-pnpm type             # Generates types — works from root (turbo) or apps/studio
-cd apps/studio && pnpm extract   # Schema extract only (studio-scoped)
+# Sanity type generation (run after schema changes) — extract first:
+# `pnpm type` only runs `sanity typegen generate` over the last extracted schema.json
+pnpm --filter studio extract   # schema -> apps/studio/schema.json
+pnpm type                      # typegen -> packages/sanity/src/sanity.types.ts
 
 # Tests
 pnpm test             # Vitest unit tests (currently only @workspace/sanity-blocks)
@@ -70,7 +65,7 @@ packages/
 ### Data Flow: Sanity → Next.js
 
 1. **Schema** block types defined in `packages/sanity-blocks/src/` and re-exported via `@workspace/sanity-blocks`. Studio registers them via `apps/studio/schemaTypes/index.ts`
-2. **Type generation**: `pnpm type` (from repo root via turbo, or in `apps/studio`) generates TS types at `packages/sanity/src/sanity.types.ts`
+2. **Type generation**: `pnpm --filter studio extract` then `pnpm type` generates TS types at `packages/sanity/src/sanity.types.ts`
 3. **GROQ queries** live in `packages/sanity/src/query.ts` using `defineQuery` from `next-sanity`, with reusable fragments
 4. **Data fetching** uses `sanityFetch` from `packages/sanity/src/live.ts` (wraps `defineLive` for automatic revalidation)
 5. **Client** configured in `packages/sanity/src/client.ts` with stega for visual editing
@@ -88,7 +83,7 @@ To add a new page builder block:
 
 1. Create `packages/sanity-blocks/src/<new-block>/` with `<new-block>.schema.ts` and `<new-block>.groq.ts`
 2. Export the schema from `packages/sanity-blocks/src/sanity-blocks.ts` and add it to the `blockSchemas` array — Studio then picks it up automatically through `apps/studio/schemaTypes/index.ts` and `definitions/pagebuilder.ts`
-3. Run `pnpm type` (from repo root or `apps/studio`) to regenerate Sanity types
+3. Run `pnpm --filter studio extract` then `pnpm type` to regenerate Sanity types
 4. Import the block's GROQ projection in `packages/sanity/src/query.ts` and include it in `pageBuilderFragment`
 5. Create the styled component as `packages/sanity-blocks/src/<new-block>/index.tsx`
 6. Register in `renderBlockComponent` in `apps/web/src/components/pagebuilder.tsx` (imported from `@workspace/sanity-blocks/<new-block>/index`)
@@ -101,9 +96,23 @@ Any page is also served as Markdown for LLMs/agents: append `.md` to the URL (`/
 
 ### Sanity Document Types
 
-**Singletons** (one instance each): `docsIndex`, `settings`, `navbar`
+**Singletons** (one instance each): `docsIndex`, `settings`, `navbar`, `chat`
 **Documents**: `doc`, `faq`, `redirect`
+**Page builder blocks**: `richTextBlock`, `faqAccordion`
 **Docs** use nested slug-based structure (`apps/studio/components/nested-pages-structure.ts`)
+
+Site branding and copy are Studio-managed: `settings` (title, description, logos, favicon, social links), `docsIndex` (home page, eyebrow), `navbar` (sidebar site links; a `/chat` link turns on Ask AI and names it) and `chat` (Ask AI copy and extra instructions). Code only holds neutral fallbacks.
+
+### Docs shell
+
+- `apps/web/src/app/layout.tsx` renders a full-height sidebar (`DocsSidebarFrame`: logo + collapse button, search + Ask AI, docs tree, site links, full-bleed theme toggle) beside the content column. There is no desktop top bar; below `lg` a slim header (`DocsHeader`) holds the drawer trigger and logo, and search + Ask AI float at the bottom.
+- Collapsing the sidebar sets `html[data-sidebar="collapsed"]` (saved in localStorage, restored by an inline script before paint); layout reacts via the `in-data-[sidebar=collapsed]:` variant.
+- Every page uses `DOC_GRID` / `DOC_CONTENT` (`apps/web/src/lib/doc-grid.ts`): a 48rem content column plus a TOC column that stays reserved even when empty.
+
+### Search and Ask AI
+
+- **Search**: `DocsSearch` (⌘K) calls `/api/docs/search`, which runs Fuse.js over a cached `querySearchDocs` fetch (title, description, slug, `pt::text(body)`). Other triggers open it via `openDocsSearch()`.
+- **Ask AI**: `AskAiDialog` (open from anywhere via `openAskAi()`) renders `ChatPanel`, which posts to `/api/chat`. The route answers only from a Sanity Context Knowledge Base over MCP (`apps/web/src/lib/ai/knowledge-base.ts`), links pages via a cached page index, and returns 503 unless `AI_GATEWAY_API_KEY`, `SANITY_CONTEXT_MCP_URL` and `SANITY_ORGANIZATION_TOKEN` are all set.
 
 ### Environment Variables
 
@@ -113,6 +122,7 @@ Canonical source of truth is `apps/web/.env.example` and `apps/studio/.env.examp
 
 - Required: `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION`, `NEXT_PUBLIC_SANITY_STUDIO_URL`, `SANITY_API_READ_TOKEN`
 - Optional: `SANITY_REVALIDATE_SECRET` (shared secret for the `/api/revalidate-sync-tags` webhook; the route fails closed when unset)
+- Optional (Ask AI): `AI_GATEWAY_API_KEY`, `SANITY_CONTEXT_MCP_URL`, `SANITY_ORGANIZATION_TOKEN` (all three required for chat), `CHAT_MODEL` (AI Gateway model id, defaults to `anthropic/claude-haiku-4.5`)
 - `NEXT_PUBLIC_VERCEL_ENV`, `NEXT_PUBLIC_VERCEL_URL`, `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL` are also validated but default to localhost, so they need no local value
 
 **`apps/studio`** (plain `process.env`, loaded via `dotenv`/Vite — not `@workspace/env`):
@@ -138,7 +148,7 @@ All frontend types derive from generated Sanity types. `apps/web/src/types.ts` e
 
 ### File Naming
 
-- **kebab-case** for all files: `feature-cards-icon.ts`, `docs-header.tsx`
+- **kebab-case** for all files: `faq-accordion.schema.ts`, `docs-header.tsx`
 - `.tsx` for React components, `.ts` for utilities
 
 ### Sanity Schema
