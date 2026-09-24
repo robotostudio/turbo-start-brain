@@ -11,14 +11,14 @@ import { flattenDocsTree, getDocsNavigation } from "@/lib/docs-tree";
  * on this (503): without it the model has no slugs to link, and an answer with
  * no way back to the page it came from is worse than an error.
  */
-export class PageIndexUnavailableError extends Error {
+class PageIndexUnavailableError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = "PageIndexUnavailableError";
   }
 }
 
-export class OutlineUnavailableError extends Error {
+class OutlineUnavailableError extends Error {
   constructor(message: string, options?: ErrorOptions) {
     super(message, options);
     this.name = "OutlineUnavailableError";

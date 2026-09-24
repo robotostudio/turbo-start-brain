@@ -9,14 +9,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
+import { BorderBeam } from "border-beam";
 import { FileText, Loader2, SearchIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import {
   useCallback,
   useEffect,
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
   useTransition,
 } from "react";
 
@@ -28,7 +31,9 @@ const SKELETON_ROWS = [0, 1, 2];
  * Any client component can open the palette (optionally seeded with a query)
  * by dispatching this event on `window` — see `openDocsSearch`.
  */
-export const DOCS_SEARCH_OPEN_EVENT = "docs-search:open";
+const DOCS_SEARCH_OPEN_EVENT = "docs-search:open";
+
+const subscribeNever = () => () => {};
 
 export function openDocsSearch(query?: string) {
   window.dispatchEvent(
@@ -217,27 +222,18 @@ export function DocsSearch() {
     showEmpty,
   });
 
+  const trigger = (
+    <DialogTrigger
+      aria-label="Search docs"
+      className={cn(SEARCH_TRIGGER_CLASS, "md:w-72 xl:w-96")}
+    >
+      <SearchTriggerContent isMac={isMac} />
+    </DialogTrigger>
+  );
+
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogTrigger
-        className={cn(
-          // Below sm the label and kbd are hidden, so the asymmetric padding
-          // that balances them would push the lone icon off centre.
-          "focus-ring inline-flex h-9 items-center gap-2 rounded-full border bg-muted/50 max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:pr-[5px] sm:pl-3 md:w-56 lg:w-64 xl:w-80",
-          "text-muted-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
-        )}
-      >
-        <SearchIcon className="size-4" />
-        <span className="hidden sm:inline">Search</span>
-        <kbd
-          className={cn(
-            "pointer-events-none ml-auto hidden h-6 items-center gap-0.5 rounded-full border bg-background px-2",
-            "font-medium font-sans text-[11px] text-muted-foreground sm:inline-flex"
-          )}
-        >
-          {isMac ? "⌘" : "Ctrl"} K
-        </kbd>
-      </DialogTrigger>
+      <SearchBeam>{trigger}</SearchBeam>
       <DialogPortal>
         <DialogBackdrop />
         <DialogPopup aria-label="Search documentation">
@@ -265,13 +261,13 @@ export function DocsSearch() {
               )}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={onInputKeyDown}
-              placeholder="Search documentation…"
+              placeholder="Search docs…"
               role="combobox"
               spellCheck={false}
               type="text"
               value={query}
             />
-            <kbd className="hidden shrink-0 rounded border bg-muted px-1.5 py-0.5 font-sans text-[11px] text-muted-foreground sm:block">
+            <kbd className="hidden shrink-0 border bg-muted px-1.5 py-0.5 font-sans text-micro text-muted-foreground sm:block">
               Esc
             </kbd>
           </div>
@@ -295,7 +291,7 @@ export function DocsSearch() {
               <div
                 aria-selected={index === activeIndex}
                 className={cn(
-                  "grid cursor-pointer gap-1 rounded-md px-3 py-2.5",
+                  "grid cursor-pointer gap-1 px-3 py-2.5",
                   index === activeIndex
                     ? "bg-muted text-foreground"
                     : "text-muted-foreground",
@@ -333,8 +329,8 @@ export function DocsSearch() {
             <div className="grid gap-1 p-2" data-testid="search-skeleton">
               {SKELETON_ROWS.map((row) => (
                 <div className="grid gap-2 px-3 py-2.5" key={row}>
-                  <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
-                  <div className="h-3 w-4/5 animate-pulse rounded bg-muted/60" />
+                  <div className="h-4 w-1/3 animate-pulse bg-muted" />
+                  <div className="h-3 w-4/5 animate-pulse bg-muted/60" />
                 </div>
               ))}
             </div>
@@ -350,5 +346,74 @@ export function DocsSearch() {
         </DialogPopup>
       </DialogPortal>
     </Dialog>
+  );
+}
+
+// Below sm the label and kbd are hidden, so the asymmetric padding that
+// balances them would push the lone icon off centre.
+const SEARCH_TRIGGER_CLASS =
+  "focus-ring inline-flex h-10 items-center gap-2.5 border border-border/60 bg-muted/60 text-muted-foreground text-sm transition-colors hover:border-border hover:bg-muted hover:text-foreground max-sm:size-11 max-sm:justify-center max-sm:px-0 sm:pr-1.5 sm:pl-3";
+
+function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
+  return (
+    <>
+      <SearchIcon className="size-4 shrink-0" />
+      <span className="hidden sm:inline">Search docs</span>
+      <kbd
+        className={cn(
+          "pointer-events-none ml-auto hidden h-6 items-center gap-0.5 border bg-background px-1.5",
+          "font-medium font-sans text-micro text-muted-foreground sm:inline-flex"
+        )}
+      >
+        {isMac ? "⌘" : "Ctrl"} K
+      </kbd>
+    </>
+  );
+}
+
+/** border-beam measures the element, so its styles differ from the server
+ * render; it attaches only after hydration. */
+function SearchBeam({ children }: Readonly<{ children: React.ReactNode }>) {
+  const { resolvedTheme } = useTheme();
+  const hydrated = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false
+  );
+  if (!hydrated) {
+    return children;
+  }
+  return (
+    <BorderBeam
+      borderRadius={0}
+      duration={4.5}
+      size="line"
+      theme={resolvedTheme === "light" ? "light" : "dark"}
+    >
+      {children}
+    </BorderBeam>
+  );
+}
+
+const subscribeMac = () => () => {};
+
+/** Another place to open the one search palette `DocsSearch` owns. */
+export function SearchButton({ className }: Readonly<{ className?: string }>) {
+  const isMac = useSyncExternalStore(
+    subscribeMac,
+    () => /mac|iphone|ipad/i.test(navigator.platform),
+    () => true
+  );
+  return (
+    <SearchBeam>
+      <button
+        aria-label="Search docs"
+        className={cn(SEARCH_TRIGGER_CLASS, className)}
+        onClick={() => openDocsSearch()}
+        type="button"
+      >
+        <SearchTriggerContent isMac={isMac} />
+      </button>
+    </SearchBeam>
   );
 }

@@ -21,7 +21,7 @@ export function DocsPager({
     >
       {previous ? (
         <Link
-          className="group rounded-lg border p-4 transition-colors hover:bg-muted"
+          className="group border p-4 transition-colors hover:bg-muted"
           href={previous.slug}
         >
           <span className="flex items-center gap-2 text-muted-foreground text-xs uppercase tracking-wide">
@@ -35,7 +35,7 @@ export function DocsPager({
       )}
       {next ? (
         <Link
-          className="group rounded-lg border p-4 text-right transition-colors hover:bg-muted"
+          className="group border p-4 text-right transition-colors hover:bg-muted"
           href={next.slug}
         >
           <span className="flex items-center justify-end gap-2 text-muted-foreground text-xs uppercase tracking-wide">

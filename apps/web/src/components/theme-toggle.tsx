@@ -6,9 +6,9 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 const OPTIONS = [
+  { value: "system", label: "System", Icon: Monitor },
   { value: "light", label: "Light", Icon: Sun },
   { value: "dark", label: "Dark", Icon: Moon },
-  { value: "system", label: "System", Icon: Monitor },
 ] as const;
 
 function switchWithoutFade(apply: () => void) {
@@ -40,16 +40,13 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <fieldset
       aria-label="Theme"
-      className={cn(
-        "relative grid shrink-0 grid-cols-3 rounded-full border bg-muted/50 p-0.5",
-        className
-      )}
+      className={cn("relative grid shrink-0 grid-cols-3", className)}
     >
       <span
         aria-hidden="true"
         data-theme-thumb=""
         className={cn(
-          "absolute top-0.5 left-0.5 size-[30px] rounded-full bg-background shadow-sm",
+          "absolute inset-y-0 left-0 w-1/3 bg-foreground/10",
           picked &&
             "transition-[translate] duration-200 ease-out motion-reduce:transition-none"
         )}
@@ -60,7 +57,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           aria-pressed={index === activeIndex}
           aria-label={label}
           className={cn(
-            "focus-ring relative grid size-[30px] place-items-center rounded-full text-muted-foreground transition-colors hover:text-foreground",
+            "focus-ring-inset relative grid min-h-9 min-w-9 place-items-center text-muted-foreground transition-colors hover:text-foreground",
             index === activeIndex && "text-foreground"
           )}
           key={value}

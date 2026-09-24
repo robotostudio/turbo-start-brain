@@ -11,7 +11,9 @@ import {
 } from "@workspace/ui/components/message-scroller";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import dynamic from "next/dynamic";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+
+import { ThinkingOrb } from "thinking-orbs";
 
 import { ChatComposer } from "@/components/chat-composer";
 import { ChatPhaseIndicator } from "@/components/chat-phase-indicator";
@@ -30,15 +32,8 @@ const ChatMessage = dynamic(
   { ssr: false }
 );
 
-const EXAMPLE_QUESTIONS = [
-  "What should I do in my first week?",
-  "How does a migration project get sequenced?",
-  "Which tools do I need accounts for?",
-  "How do we talk to clients?",
-] as const;
-
 const QUESTION_PILL =
-  "rounded-full border bg-card px-4 py-2 text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+  "border bg-card px-4 py-2 text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50";
 
 // Speakable text of an assistant message for the screen-reader mirror below:
 // fenced blocks (the doc-card spec is machine data) dropped, markdown links
@@ -59,6 +54,30 @@ function speakableText(message: UIMessage | undefined) {
     .replace(FENCE, "")
     .replace(MARKDOWN_LINK, "$1")
     .trim();
+}
+
+function ChatWelcome({
+  heading,
+  intro,
+}: Readonly<{ heading?: string | null; intro?: string | null }>) {
+  return (
+    <>
+      <ThinkingOrb
+        aria-hidden
+        className="mx-auto mb-5"
+        size={64}
+        state="working"
+      />
+      {heading ? (
+        <h2 className="font-semibold text-foreground text-lg">{heading}</h2>
+      ) : null}
+      {intro ? (
+        <p className="mt-2 text-balance text-muted-foreground text-sm">
+          {intro}
+        </p>
+      ) : null}
+    </>
+  );
 }
 
 function subscribeToViewport(onChange: () => void) {
@@ -87,7 +106,24 @@ function getViewportHeight() {
   return Math.round(viewport.height);
 }
 
-export function ChatPanel() {
+export function ChatPanel({
+  fitViewport = true,
+  heading,
+  intro,
+  onStartedChange,
+  placeholder,
+  suggestedQuestions,
+}: Readonly<{
+  /** Track the visual viewport (mobile keyboard) below the site header. Off
+   * inside a dialog, which sizes itself. */
+  fitViewport?: boolean;
+  heading?: string | null;
+  intro?: string | null;
+  /** Fires when the conversation gains its first message (or is empty). */
+  onStartedChange?: (started: boolean) => void;
+  placeholder?: string | null;
+  suggestedQuestions: readonly string[];
+}>) {
   const viewportHeight = useSyncExternalStore(
     subscribeToViewport,
     getViewportHeight,
@@ -114,6 +150,11 @@ export function ChatPanel() {
   } else if (!errorCode && error?.message) {
     errorMessage = error.message;
   }
+
+  const started = messages.length > 0;
+  useEffect(() => {
+    onStartedChange?.(started);
+  }, [onStartedChange, started]);
 
   const lastMessage = messages.at(-1);
   // What the assistant is doing right now (thinking / preparing doc cards),
@@ -156,7 +197,9 @@ export function ChatPanel() {
 
   const followUps =
     messages.length > 0 && !hasTyped
-      ? EXAMPLE_QUESTIONS.filter((question) => !clickedPills.includes(question))
+      ? suggestedQuestions.filter(
+          (question) => !clickedPills.includes(question)
+        )
       : [];
   const isBusy = status === "submitted" || status === "streaming";
 
@@ -164,9 +207,10 @@ export function ChatPanel() {
     <div
       className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-out motion-reduce:transition-none"
       style={{
-        height: viewportHeight
-          ? `calc(${viewportHeight}px - 3.5rem)`
-          : undefined,
+        height:
+          fitViewport && viewportHeight
+            ? `calc(${viewportHeight}px - 3.5rem)`
+            : undefined,
       }}
     >
       <MessageScrollerProvider
@@ -187,18 +231,12 @@ export function ChatPanel() {
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
                   <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
-                    <h2 className="font-semibold text-foreground text-lg">
-                      Ask the docs
-                    </h2>
-                    <p className="mt-2 text-balance text-muted-foreground text-sm">
-                      Answers come straight from this knowledge base, with links
-                      to the pages they were found on.
-                    </p>
-                    <ul className="mt-6 grid justify-items-center gap-2">
-                      {EXAMPLE_QUESTIONS.map((question) => (
+                    <ChatWelcome heading={heading} intro={intro} />
+                    <ul className="mx-auto mt-6 grid w-full max-w-sm gap-2">
+                      {suggestedQuestions.map((question) => (
                         <li key={question}>
                           <button
-                            className={`text-center ${QUESTION_PILL}`}
+                            className={`w-full text-center ${QUESTION_PILL}`}
                             onClick={() => askQuestion(question)}
                             type="button"
                           >
@@ -243,7 +281,7 @@ export function ChatPanel() {
               ) : null}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton className="rounded-full" />
+          <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
       <output aria-live="polite" className="sr-only">
@@ -268,6 +306,7 @@ export function ChatPanel() {
         ) : null}
         <ChatComposer
           input={input}
+          placeholder={placeholder}
           onInputChange={(value) => {
             setInput(value);
             if (value.trim()) {

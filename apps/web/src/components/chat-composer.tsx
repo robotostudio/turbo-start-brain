@@ -7,20 +7,26 @@ import {
   InputGroupTextarea,
 } from "@workspace/ui/components/input-group";
 import type { ChatStatus } from "ai";
-import { ArrowUpIcon, SquareIcon } from "lucide-react";
+import { ArrowUpIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { ThinkingOrb } from "thinking-orbs";
+
+const SHOWN = "scale-100 opacity-100 blur-none";
+const HIDDEN = "scale-[0.25] opacity-0 blur-[4px]";
 
 export function ChatComposer({
   input,
   onInputChange,
   onSubmit,
   onStop,
+  placeholder,
   status,
 }: Readonly<{
   input: string;
   onInputChange: (value: string) => void;
   onSubmit: () => void;
   onStop: () => void;
+  placeholder?: string | null;
   status: ChatStatus;
 }>) {
   const isBusy = status === "submitted" || status === "streaming";
@@ -45,10 +51,10 @@ export function ChatComposer({
         }
       }}
     >
-      <InputGroup className="rounded-[26px] border-border/60 bg-muted shadow-sm dark:bg-muted">
+      <InputGroup className="border-border/60 bg-muted shadow-sm dark:bg-muted">
         <InputGroupTextarea
           aria-label="Ask the docs assistant"
-          className="max-h-40 min-h-0 py-3 pl-5 text-base md:text-[15px]"
+          className="max-h-40 min-h-0 py-3 pl-5 text-base"
           ref={textareaRef}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
@@ -61,7 +67,7 @@ export function ChatComposer({
               }
             }
           }}
-          placeholder="Ask a question about the docs…"
+          placeholder={placeholder || "Ask a question…"}
           rows={1}
           value={input}
         />
@@ -71,18 +77,25 @@ export function ChatComposer({
         >
           <InputGroupButton
             aria-label={isBusy ? "Stop generating" : "Send message"}
-            className="size-10 rounded-full transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.94] disabled:opacity-40 sm:size-9"
+            className="size-11 transition-[scale,background-color,color,border-color] duration-150 ease-out active:scale-[0.96] disabled:opacity-40 sm:size-10"
             disabled={!isBusy && !canSend}
             onClick={isBusy ? onStop : undefined}
             size="icon-sm"
             type={isBusy ? "button" : "submit"}
-            variant="default"
+            // Busy shows the orb on the bar itself, not on a white fill.
+            variant={isBusy ? "ghost" : "default"}
           >
-            <span
-              className="grid place-items-center transition-[opacity,filter] duration-200 ease-out starting:opacity-0 starting:blur-[2px]"
-              key={isBusy ? "stop" : "send"}
-            >
-              {isBusy ? <SquareIcon className="size-3.5" /> : <ArrowUpIcon />}
+            <span className="grid place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200 *:ease-[cubic-bezier(0.2,0,0,1)]">
+              <ThinkingOrb
+                aria-hidden
+                className={isBusy ? SHOWN : HIDDEN}
+                size={20}
+                state="searching"
+              />
+              <ArrowUpIcon
+                aria-hidden="true"
+                className={isBusy ? HIDDEN : SHOWN}
+              />
             </span>
           </InputGroupButton>
         </InputGroupAddon>

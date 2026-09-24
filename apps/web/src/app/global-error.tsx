@@ -24,7 +24,7 @@ export default function GlobalError({
         <main className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 py-24">
           <div className="grid w-full max-w-2xl justify-items-center gap-8 text-center">
             <div className="inline-flex items-center gap-2.5 border border-border px-3 py-1.5 font-light font-mono text-foreground text-small uppercase tracking-[0.28px]">
-              <span className="size-2 shrink-0 rounded-[1px] bg-accent-green" />
+              <span className="size-2 shrink-0 bg-accent-green" />
               <span>Error</span>
             </div>
 
@@ -43,7 +43,7 @@ export default function GlobalError({
             ) : null}
 
             <button
-              className="h-9 rounded-full border border-border px-4 font-mono font-normal text-foreground text-small uppercase tracking-wide transition-colors hover:bg-secondary"
+              className="h-9 border border-border px-4 font-mono font-normal text-foreground text-small uppercase tracking-wide transition-colors hover:bg-secondary"
               onClick={reset}
               type="button"
             >

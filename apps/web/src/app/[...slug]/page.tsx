@@ -10,18 +10,18 @@ import {
 } from "@workspace/sanity/live";
 import { queryDocBySlug, queryDocPaths } from "@workspace/sanity/query";
 import { RichText } from "@workspace/sanity-blocks/internal/rich-text";
-import { cn } from "@workspace/tailwind-config/utils";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 
-import { DocsBreadcrumbs } from "@/components/docs/docs-breadcrumbs";
+import { ancestorCrumbs, BreadcrumbsJsonLd } from "@/components/breadcrumbs";
+import { CopyMarkdownButton } from "@/components/copy-markdown-button";
 import { DocsPager } from "@/components/docs/docs-pager";
-import { DocsToc } from "@/components/docs/docs-toc";
+import { DocsToc, TOC_MAX_DEPTH } from "@/components/docs/docs-toc";
 import { MobileTableOfContent } from "@/components/elements/table-of-content";
 import { PageBuilderJsonLd } from "@/components/page-builder-json-ld";
 import { PageBuilder } from "@/components/pagebuilder";
-import { DOC_GRID, DOC_GRID_WITH_TOC } from "@/lib/doc-grid";
+import { DOC_CONTENT, DOC_GRID } from "@/lib/doc-grid";
 import {
   type DocsTreeNode,
   flattenDocsTree,
@@ -29,13 +29,10 @@ import {
 } from "@/lib/docs-tree";
 import { resolveRedirect } from "@/lib/redirects";
 import { seoFromDocument } from "@/lib/seo";
-import { hasTocHeadings } from "@/lib/toc";
 import type { SanityRichTextProps } from "@/types";
 import { PLACEHOLDER_SLUG } from "@/utils";
 
 const logger = new Logger("DocSlug");
-
-const TOC_MAX_DEPTH = 3;
 
 type SlugParams = { slug: string[] };
 
@@ -168,25 +165,22 @@ function DocContent({
   const previous = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const body = data.body as SanityRichTextProps;
-  const showToc = hasTocHeadings(body, TOC_MAX_DEPTH);
 
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
-      <main className={cn(DOC_GRID, showToc ? DOC_GRID_WITH_TOC : "")}>
-        <article
-          className={cn(
-            "mx-auto w-full min-w-0 max-w-3xl",
-            // Only the TOC layout has a middle column; pinning without it adds
-            // an implicit column and shoves the article right.
-            showToc && "3xl:col-start-2"
-          )}
-        >
-          <DocsBreadcrumbs slug={slug} title={data.title} />
+      <main className={DOC_GRID}>
+        <article className={DOC_CONTENT}>
+          <BreadcrumbsJsonLd
+            crumbs={[...ancestorCrumbs(slug), { label: data.title }]}
+          />
           <header className="mb-10 border-b pb-8">
-            <h1 className="text-balance font-semibold text-h1 sm:text-display">
-              {data.title}
-            </h1>
+            <div className="flex items-center justify-between gap-4">
+              <h1 className="min-w-0 text-balance font-semibold text-h1 sm:text-display">
+                {data.title}
+              </h1>
+              <CopyMarkdownButton />
+            </div>
             {data.description ? (
               <p className="mt-4 max-w-2xl text-pretty text-lede text-muted-foreground">
                 {data.description}
@@ -199,7 +193,7 @@ function DocContent({
             richText={body}
           />
           <RichText
-            className="prose-p:text-body prose-li:text-body"
+            className="prose-p:max-w-160 prose-p:text-body prose-li:max-w-160 prose-li:text-body"
             richText={body}
           />
           {data.pageBuilder?.length ? (
@@ -213,7 +207,7 @@ function DocContent({
           ) : null}
           <DocsPager next={next} previous={previous} />
         </article>
-        {showToc ? <DocsToc body={body} title={data.title} /> : null}
+        <DocsToc body={body} />
       </main>
     </>
   );

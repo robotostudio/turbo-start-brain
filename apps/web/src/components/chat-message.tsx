@@ -1,5 +1,4 @@
 "use client";
-
 import {
   JSONUIProvider,
   Renderer,
@@ -9,7 +8,10 @@ import { MessageResponse } from "@workspace/ui/components/ai-response";
 import { Bubble, BubbleContent } from "@workspace/ui/components/bubble";
 import { Message, MessageContent } from "@workspace/ui/components/message";
 import type { UIMessage } from "ai";
+import Link from "next/link";
+import type { ComponentProps } from "react";
 
+import { closeAskAi } from "@/lib/ai/ask-ai-events";
 import { registry } from "@/lib/ai/registry";
 
 // Streamdown security hardening: only same-origin (relative) links and images
@@ -25,6 +27,28 @@ function sameOriginUrlTransform(url: string): string | null {
   }
   return null;
 }
+
+// Links are same-origin only (see above), so they navigate in place instead of
+// Streamdown's default new tab + "external link" confirmation, and close the
+// dialog so the page is visible (the conversation is kept).
+function ChatLink({ href, children }: ComponentProps<"a">) {
+  if (!href) {
+    return <>{children}</>;
+  }
+  return (
+    <Link
+      className="font-medium underline decoration-from-font [text-underline-position:from-font]"
+      href={href}
+      onClick={closeAskAi}
+      prefetch={false}
+    >
+      {children}
+    </Link>
+  );
+}
+
+const CHAT_COMPONENTS = { a: ChatLink };
+const NO_LINK_SAFETY = { enabled: false };
 
 // Entry animation: fade + rise via @starting-style (interruptible CSS
 // transition, transform/opacity only). Motion is dropped under
@@ -49,9 +73,7 @@ export function ChatMessage({
       <Message align="end" className={MESSAGE_ENTER}>
         <MessageContent>
           <Bubble align="end" variant="default">
-            <BubbleContent className="rounded-[20px] px-4">
-              {text}
-            </BubbleContent>
+            <BubbleContent className="px-4">{text}</BubbleContent>
           </Bubble>
         </MessageContent>
       </Message>
@@ -65,7 +87,9 @@ export function ChatMessage({
           <BubbleContent>
             {text ? (
               <MessageResponse
+                components={CHAT_COMPONENTS}
                 isAnimating={isAnimating}
+                linkSafety={NO_LINK_SAFETY}
                 urlTransform={sameOriginUrlTransform}
               >
                 {text}

@@ -30,10 +30,16 @@ import { Spinner } from "@workspace/ui/components/spinner";
 import { Menu, X } from "lucide-react";
 import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
+import { AskAiButton } from "@/components/ask-ai-dialog";
+import { SearchButton } from "@/components/docs/docs-search";
+import { CollapseSidebarButton } from "@/components/docs/sidebar-toggle";
+import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { openAskAi } from "@/lib/ai/ask-ai-events";
 import type { DocsTreeNode } from "@/lib/docs-tree";
+import type { NavigationData } from "@/types";
 
 export type MobileNavLink = {
   _key: string;
@@ -43,9 +49,33 @@ export type MobileNavLink = {
 };
 
 /**
+ * The navbar singleton stores either standalone links or titled columns of
+ * links. The docs chrome shows flat rows, so column groupings collapse into
+ * their links.
+ */
+export function flattenNavbarLinks(
+  navbar: NavigationData["navbarData"]
+): MobileNavLink[] {
+  const links: MobileNavLink[] = [];
+  for (const column of navbar?.columns ?? []) {
+    if (column.type === "link") {
+      links.push({
+        _key: column._key,
+        name: column.name,
+        href: column.href,
+        openInNewTab: column.openInNewTab,
+      });
+    } else if (column.type === "column") {
+      links.push(...(column.links ?? []));
+    }
+  }
+  return links.filter((link) => link.name && link.href);
+}
+
+/**
  * Rendered inside `<Link>`, which is what `useLinkStatus` needs: it reports the
- * pending state of its nearest ancestor link. A clicked row swaps its icon for
- * a spinner and dims its label the moment the navigation starts, so a ~300ms
+ * pending state of its nearest ancestor link. A clicked row dims its label and
+ * shows a spinner after it the moment the navigation starts, so a ~300ms
  * route change is never a dead click.
  */
 function TreeLinkContent({
@@ -56,11 +86,7 @@ function TreeLinkContent({
 
   return (
     <>
-      {pending ? (
-        <Spinner className="size-4 shrink-0 text-muted-foreground" />
-      ) : (
-        icon
-      )}
+      {icon}
       <span
         className={cn(
           "truncate transition-opacity",
@@ -69,6 +95,9 @@ function TreeLinkContent({
       >
         {label}
       </span>
+      {pending ? (
+        <Spinner className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
+      ) : null}
     </>
   );
 }
@@ -117,12 +146,14 @@ function TreeItems({
   nodes,
   pathname,
   onNavigate,
+  openFirst = false,
 }: Readonly<{
   nodes: DocsTreeNode[];
   pathname: string;
   onNavigate?: () => void;
+  openFirst?: boolean;
 }>) {
-  return nodes.map((node) => {
+  return nodes.map((node, index) => {
     const active = pathname === node.slug;
     const within = pathname.startsWith(`${node.slug}/`);
     const icon = node.icon ? (
@@ -131,7 +162,10 @@ function TreeItems({
 
     if (node.children.length > 0) {
       return (
-        <SidebarGroup key={node.slug} open={active || within || undefined}>
+        <SidebarGroup
+          key={node.slug}
+          open={active || within || (openFirst && index === 0)}
+        >
           <SidebarGroupTrigger>
             {icon}
             <span className="truncate">{node.title}</span>
@@ -184,19 +218,100 @@ function SidebarNavigation({
 }>) {
   return (
     <Sidebar className={cn("min-h-0", className)}>
-      <ScrollArea className="h-full px-3 py-5">
+      <ScrollArea className="h-full px-3 pt-2 pb-5">
         <nav aria-label="Documentation" className="space-y-0.5">
-          <TreeItems nodes={tree} onNavigate={onNavigate} pathname={pathname} />
+          <TreeItems
+            nodes={tree}
+            onNavigate={onNavigate}
+            // Outside every section (e.g. the home page) the first one opens.
+            openFirst={
+              !tree.some(
+                (node) =>
+                  pathname === node.slug || pathname.startsWith(`${node.slug}/`)
+              )
+            }
+            pathname={pathname}
+          />
         </nav>
       </ScrollArea>
     </Sidebar>
   );
 }
 
-const DESKTOP_SIDEBAR_CLASS =
-  "sticky top-14 hidden h-[calc(100dvh-3.5rem)] border-sidebar-border border-r lg:block";
+const DESKTOP_SIDEBAR_CLASS = "min-h-0 flex-1";
 
-export function DocsSidebar({ tree }: Readonly<{ tree: DocsTreeNode[] }>) {
+/** The /chat link renders as the Ask AI button, not a site link. */
+export function DocsSidebarFrame({
+  navbar,
+  settings,
+  tree,
+}: Readonly<{
+  navbar: NavigationData["navbarData"];
+  settings: NavigationData["settingsData"];
+  tree: DocsTreeNode[];
+}>) {
+  const { logos, siteTitle } = settings ?? {};
+  const allLinks = flattenNavbarLinks(navbar);
+  const chatLink = allLinks.find((link) => link.href === "/chat");
+  const links = allLinks.filter((link) => link !== chatLink);
+
+  return (
+    <div className="sticky top-0 hidden h-dvh flex-col border-sidebar-border border-r bg-sidebar lg:flex lg:in-data-[sidebar=collapsed]:hidden">
+      <div className="flex h-14 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
+        <Logo
+          alt={siteTitle ?? "Home"}
+          className="max-h-6 w-auto"
+          image={logos?.logo}
+          imageDark={logos?.logoDark}
+          linkClassName="min-w-0 truncate text-base"
+        />
+        <CollapseSidebarButton />
+      </div>
+      <div className="grid gap-2 px-3 pb-3">
+        <SearchButton className="w-full" />
+        {chatLink?.name ? (
+          <AskAiButton className="w-full" label={chatLink.name} />
+        ) : null}
+      </div>
+      {/* usePathname() makes the tree URL-dependent; the fallback is the same
+          nav without the active row, so the shell still prerenders. */}
+      <Suspense fallback={<DocsSidebarFallback tree={tree} />}>
+        <DocsSidebar tree={tree} />
+      </Suspense>
+      {links.length > 0 || navbar?.buttons?.length ? (
+        <div className="grid shrink-0 gap-3 border-sidebar-border border-t px-3 py-3">
+          {links.length > 0 ? (
+            <nav aria-label="Site" className="grid gap-0.5">
+              {links.map((link) => (
+                <Link
+                  className="focus-ring flex min-h-8 items-center px-2 text-muted-foreground text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  href={link.href ?? "#"}
+                  key={link._key}
+                  prefetch={false}
+                  rel={link.openInNewTab ? "noopener noreferrer" : undefined}
+                  target={link.openInNewTab ? "_blank" : undefined}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+          {navbar?.buttons?.length ? (
+            <SanityButtons
+              buttonClassName="w-full"
+              buttons={navbar.buttons}
+              className="grid gap-2"
+              size="sm"
+            />
+          ) : null}
+        </div>
+      ) : null}
+      <ThemeToggle className="h-12 w-full border-sidebar-border border-t" />
+    </div>
+  );
+}
+
+function DocsSidebar({ tree }: Readonly<{ tree: DocsTreeNode[] }>) {
   const pathname = usePathname();
   return (
     <SidebarNavigation
@@ -213,9 +328,7 @@ export function DocsSidebar({ tree }: Readonly<{ tree: DocsTreeNode[] }>) {
  * dynamic, so the prerendered shell ships this and the highlighted row streams
  * in. No skeleton flash, because the nav content is identical.
  */
-export function DocsSidebarFallback({
-  tree,
-}: Readonly<{ tree: DocsTreeNode[] }>) {
+function DocsSidebarFallback({ tree }: Readonly<{ tree: DocsTreeNode[] }>) {
   return (
     <SidebarNavigation
       className={DESKTOP_SIDEBAR_CLASS}
@@ -262,11 +375,7 @@ export function DocsMobileSidebar({
     <Drawer onOpenChange={setOpen} open={open} swipeDirection="left">
       <DrawerTrigger
         render={
-          <Button
-            className="size-9 rounded-full lg:hidden"
-            size="icon"
-            variant="ghost"
-          >
+          <Button className="size-11 lg:hidden" size="icon" variant="ghost">
             <Menu className="size-5" />
             <span className="sr-only">Open documentation navigation</span>
           </Button>
@@ -280,14 +389,10 @@ export function DocsMobileSidebar({
               <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
                 <DrawerTitle>Documentation</DrawerTitle>
                 <div className="flex items-center gap-2">
-                  <ThemeToggle className="md:hidden" />
+                  <ThemeToggle />
                   <DrawerClose
                     render={
-                      <Button
-                        className="size-9 rounded-full"
-                        size="icon"
-                        variant="ghost"
-                      >
+                      <Button className="size-11" size="icon" variant="ghost">
                         <X className="size-4" />
                         <span className="sr-only">Close navigation</span>
                       </Button>
@@ -300,30 +405,38 @@ export function DocsMobileSidebar({
                 <div className="grid shrink-0 gap-2 border-t bg-sidebar px-3 py-3">
                   {links.length > 0 ? (
                     <nav aria-label="Site" className="grid gap-0.5">
-                      {links.map((link) => (
-                        <Link
-                          className={cn(
-                            "focus-ring flex min-h-9 items-center rounded-md px-2 font-medium text-sm transition-colors",
-                            // The header pill's treatment, so the assistant
-                            // reads as the one CTA and not another nav row.
-                            link.href === "/chat"
-                              ? "justify-center rounded-full bg-foreground text-background hover:opacity-90"
-                              : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                          )}
-                          href={link.href ?? "#"}
-                          key={link._key}
-                          onClick={close}
-                          prefetch={false}
-                          rel={
-                            link.openInNewTab
-                              ? "noopener noreferrer"
-                              : undefined
-                          }
-                          target={link.openInNewTab ? "_blank" : undefined}
-                        >
-                          {link.name}
-                        </Link>
-                      ))}
+                      {links.map((link) =>
+                        link.href === "/chat" ? (
+                          // Styled as the one CTA, not another nav row.
+                          <button
+                            className="focus-ring flex min-h-11 items-center justify-center bg-foreground px-2 font-medium text-background text-sm transition-colors hover:opacity-90"
+                            key={link._key}
+                            onClick={() => {
+                              close();
+                              openAskAi();
+                            }}
+                            type="button"
+                          >
+                            {link.name}
+                          </button>
+                        ) : (
+                          <Link
+                            className="focus-ring flex min-h-11 items-center px-2 font-medium text-sidebar-foreground/75 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                            href={link.href ?? "#"}
+                            key={link._key}
+                            onClick={close}
+                            prefetch={false}
+                            rel={
+                              link.openInNewTab
+                                ? "noopener noreferrer"
+                                : undefined
+                            }
+                            target={link.openInNewTab ? "_blank" : undefined}
+                          >
+                            {link.name}
+                          </Link>
+                        )
+                      )}
                     </nav>
                   ) : null}
                   {buttons?.length ? (

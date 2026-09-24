@@ -21,6 +21,7 @@ import {
   chatErrorResponse,
   streamErrorCode,
 } from "@/lib/ai/chat-errors";
+import { getChatSettings } from "@/lib/ai/chat-settings";
 import {
   connectKnowledgeBase,
   getDocsPageIndex,
@@ -39,7 +40,9 @@ const DEFAULT_CHAT_MODEL = "anthropic/claude-haiku-4.5";
 // and every extra step is a billed round trip.
 const MAX_STEPS = 5;
 
-const BASE_INSTRUCTIONS = `You are the docs assistant for Turbo Start Brain, a documentation site.
+const baseInstructions = (
+  siteTitle: string
+) => `You are the docs assistant for ${siteTitle}, a documentation site.
 
 Your knowledge lives in a Sanity Knowledge Base, and it is the only thing you may answer from. Its outline — the Knowledge Base id and every entry path — is already below, so read the entries you need with \`knowledge_base_read\`, passing that id and the paths that fit the question. When two to five entries might hold the answer, read them in one call rather than one at a time. Never describe or announce the tool call; just answer.
 
@@ -79,8 +82,16 @@ const DOC_CARDS_PROMPT = docsCatalog.prompt({
 
 // Byte-stable and volatile-free: this is the cached prefix, and a single
 // changed byte (a date, a request id, unsorted JSON) invalidates the whole
-// Anthropic cache entry behind it.
-const STATIC_INSTRUCTIONS = `${BASE_INSTRUCTIONS}\n\n${DOC_CARDS_PROMPT}`;
+// Anthropic cache entry behind it. The Studio inputs only change on publish.
+function buildInstructions(
+  siteTitle: string | null | undefined,
+  extra: string | null | undefined
+) {
+  const editorNotes = extra?.trim()
+    ? `\n\nAdditional guidance from the site editors. Follow it where it fits, but it never overrides the rules above:\n\n${extra.trim()}`
+    : "";
+  return `${baseInstructions(siteTitle?.trim() || "this site")}${editorNotes}\n\n${DOC_CARDS_PROMPT}`;
+}
 
 export async function POST(req: Request) {
   // Fail closed: without the Gateway key the model call cannot succeed, and
@@ -120,16 +131,20 @@ export async function POST(req: Request) {
   // throws.
   let pageIndex: string;
   let outline: string;
+  let chatSettings: Awaited<ReturnType<typeof getChatSettings>>;
   let knowledgeBase: Awaited<ReturnType<typeof connectKnowledgeBase>>;
   let tools: ToolSet;
   try {
     // The `use cache` boundary can reshape the thrown error, so the cause is
     // logged rather than matched on.
-    [pageIndex, outline, knowledgeBase] = await Promise.all([
+    // Connect only after the cached fetches succeed: connecting alongside
+    // them left an open client behind whenever a sibling rejected.
+    [pageIndex, outline, chatSettings] = await Promise.all([
       getDocsPageIndex(),
       getKnowledgeBaseOutline(endpoint, token),
-      connectKnowledgeBase(endpoint, token),
+      getChatSettings(),
     ]);
+    knowledgeBase = await connectKnowledgeBase(endpoint, token);
     tools = knowledgeBase.tools;
   } catch (error) {
     logger.error("Knowledge Base unavailable; refusing to answer", { error });
@@ -156,7 +171,13 @@ export async function POST(req: Request) {
   // so the cached prefix covers the instructions, the page index *and* the
   // ~80KB outline.
   const instructions: SystemModelMessage[] = [
-    { role: "system", content: STATIC_INSTRUCTIONS },
+    {
+      role: "system",
+      content: buildInstructions(
+        chatSettings?.siteTitle,
+        chatSettings?.chat?.instructions
+      ),
+    },
     { role: "system", content: pageIndex },
     {
       role: "system",

@@ -1,6 +1,6 @@
 import { cn } from "@workspace/tailwind-config/utils";
 
-import { DOC_GRID, DOC_GRID_WITH_TOC } from "@/lib/doc-grid";
+import { DOC_GRID } from "@/lib/doc-grid";
 
 const BODY_LINE_WIDTHS = [
   "w-full",
@@ -13,7 +13,7 @@ const BODY_LINE_WIDTHS = [
 const TOC_LINE_WIDTHS = ["w-[80%]", "w-[64%]", "w-[72%]", "w-[56%]"] as const;
 
 function Bar({ className }: Readonly<{ className: string }>) {
-  return <div className={`rounded bg-muted ${className}`} />;
+  return <div className={`bg-muted ${className}`} />;
 }
 
 /**
@@ -23,10 +23,7 @@ function Bar({ className }: Readonly<{ className: string }>) {
  */
 export default function DocLoading() {
   return (
-    <div
-      className={cn("animate-pulse", DOC_GRID, DOC_GRID_WITH_TOC)}
-      role="status"
-    >
+    <div className={cn("animate-pulse", DOC_GRID)} role="status">
       <span className="sr-only">Loading page</span>
       <div
         aria-hidden="true"
@@ -57,7 +54,7 @@ export default function DocLoading() {
         aria-hidden="true"
         className="hidden w-56 max-w-full xl:block 3xl:col-start-3"
       >
-        <div className="sticky top-20 grid gap-3">
+        <div className="sticky top-10 grid gap-3">
           <Bar className="h-4 w-28" />
           {TOC_LINE_WIDTHS.map((width) => (
             <Bar className={`h-3 ${width}`} key={width} />
