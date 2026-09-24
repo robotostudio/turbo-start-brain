@@ -24,22 +24,22 @@ const logger = new Logger("RichText");
  * invisible on the dark ground. */
 const calloutStyles = {
   info: {
-    className: "border-info/35 bg-info-surface",
+    className: "border-info bg-info-surface",
     iconClassName: "text-info",
     Icon: Info,
   },
   warning: {
-    className: "border-warning/40 bg-warning-surface",
+    className: "border-warning bg-warning-surface",
     iconClassName: "text-warning",
     Icon: TriangleAlert,
   },
   success: {
-    className: "border-success/35 bg-success-surface",
+    className: "border-success bg-success-surface",
     iconClassName: "text-success",
     Icon: CircleCheck,
   },
   danger: {
-    className: "border-danger/35 bg-danger-surface",
+    className: "border-danger bg-danger-surface",
     iconClassName: "text-danger",
     Icon: OctagonAlert,
   },
@@ -186,7 +186,7 @@ const components: Partial<PortableTextReactComponents> = {
             className={cn("mt-0.5 size-5 shrink-0", variant.iconClassName)}
           />
           <RichText
-            className="min-w-0 flex-1 prose-p:my-2 prose-p:text-foreground/80 prose-p:text-small prose-p:first:mt-0 prose-p:last:mb-0"
+            className="min-w-0 flex-1 prose-p:my-2 prose-p:text-foreground/80 dark:prose-p:text-foreground prose-p:text-small prose-p:first:mt-0 prose-p:last:mb-0"
             richText={value?.body}
           />
         </aside>

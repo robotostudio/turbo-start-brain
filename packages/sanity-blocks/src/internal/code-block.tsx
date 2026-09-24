@@ -1,3 +1,11 @@
+import { type CSSProperties, Fragment } from "react";
+import {
+  type BundledLanguage,
+  createHighlighter,
+  type Highlighter,
+  type ThemedToken,
+} from "shiki";
+
 import { CopyButton } from "./copy-button";
 
 // Short label shown in the language tile.
@@ -9,7 +17,56 @@ const BADGE_MAP: Record<string, string> = {
   bash: "SH",
   json: "{ }",
   css: "CSS",
+  html: "HTML",
+  python: "PY",
+  yaml: "YML",
+  sql: "SQL",
+  diff: "DIFF",
+  markdown: "MD",
 };
+
+// GROQ has no Shiki grammar and "text" is plain on purpose.
+const HIGHLIGHTED = new Set<string>([
+  "ts",
+  "tsx",
+  "js",
+  "bash",
+  "json",
+  "css",
+  "html",
+  "python",
+  "yaml",
+  "sql",
+  "diff",
+  "markdown",
+]);
+
+let highlighter: Promise<Highlighter> | undefined;
+
+// Server-only; tokens carry both themes as CSS variables (see globals.css).
+// Cached because Shiki reads the clock, which prerendering rejects.
+async function highlight(
+  code: string,
+  language?: string | null
+): Promise<ThemedToken[][] | null> {
+  "use cache";
+  if (!(language && HIGHLIGHTED.has(language))) {
+    return null;
+  }
+  try {
+    highlighter ??= createHighlighter({
+      themes: ["github-light", "github-dark"],
+      langs: [...HIGHLIGHTED] as BundledLanguage[],
+    });
+    return (await highlighter).codeToTokens(code, {
+      lang: language as BundledLanguage,
+      themes: { light: "github-light", dark: "github-dark" },
+      defaultColor: false,
+    }).tokens;
+  } catch {
+    return null;
+  }
+}
 
 export interface CodeBlockValue {
   code?: string | null;
@@ -17,7 +74,7 @@ export interface CodeBlockValue {
   filename?: string | null;
 }
 
-export function CodeBlock({
+export async function CodeBlock({
   code,
   language,
   filename,
@@ -27,6 +84,7 @@ export function CodeBlock({
   }
 
   const badge = (language && BADGE_MAP[language]) || "TXT";
+  const lines = await highlight(code, language);
 
   // Line numbers are rendered as a fixed gutter column beside the scrolling
   // code, so they stay put during horizontal scroll and are excluded from copy.
@@ -65,7 +123,23 @@ export function CodeBlock({
             keyboard-focusable on their own, so arrow keys can still pan a long
             line into view (WCAG 2.1.1). */}
         <pre className="rich-code-pre overflow-x-auto font-mono">
-          <code className="font-mono">{code}</code>
+          <code className="font-mono">
+            {lines
+              ? lines.map((line, lineIndex) => (
+                  <Fragment key={lineIndex}>
+                    {line.map((token, tokenIndex) => (
+                      <span
+                        key={tokenIndex}
+                        style={token.htmlStyle as CSSProperties}
+                      >
+                        {token.content}
+                      </span>
+                    ))}
+                    {lineIndex < lines.length - 1 ? "\n" : null}
+                  </Fragment>
+                ))
+              : code}
+          </code>
         </pre>
       </div>
     </figure>

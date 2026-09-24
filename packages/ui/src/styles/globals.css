@@ -33,7 +33,7 @@
   --muted-foreground: oklch(0.442 0.017 285.786);
   --accent: var(--muted);
   --accent-foreground: var(--foreground);
-  /* The turbo-start-sanity accent, clamped into sRGB (the original C 0.226
+  /* The lime accent, clamped into sRGB (the original C 0.226
      clips). A touch colour only: the preview bar and status dots. */
   --accent-green: oklch(0.935 0.221 122);
   --accent-green-foreground: oklch(0.21 0.006 285.885);
@@ -73,9 +73,9 @@
 
   /* Status tints. Declared once: `color-mix` substitutes at the point of use,
      so a `.dark` descendant picks up the dark `--info`/`--background`/mix
-     automatically. Dark needs the bigger ratio — an 7% wash that reads on white
+     automatically. Dark needs the bigger ratio — a 16% wash that reads on white
      disappears into a near-black ground. */
-  --status-surface-mix: 7%;
+  --status-surface-mix: 16%;
   --info-surface: color-mix(
     in oklab,
     var(--info) var(--status-surface-mix),
@@ -135,7 +135,7 @@
      needs its own lighter surface — it inherits `var(--background)` from
      `:root`. */
 
-  --status-surface-mix: 15%;
+  --status-surface-mix: 20%;
 }
 
 /* The one type scale. Every surface — landing page, doc titles, prose
@@ -401,6 +401,14 @@
   white-space: pre;
   tab-size: 2;
   color: var(--foreground);
+}
+
+.rich-code-pre span[style] {
+  color: var(--shiki-light);
+}
+
+.dark .rich-code-pre span[style] {
+  color: var(--shiki-dark);
 }
 
 /* Line-number gutter — a fixed column beside the horizontally-scrolling code. */

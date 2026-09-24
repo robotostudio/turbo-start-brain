@@ -402,6 +402,9 @@ importers:
       schema-dts:
         specifier: ^1.1.5
         version: 1.1.5
+      shiki:
+        specifier: ^3.23.0
+        version: 3.23.0
       slugify:
         specifier: ^1.6.8
         version: 1.6.8

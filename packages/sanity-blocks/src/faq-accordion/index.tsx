@@ -29,7 +29,10 @@ export function FaqAccordion({ faqs, ...rest }: Readonly<FaqAccordionProps>) {
     _key: faq._key,
     title: faq.title,
     body: faq.richText?.length ? (
-      <RichText className="body-text" richText={faq.richText} />
+      <RichText
+        className="body-text prose-p:text-body prose-li:text-body"
+        richText={faq.richText}
+      />
     ) : null,
   }));
 
