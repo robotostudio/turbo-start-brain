@@ -11,7 +11,12 @@ import {
 } from "@workspace/ui/components/message-scroller";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import dynamic from "next/dynamic";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { ThinkingOrb } from "thinking-orbs";
 
@@ -116,8 +121,7 @@ export function ChatPanel({
   placeholder,
   suggestedQuestions,
 }: Readonly<{
-  /** Track the visual viewport (mobile keyboard) below the site header. Off
-   * inside a dialog, which sizes itself. */
+  /** Track the visual viewport (mobile keyboard) below the dialog header. */
   fitViewport?: boolean;
   heading?: string | null;
   intro?: string | null;
@@ -209,13 +213,16 @@ export function ChatPanel({
 
   return (
     <div
-      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-(--ease-smooth-out) motion-reduce:transition-none"
-      style={{
-        height:
-          fitViewport && viewportHeight
-            ? `calc(${viewportHeight}px - 3.5rem)`
-            : undefined,
-      }}
+      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-(--ease-smooth-out) motion-reduce:transition-none max-sm:h-[var(--chat-viewport-h,100%)]"
+      // Phones only: there the dialog is full-screen under a 3.5rem header;
+      // from sm it has a fixed height, and this would push the header out.
+      style={
+        fitViewport && viewportHeight
+          ? ({
+              "--chat-viewport-h": `calc(${viewportHeight}px - 3.5rem)`,
+            } as CSSProperties)
+          : undefined
+      }
     >
       <MessageScrollerProvider
         autoScroll
