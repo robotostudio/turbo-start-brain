@@ -21,9 +21,10 @@ import {
 } from "@/lib/ai/ask-ai-events";
 import type { getChatSettings } from "@/lib/ai/chat-settings";
 
-type ChatSettings = NonNullable<
-  Awaited<ReturnType<typeof getChatSettings>>
->["chat"];
+type ChatSettings = Pick<
+  NonNullable<NonNullable<Awaited<ReturnType<typeof getChatSettings>>>["chat"]>,
+  "heading" | "intro" | "placeholder" | "suggestedQuestions"
+> | null;
 
 // Shown until an editor fills in the Chat document in Studio; the heading and
 // intro match the schema's initial values.
@@ -103,7 +104,7 @@ export function AskAiDialog({
           </div>
           <div className="min-h-0 flex-1">
             <ChatPanel
-              fitViewport={false}
+              fitViewport={open}
               key={session}
               onStartedChange={setStarted}
               heading={chat?.heading || FALLBACK.heading}

@@ -228,8 +228,18 @@ async function getDocsShellData({ perspective, stega }: DynamicFetchOptions) {
     getFeaturedDocs({ perspective, stega }),
   ]);
 
+  // `instructions` is part of the system prompt; keep it off the client.
+  const chat = chatSettings?.chat;
   return {
-    chat: chatSettings?.chat ?? null,
+    chat: chat
+      ? {
+          label: chat.label,
+          heading: chat.heading,
+          intro: chat.intro,
+          placeholder: chat.placeholder,
+          suggestedQuestions: chat.suggestedQuestions,
+        }
+      : null,
     featured,
     settings: settingsData,
     tree,
