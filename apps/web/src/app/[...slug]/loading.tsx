@@ -27,7 +27,7 @@ export default function DocLoading() {
       <span className="sr-only">Loading page</span>
       <div
         aria-hidden="true"
-        className="mx-auto w-full min-w-0 max-w-3xl 3xl:col-start-2"
+        className="mx-auto w-full min-w-0 lg:max-w-3xl 3xl:col-start-2"
       >
         <div className="flex items-center gap-2">
           <Bar className="h-4 w-16" />

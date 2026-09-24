@@ -175,11 +175,11 @@ function DocContent({
             crumbs={[...ancestorCrumbs(slug), { label: data.title }]}
           />
           <header className="mb-10 border-b pb-8">
-            <div className="flex items-center justify-between gap-4">
-              <h1 className="min-w-0 text-balance font-semibold text-h1 sm:text-display">
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <h1 className="text-balance break-words font-semibold text-h1 sm:text-display">
                 {data.title}
               </h1>
-              <CopyMarkdownButton />
+              <CopyMarkdownButton className="justify-self-start max-sm:order-first" />
             </div>
             {data.description ? (
               <p className="mt-4 max-w-2xl text-pretty text-lede text-muted-foreground">
@@ -188,7 +188,7 @@ function DocContent({
             ) : null}
           </header>
           <MobileTableOfContent
-            className="mb-8 xl:hidden"
+            className="mb-8 max-w-160 xl:hidden"
             maxDepth={TOC_MAX_DEPTH}
             richText={body}
           />

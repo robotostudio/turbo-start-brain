@@ -177,7 +177,7 @@ const components: Partial<PortableTextReactComponents> = {
       return (
         <aside
           className={cn(
-            "not-prose my-6 flex gap-3 border p-4 text-small",
+            "not-prose my-6 flex max-w-160 gap-3 border p-4 text-small",
             variant.className
           )}
         >
