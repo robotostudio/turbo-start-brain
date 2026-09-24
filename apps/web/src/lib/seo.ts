@@ -26,6 +26,8 @@ type PageSeoData = Metadata & {
   keywords?: string[];
   seoNoIndex?: boolean;
   pageType?: Extract<Metadata["openGraph"], { type: string }>["type"];
+  /** ISO timestamp, published as `article:modified_time` on articles. */
+  modifiedTime?: string;
 };
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
@@ -90,6 +92,7 @@ type SeoSourceDocument = {
   seoNoIndex?: boolean | null;
   _id?: string | null;
   _type?: string | null;
+  _updatedAt?: string | null;
 };
 
 /**
@@ -101,6 +104,7 @@ export function seoFromDocument(
   doc: SeoSourceDocument | null | undefined,
   { slug, pageType }: { slug: string; pageType?: PageSeoData["pageType"] }
 ): Promise<Metadata> {
+  const isArticle = pageType === "article";
   return getSEOMetadata({
     // Overrides win: title and description are required, so they're only fallbacks.
     title: doc?.seoTitle || doc?.title || undefined,
@@ -111,6 +115,7 @@ export function seoFromDocument(
     seoNoIndex: doc?.seoNoIndex ?? false,
     slug,
     pageType,
+    modifiedTime: isArticle ? (doc?._updatedAt ?? undefined) : undefined,
   });
 }
 
@@ -125,6 +130,7 @@ async function getSEOMetadata(page: PageSeoData = {}): Promise<Metadata> {
     keywords: pageKeywords = [],
     seoNoIndex = false,
     pageType = "website",
+    modifiedTime,
     ...pageOverrides
   } = page;
 
@@ -191,6 +197,7 @@ async function getSEOMetadata(page: PageSeoData = {}): Promise<Metadata> {
     openGraph: {
       type: pageType ?? "website",
       countryName: "UK",
+      ...(pageType === "article" && modifiedTime ? { modifiedTime } : {}),
       description: socialDescription,
       title: socialTitle,
       siteName: siteConfig.title,

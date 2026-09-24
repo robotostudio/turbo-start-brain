@@ -11,33 +11,33 @@ type Page = QuerySitemapDataResult["docs"][number];
 const baseUrl = getBaseUrl();
 const logger = new Logger("Sitemap");
 
-async function getSitemapDocs(): Promise<QuerySitemapDataResult["docs"]> {
+async function getSitemapData(): Promise<QuerySitemapDataResult | null> {
   try {
     const { data } = await sanityFetchMetadata({
       query: querySitemapData,
       perspective: "published",
     });
-    return data?.docs ?? [];
+    return data;
   } catch (error) {
     logger.error("Error fetching sitemap data", error);
-    return [];
+    return null;
   }
 }
 
+// Real edit times only: a lastmod that always says "now" teaches crawlers to
+// ignore it. Google ignores changefreq and priority, so they are omitted.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const docs = await getSitemapDocs();
+  const data = await getSitemapData();
   return [
     {
       url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
+      ...(data?.homeModified
+        ? { lastModified: new Date(data.homeModified) }
+        : {}),
     },
-    ...docs.map((page: Page) => ({
+    ...(data?.docs ?? []).map((page: Page) => ({
       url: `${baseUrl}${page.slug}`,
-      lastModified: new Date(page.lastModified ?? new Date()),
-      changeFrequency: "weekly" as const,
-      priority: 0.8,
+      lastModified: new Date(page.lastModified),
     })),
   ];
 }

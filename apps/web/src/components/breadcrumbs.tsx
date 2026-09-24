@@ -1,4 +1,5 @@
 import { JsonLdScript } from "@/components/json-ld";
+import type { DocsTreeNode } from "@/lib/docs-tree";
 import { getBaseUrl } from "@/utils";
 
 type Crumb = {
@@ -6,22 +7,22 @@ type Crumb = {
   readonly href?: string;
 };
 
-/** Turns a slug segment into a human label: `pd-blowers` -> `Pd Blowers`. */
-function humanizeSegment(segment: string): string {
-  return segment
-    .split("-")
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
-
-/** Ancestor crumbs for a nested slug, excluding the page itself. */
-export function ancestorCrumbs(segments: readonly string[]): Crumb[] {
-  const crumbs: Crumb[] = [{ label: "Home", href: "/" }];
+/**
+ * Ancestor crumbs for a nested slug, excluding the page itself, labelled with
+ * each section's title from the docs tree (the same names as the sidebar).
+ */
+export function ancestorCrumbs(
+  segments: readonly string[],
+  tree: readonly DocsTreeNode[]
+): Crumb[] {
+  const crumbs: Crumb[] = [{ label: "Home", href: "" }];
+  let nodes = tree;
   let path = "";
   for (const segment of segments.slice(0, -1)) {
     path += `/${segment}`;
-    crumbs.push({ label: humanizeSegment(segment), href: path });
+    const node = nodes.find((candidate) => candidate.slug === path);
+    crumbs.push({ label: node?.title ?? segment, href: path });
+    nodes = node?.children ?? [];
   }
   return crumbs;
 }
@@ -49,7 +50,9 @@ export function BreadcrumbsJsonLd({
           "@type": "ListItem",
           position: index + 1,
           name: crumb.label,
-          ...(crumb.href ? { item: `${baseUrl}${crumb.href}` } : {}),
+          ...(crumb.href === undefined
+            ? {}
+            : { item: `${baseUrl}${crumb.href}` }),
         })),
       }}
       id="breadcrumb-json-ld"

@@ -89,7 +89,7 @@ export async function generateMetadata({
     };
   }
 
-  return seoFromDocument(data, { slug: slugString });
+  return seoFromDocument(data, { slug: slugString, pageType: "article" });
 }
 
 /**
@@ -165,7 +165,7 @@ function DocContent({
       <main className={DOC_GRID}>
         <article className={DOC_CONTENT}>
           <BreadcrumbsJsonLd
-            crumbs={[...ancestorCrumbs(slug), { label: data.title }]}
+            crumbs={[...ancestorCrumbs(slug, tree), { label: data.title }]}
           />
           <header className="mb-10 border-b pb-8">
             <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">

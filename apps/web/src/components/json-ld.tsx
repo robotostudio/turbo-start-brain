@@ -37,6 +37,8 @@ type OrganizationJsonLdProps = {
   settings: QuerySettingsDataResult;
 };
 
+const organizationId = (baseUrl: string) => `${baseUrl}/#organization`;
+
 function OrganizationJsonLd({ settings }: Readonly<OrganizationJsonLdProps>) {
   if (!settings) {
     return null;
@@ -51,6 +53,7 @@ function OrganizationJsonLd({ settings }: Readonly<OrganizationJsonLdProps>) {
   const organizationJsonLd: WithContext<Organization> = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": organizationId(baseUrl),
     name: settings.siteTitle,
     description: settings.siteDescription || undefined,
     url: baseUrl,
@@ -90,10 +93,8 @@ function WebSiteJsonLd({ settings }: Readonly<WebSiteJsonLdProps>) {
     name: settings.siteTitle,
     description: settings.siteDescription || undefined,
     url: baseUrl,
-    publisher: {
-      "@type": "Organization",
-      name: settings.siteTitle,
-    } as Organization,
+    // The same node as the Organization block, so crawlers join the two.
+    publisher: { "@id": organizationId(baseUrl) } as Organization,
   };
 
   return <JsonLdScript data={websiteJsonLd} id="website-json-ld" />;
