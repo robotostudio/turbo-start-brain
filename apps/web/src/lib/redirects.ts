@@ -22,7 +22,7 @@ import { normalizeMarkdownPath } from "./markdown-path";
 
 const logger = new Logger("Redirects");
 
-export type ResolvedRedirect = {
+type ResolvedRedirect = {
   /** Verbatim from Sanity: an internal path or an absolute external URL. */
   destination: string;
   permanent: boolean;

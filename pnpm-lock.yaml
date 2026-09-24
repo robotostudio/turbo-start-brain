@@ -381,9 +381,6 @@ importers:
       '@workspace/tailwind-config':
         specifier: workspace:*
         version: link:../tailwind-config
-      '@workspace/ui':
-        specifier: workspace:*
-        version: link:../ui
       lucide-react:
         specifier: 'catalog:'
         version: 0.577.0(react@19.2.8)

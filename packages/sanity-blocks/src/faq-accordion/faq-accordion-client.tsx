@@ -16,14 +16,14 @@ import {
  * reaches: PortableText, the code block, the Sanity image loader) never
  * crosses this boundary.
  */
-export interface FaqClientItem {
+interface FaqClientItem {
   _key?: string | null;
   _id: string;
   body?: ReactNode;
   title?: string | null;
 }
 
-export interface FaqAccordionClientProps {
+interface FaqAccordionClientProps {
   _key?: string;
   faqs?: FaqClientItem[] | null;
   eyebrow?: string | null;

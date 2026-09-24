@@ -1,7 +1,7 @@
 import { JsonLdScript } from "@/components/json-ld";
 import { getBaseUrl } from "@/utils";
 
-export type Crumb = {
+type Crumb = {
   readonly label?: string | null;
   readonly href?: string;
 };

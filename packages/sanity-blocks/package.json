@@ -27,7 +27,6 @@
     "@sanity/icons": "^3.7.4",
     "@workspace/logger": "workspace:*",
     "@workspace/tailwind-config": "workspace:*",
-    "@workspace/ui": "workspace:*",
     "lucide-react": "catalog:",
     "sanity": "catalog:",
     "sanity-image": "^1.1.0",

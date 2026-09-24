@@ -8,7 +8,7 @@ import { createDataAttribute } from "next-sanity";
 import { OptimisticBlocksLoader } from "@/components/pagebuilder-optimistic-loader";
 import type { PageBuilderBlock, PagebuilderType } from "@/types";
 
-export type PageBuilderProps = {
+type PageBuilderProps = {
   readonly pageBuilder?: PageBuilderBlock[];
   readonly id: string;
   readonly type: string;
