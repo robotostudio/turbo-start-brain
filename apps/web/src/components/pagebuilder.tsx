@@ -76,6 +76,11 @@ function renderBlock(block: PageBuilderBlock, dataSanity?: string) {
   const key = `${block?._type}-${block?._key}`;
 
   if (!content) {
+    // Only editors (draft mode) see the error; readers get nothing, as in the
+    // Markdown output, so a removed block type never shows up on the site.
+    if (!dataSanity) {
+      return null;
+    }
     return (
       <UnknownBlockError
         blockKey={block?._key ?? ""}
