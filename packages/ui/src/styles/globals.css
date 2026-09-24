@@ -64,10 +64,10 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
 
-  /* Overscroll gutter surface, shown on the top rubber-band by the navbar. */
+  /* Overscroll gutter surface, shown on the top rubber-band above the header. */
   --overscroll-top: var(--background);
 
-  /* Inline gutter shared by the navbar's `container` and page content, so they
+  /* Inline gutter shared by the header's `container` and page content, so they
      line up at every width. */
   --container-px: 1.25rem;
 
@@ -328,7 +328,7 @@
        and without it emphasis in prose would render upright. */
     font-synthesis-weight: none;
   }
-  /* Colour the overscroll gutters, mainly the top rubber-band by the navbar. */
+  /* Colour the overscroll gutters, mainly the top rubber-band above the header. */
   html {
     background: var(--overscroll-top);
     overscroll-behavior-x: none;

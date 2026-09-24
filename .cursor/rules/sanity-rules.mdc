@@ -100,17 +100,6 @@ defineField({
 })
 ```
 
-#### Buttons
-```typescript
-defineField({
-  name: 'buttons',
-  title: 'Buttons',
-  description: 'Add buttons here, the website will handle the styling',
-  type: 'array',
-  of: [{type: 'button'}],
-})
-```
-
 #### Image
 ```typescript
 defineField({
@@ -131,10 +120,10 @@ defineField({
 
 ### Type Generation
 
-After adding new Sanity schema, run the type command to generate TypeScript definitions:
+After adding new Sanity schema, extract it and regenerate the TypeScript definitions (`packages/sanity/src/sanity.types.ts`):
 
 ```bash
-sanity schema extract && sanity typegen generate --enforce-required-fields
+pnpm --filter studio extract && pnpm type
 ```
 
 ## GROQ Rules
@@ -146,27 +135,25 @@ Whenever there is an image within a GROQ query, do not expand it unless explicit
 
 - Import `defineQuery` and `groq` from `next-sanity` at the top of query files
 - Export queries as constants using the `defineQuery` function
-- Organize queries by content type (docs, settings, navigation, etc.)
+- Organize queries by content type (docs, settings, redirects, etc.)
 - Group related queries together
 
 ### Naming Conventions
 
 - Use camelCase for all query names
-- Prefix query names with action verb (get, getAll, etc.) followed by content type
-- Suffix all queries with "Query" (e.g., `getAllBlogIndexTranslationsQuery`)
-- Prefix reusable fragments with underscore (e.g., `_richText`, `_buttons`)
+- Prefix query names with `query` followed by what they fetch (e.g., `queryDocBySlug`, `querySettingsData`)
+- Suffix reusable fragments with `Fragment` (e.g., `portableTextFragment`, `pageBuilderFragment`)
 
 ### Fragment Reuse
 
 - Define common projection fragments at the top of the file
-- Create reusable fragments for repeated patterns (e.g., `_richText`, `_buttons`, `_icon`)
+- Create reusable fragments for repeated patterns (e.g., `customLinkFragment`, `calloutFragment`)
 - Use string interpolation to include fragments in queries
 - Ensure fragments are composable and focused on specific use cases
 
 ### Query Parameters
 
-- Use `$` for parameters (e.g., `$slug`, `$locale`, `$id`)
-- Handle localization with consistent patterns (e.g., `${localeMatch}`)
+- Use `$` for parameters (e.g., `$slug`, `$id`)
 - Use `select()` for conditional logic within queries
 - Define default parameters using `coalesce()`
 
@@ -220,5 +207,4 @@ When asked to produce schema from screenshots, follow these guidelines:
 - Text with formatting (bold, italic, lists) likely needs **richText**
 - Images should include **alt text** fields
 - Background images should be handled appropriately
-- Use reusable button arrays for button patterns
-- If `richTextField` or `buttonsField` exists in the project, use them
+- For rich text, reuse the shared members in `packages/sanity-blocks/src/internal/sanity-rich-text.ts`

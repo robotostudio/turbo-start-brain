@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Turbo Start Brain — a docs/knowledgebase pnpm monorepo (Turborepo) with a Next.js 16 frontend and a Sanity Studio v6 CMS. Uses Biome/Ultracite for linting/formatting.
+Turbo Start Brain — a docs/knowledgebase pnpm monorepo (Turborepo) with a Next.js 16 frontend and a Sanity Studio v6 CMS. Uses Biome for linting/formatting.
 
 ## Commands
 
@@ -20,7 +20,7 @@ pnpm build            # All packages
 pnpm build:web        # Next.js only
 pnpm build:studio     # Studio only
 
-# Lint & Format (Biome/Ultracite, NOT ESLint/Prettier)
+# Lint & Format (Biome, NOT ESLint/Prettier)
 pnpm lint             # Lint all
 pnpm format           # Format all (auto-fix)
 pnpm format:check     # Check formatting without fixing

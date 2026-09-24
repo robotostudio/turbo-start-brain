@@ -123,11 +123,12 @@ sample docs (a short guide to using this template) into your dataset:
 
 ```sh
 cd apps/studio
-npx sanity dataset import seed/seed.ndjson production
+npx sanity login
+npx sanity dataset import seed/seed.ndjson --dataset <your-dataset>
 ```
 
-Import into an empty dataset; documents with the same IDs are not overwritten
-unless you add `--replace`. Edit or delete the sample pages in Studio once you
+Import into an empty dataset: the import stops if a document with the same ID
+already exists, unless you add `--replace`. Edit or delete the sample pages in Studio once you
 start writing your own.
 
 To start from scratch instead, in Studio:
@@ -182,13 +183,14 @@ pnpm build            # Build everything
 pnpm build:web
 pnpm build:studio
 
-pnpm lint             # Biome (Ultracite), not ESLint/Prettier
+pnpm lint             # Biome, not ESLint/Prettier
 pnpm format
 pnpm format:check
 pnpm check-types
 
 pnpm test             # Vitest (packages/sanity-blocks)
 pnpm test:e2e         # Playwright smoke tests against a running site
+                      # (first run: pnpm --filter web exec playwright install chromium)
 ```
 
 ### After schema changes
@@ -218,6 +220,13 @@ Deploy `apps/web` (for example on Vercel, with the root directory set to
 `apps/web`), add the web environment variables, and add the production URL to
 Sanity CORS origins with credentials allowed.
 
+Canonical URLs, the sitemap and the Markdown links use the production URL from
+`NEXT_PUBLIC_VERCEL_ENV` and `NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL`, which
+Vercel sets for you. On any other host, set them yourself
+(`NEXT_PUBLIC_VERCEL_ENV=production` and
+`NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL=docs.example.com`); otherwise they
+fall back to `http://localhost:3000`.
+
 ### Sanity Studio
 
 ```sh
@@ -242,7 +251,15 @@ workflow, which needs the `SANITY_DEPLOY_TOKEN`, `SANITY_STUDIO_PROJECT_ID`,
   It posts to `/api/revalidate-sync-tags`, so it needs `NEXT_PUBLIC_SITE_URL`
   and a `SANITY_REVALIDATE_SECRET` matching the web app's.
 
-Deploy them with the Sanity CLI's blueprints commands from `apps/studio`.
+Deploy them from `apps/studio`, then give `invalidate-tags` its variables (a
+deployed function does not read `.env`):
+
+```sh
+cd apps/studio
+npx sanity blueprints deploy
+npx sanity functions env add invalidate-tags NEXT_PUBLIC_SITE_URL https://docs.example.com
+npx sanity functions env add invalidate-tags SANITY_REVALIDATE_SECRET <same-secret-as-web>
+```
 
 ## Troubleshooting
 
@@ -256,8 +273,9 @@ or add pages as described in step 5.
 **API → CORS origins** with credentials allowed, and check
 `SANITY_STUDIO_PRESENTATION_URL` matches it.
 
-**Ask AI says it isn't available.** One of `AI_GATEWAY_API_KEY`,
-`SANITY_CONTEXT_MCP_URL` or `SANITY_ORGANIZATION_TOKEN` is missing.
+**The Ask AI button doesn't appear.** One of `AI_GATEWAY_API_KEY`,
+`SANITY_CONTEXT_MCP_URL` or `SANITY_ORGANIZATION_TOKEN` is missing from
+`apps/web/.env`. Restart the dev server after adding them.
 
 **Wrong pnpm version.** Run `corepack enable`.
 
@@ -266,6 +284,9 @@ or add pages as described in step 5.
 - `.github/workflows/ci.yml`: lint, format check, type check and unit tests on
   pushes and pull requests to `main`.
 - `.github/workflows/e2e.yml`: Playwright smoke tests on successful deployments.
+  Needs the `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`,
+  `NEXT_PUBLIC_SANITY_API_VERSION` and `VERCEL_AUTOMATION_BYPASS_SECRET`
+  repository secrets.
 - `.github/workflows/deploy-sanity.yml`: manual Studio deploy.
 
 ## Contributing

@@ -43,7 +43,7 @@ If you touched a Sanity schema, also run `pnpm --filter studio extract` then
 
 ## Conventions
 
-- Formatting and linting are Biome/Ultracite, not ESLint/Prettier. Do not add
+- Formatting and linting are Biome, not ESLint/Prettier. Do not add
   either.
 - File names are kebab-case; `.tsx` for React components, `.ts` for everything
   else.
