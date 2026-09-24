@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export const COPY_RESET_MS = 1500;
+const COPY_RESET_MS = 1500;
 
 export type CopyStatus = "idle" | "loading" | "copied" | "error";
 

@@ -17,9 +17,9 @@ import {
 
 const BASE_URL = env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
 
-export const resolveImageUrl: NonNullable<
-  MarkdownOptions["resolveImageUrl"]
-> = (image) => {
+const resolveImageUrl: NonNullable<MarkdownOptions["resolveImageUrl"]> = (
+  image
+) => {
   if (!image?.id) {
     return null;
   }

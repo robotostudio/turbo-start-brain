@@ -1,8 +1,3 @@
-import { cn } from "@workspace/tailwind-config/utils";
-import Link from "next/link";
-import { Fragment } from "react";
-
-import { CopyMarkdownButton } from "@/components/copy-markdown-button";
 import { JsonLdScript } from "@/components/json-ld";
 import { getBaseUrl } from "@/utils";
 
@@ -12,7 +7,7 @@ export type Crumb = {
 };
 
 /** Turns a slug segment into a human label: `pd-blowers` -> `Pd Blowers`. */
-export function humanizeSegment(segment: string): string {
+function humanizeSegment(segment: string): string {
   return segment
     .split("-")
     .filter(Boolean)
@@ -59,64 +54,5 @@ export function BreadcrumbsJsonLd({
       }}
       id="breadcrumb-json-ld"
     />
-  );
-}
-
-const CRUMB_LINK_CLASS =
-  "focus-ring inline-flex min-h-10 items-center hover:text-foreground motion-safe:transition-colors motion-safe:duration-150 motion-safe:ease-out";
-
-export function Breadcrumbs({
-  crumbs,
-  className,
-}: Readonly<{ crumbs: readonly Crumb[]; className?: string }>) {
-  const trail = crumbs.filter((crumb) => Boolean(crumb.label));
-
-  if (trail.length === 0) {
-    return null;
-  }
-
-  return (
-    <>
-      <BreadcrumbsJsonLd crumbs={trail} />
-      <div
-        className={cn(
-          "border-b-[0.75px] border-zinc-200 dark:border-zinc-900 bg-background",
-          className
-        )}
-      >
-        <div className="container flex min-h-13 items-center gap-2.5 pt-6 pb-2">
-          <nav aria-label="Breadcrumb" className="min-w-0 flex-1">
-            <ol className="flex min-w-0 items-center gap-1.5 font-light uppercase font-mono text-muted-foreground text-sm leading-5 tracking-[0.24px]">
-              {trail.map((crumb, index) => {
-                const isCurrent = index === trail.length - 1;
-                return (
-                  <Fragment key={crumb.href ?? crumb.label}>
-                    {index > 0 ? (
-                      <li aria-hidden="true" className="shrink-0 select-none">
-                        /
-                      </li>
-                    ) : null}
-                    <li
-                      aria-current={isCurrent ? "page" : undefined}
-                      className={isCurrent ? "min-w-0 truncate" : "shrink-0"}
-                    >
-                      {isCurrent || !crumb.href ? (
-                        crumb.label
-                      ) : (
-                        <Link className={CRUMB_LINK_CLASS} href={crumb.href}>
-                          {crumb.label}
-                        </Link>
-                      )}
-                    </li>
-                  </Fragment>
-                );
-              })}
-            </ol>
-          </nav>
-
-          <CopyMarkdownButton />
-        </div>
-      </div>
-    </>
   );
 }
