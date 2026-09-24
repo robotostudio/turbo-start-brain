@@ -9,7 +9,6 @@ import { lucideIconPicker } from "sanity-plugin-lucide-icon-picker";
 import { media } from "sanity-plugin-media";
 import { muxInput } from "sanity-plugin-mux-input";
 
-import { Logo } from "@/components/logo";
 import { locations } from "@/location";
 import { presentationUrl } from "@/plugins/presentation-url";
 import { schemaTypes, singletonTypes } from "@/schemaTypes/index";
@@ -31,7 +30,6 @@ const hiddenTemplateIds = new Set([
 export default defineConfig({
   name: "default",
   title,
-  icon: Logo,
   projectId,
   dataset,
   releases: {

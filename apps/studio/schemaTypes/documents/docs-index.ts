@@ -14,6 +14,14 @@ export const docsIndex = defineType({
   groups: GROUPS,
   fields: [
     defineField({
+      name: "eyebrow",
+      type: "string",
+      title: "Eyebrow",
+      description:
+        'Small label shown above the home page title, for example "Knowledge base". Leave empty to hide it',
+      group: GROUP.MAIN_CONTENT,
+    }),
+    defineField({
       name: "title",
       type: "string",
       group: GROUP.MAIN_CONTENT,
@@ -45,9 +53,7 @@ export const docsIndex = defineType({
       ],
     }),
     pageBuilderField,
-    ...seoFields.filter(
-      (field) => !["seoNoIndex", "seoHideFromLists"].includes(field.name)
-    ),
+    ...seoFields.filter((field) => field.name !== "seoNoIndex"),
     ...ogFields,
   ],
   initialValue: {

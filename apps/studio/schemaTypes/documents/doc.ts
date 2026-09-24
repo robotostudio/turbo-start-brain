@@ -52,7 +52,7 @@ export const doc = defineType({
       group: GROUP.MAIN_CONTENT,
     }),
     pageBuilderField,
-    ...seoFields.filter((field) => field.name !== "seoHideFromLists"),
+    ...seoFields,
     ...ogFields,
   ],
   preview: {

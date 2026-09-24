@@ -92,6 +92,12 @@ export const structure = (
               }),
               createSingleTon({
                 S,
+                type: "chat",
+                title: "Chat",
+                icon: MessageCircle,
+              }),
+              createSingleTon({
+                S,
                 type: "settings",
                 title: "Global Settings",
                 icon: Cog,

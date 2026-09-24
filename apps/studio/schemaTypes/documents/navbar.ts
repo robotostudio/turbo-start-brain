@@ -159,31 +159,6 @@ export const navbar = defineType({
         "Build your navigation menu using columns and links. Add either a column of links or individual links.",
       of: [navbarColumn, navbarLink],
     }),
-    defineField({
-      name: "gitHubUrl",
-      type: "url",
-      title: "GitHub Repository URL",
-      description:
-        "Public GitHub repository URL (e.g. https://github.com/owner/repo). Shown as a GitHub icon link in the site header. Leave empty to hide it.",
-      validation: (rule) =>
-        rule.uri({ scheme: ["https"] }).custom((value) => {
-          if (!value) {
-            return true;
-          }
-          try {
-            const { hostname, pathname } = new URL(value);
-            const isGitHubHost =
-              hostname === "github.com" || hostname === "www.github.com";
-            const segments = pathname.split("/").filter(Boolean);
-            if (isGitHubHost && segments.length >= 2) {
-              return true;
-            }
-          } catch {
-            return "Please enter a valid URL";
-          }
-          return "Please enter a github.com repository URL";
-        }),
-    }),
     buttonsField,
   ],
   preview: {

@@ -99,6 +99,14 @@ export const settings = defineType({
             "Optional logo variant for dark backgrounds, such as the navbar in dark mode. Reuses the light logo's alt text; if left empty, the light logo is used everywhere.",
           options: { hotspot: true },
         }),
+        defineField({
+          name: "favicon",
+          type: "image",
+          title: "Favicon",
+          description:
+            "The small icon shown in browser tabs and bookmarks. Use a square SVG or PNG of at least 64×64",
+          options: { accept: "image/svg+xml,image/png" },
+        }),
       ],
     }),
     defineField({

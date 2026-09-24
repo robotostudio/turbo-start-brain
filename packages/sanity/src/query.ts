@@ -1,5 +1,4 @@
 import { faqAccordionGroqProjection } from "@workspace/sanity-blocks/faq-accordion/faq-accordion.groq";
-import { featureCardsIconGroqProjection } from "@workspace/sanity-blocks/feature-cards-icon/feature-cards-icon.groq";
 import { richTextBlockGroqProjection } from "@workspace/sanity-blocks/rich-text-block/rich-text-block.groq";
 import { defineQuery } from "next-sanity";
 
@@ -100,7 +99,6 @@ const pageBuilderFragment = /* groq */ `
     ...,
     _type,
     ${faqAccordionGroqProjection},
-    ${featureCardsIconGroqProjection},
     ${richTextBlockGroqProjection}
   }
 `;
@@ -202,7 +200,6 @@ export const queryNavbarData = defineQuery(`
       }
     },
     ${buttonsFragment},
-    gitHubUrl,
   }
 `);
 
@@ -212,6 +209,7 @@ export const queryNavbarData = defineQuery(`
 export const querySitemapData = defineQuery(`{
   "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{
     "slug": slug.current,
+    title,
     "lastModified": _updatedAt
   }
 }`);
@@ -229,6 +227,7 @@ export const queryGlobalSeoSettings = defineQuery(`
       },
     },
     "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
+    "favicon": logos.favicon.asset->url,
     siteDescription,
     socialLinks{
       linkedin,
@@ -252,6 +251,19 @@ export const querySettingsData = defineQuery(`
     "contactEmail": contactEmail,
   }
 `);
+
+// One fetch for both the Ask AI dialog (copy) and the chat route (assistant
+// name and extra instructions).
+export const queryChatSettings = defineQuery(`{
+  "siteTitle": *[_type == "settings"][0].siteTitle,
+  "chat": *[_type == "chat" && _id == "chat"][0]{
+    heading,
+    intro,
+    placeholder,
+    suggestedQuestions,
+    instructions
+  }
+}`);
 
 export const queryRedirects = defineQuery(`
   *[_type == "redirect" && status == "active" && defined(source.current) && defined(destination.current)]{
