@@ -2438,6 +2438,13 @@
           "type": "string"
         }
       },
+      "label": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": true
+      },
       "heading": {
         "type": "objectAttribute",
         "value": {

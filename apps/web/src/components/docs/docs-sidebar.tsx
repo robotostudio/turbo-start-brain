@@ -48,9 +48,7 @@ type NavLink = {
  * links. The docs chrome shows flat rows, so column groupings collapse into
  * their links.
  */
-export function flattenNavbarLinks(
-  navbar: NavigationData["navbarData"]
-): NavLink[] {
+function flattenNavbarLinks(navbar: NavigationData["navbarData"]): NavLink[] {
   const links: NavLink[] = [];
   for (const column of navbar?.columns ?? []) {
     if (column.type === "link") {
@@ -212,11 +210,12 @@ type SidebarData = {
 };
 
 /**
- * Shared by the desktop column and the mobile drawer. The /chat link becomes
- * the Ask AI button; the drawer skips search and Ask AI (`showActions`) since
- * the mobile floating bar has them, and `onNavigate` closes it on link clicks.
+ * Shared by the desktop column and the mobile drawer. The drawer skips search
+ * and Ask AI (`showActions`) since the mobile floating bar has them, and
+ * `onNavigate` closes it on link clicks.
  */
 function SidebarPanel({
+  askAiLabel,
   navbar,
   settings,
   action,
@@ -226,15 +225,14 @@ function SidebarPanel({
 }: Readonly<
   SidebarData & {
     action: React.ReactNode;
+    askAiLabel?: string | null;
     treeSlot: React.ReactNode;
     showActions?: boolean;
     onNavigate?: () => void;
   }
 >) {
   const { logos, siteTitle } = settings ?? {};
-  const allLinks = flattenNavbarLinks(navbar);
-  const chatLink = allLinks.find((link) => link.href === "/chat");
-  const links = allLinks.filter((link) => link !== chatLink);
+  const links = flattenNavbarLinks(navbar);
 
   return (
     <>
@@ -251,8 +249,8 @@ function SidebarPanel({
       {showActions ? (
         <div className="grid gap-2 px-3 pb-3">
           <SearchButton className="w-full" />
-          {chatLink?.name ? (
-            <AskAiButton className="w-full" label={chatLink.name} />
+          {askAiLabel ? (
+            <AskAiButton className="w-full" label={askAiLabel} />
           ) : null}
         </div>
       ) : null}
@@ -293,14 +291,18 @@ function SidebarPanel({
 }
 
 export function DocsSidebarFrame({
+  askAiLabel,
   navbar,
   settings,
   tree,
-}: Readonly<SidebarData & { tree: DocsTreeNode[] }>) {
+}: Readonly<
+  SidebarData & { askAiLabel: string | null; tree: DocsTreeNode[] }
+>) {
   return (
     <div className="sticky top-0 hidden h-dvh flex-col border-sidebar-border border-r bg-sidebar lg:flex lg:in-data-[sidebar=collapsed]:hidden">
       <SidebarPanel
         action={<CollapseSidebarButton />}
+        askAiLabel={askAiLabel}
         showActions
         navbar={navbar}
         settings={settings}

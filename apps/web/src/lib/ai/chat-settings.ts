@@ -1,3 +1,4 @@
+import { env } from "@workspace/env/server";
 import { sanityFetch } from "@workspace/sanity/live";
 import { queryChatSettings } from "@workspace/sanity/query";
 import { cacheLife } from "next/cache";
@@ -13,4 +14,14 @@ export async function getChatSettings() {
     stega: false,
   });
   return data;
+}
+
+/** Without the Gateway key the model call fails; without the endpoint and
+ * token it would answer from its own knowledge. */
+export function isChatConfigured() {
+  return Boolean(
+    env.AI_GATEWAY_API_KEY &&
+      env.SANITY_CONTEXT_MCP_URL &&
+      env.SANITY_ORGANIZATION_TOKEN
+  );
 }

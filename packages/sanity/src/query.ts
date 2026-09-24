@@ -257,6 +257,7 @@ export const querySettingsData = defineQuery(`
 export const queryChatSettings = defineQuery(`{
   "siteTitle": *[_type == "settings"][0].siteTitle,
   "chat": *[_type == "chat" && _id == "chat"][0]{
+    label,
     heading,
     intro,
     placeholder,

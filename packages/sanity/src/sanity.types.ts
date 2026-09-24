@@ -344,6 +344,7 @@ export type Chat = {
   _createdAt: string;
   _updatedAt: string;
   _rev: string;
+  label?: string;
   heading?: string;
   intro?: string;
   placeholder?: string;
@@ -1974,10 +1975,11 @@ export type QuerySettingsDataResult = {
 
 // Source: ../../packages/sanity/src/query.ts
 // Variable: queryChatSettings
-// Query: {  "siteTitle": *[_type == "settings"][0].siteTitle,  "chat": *[_type == "chat" && _id == "chat"][0]{    heading,    intro,    placeholder,    suggestedQuestions,    instructions  }}
+// Query: {  "siteTitle": *[_type == "settings"][0].siteTitle,  "chat": *[_type == "chat" && _id == "chat"][0]{    label,    heading,    intro,    placeholder,    suggestedQuestions,    instructions  }}
 export type QueryChatSettingsResult = {
   siteTitle: string | null;
   chat: {
+    label: string | null;
     heading: string | null;
     intro: string | null;
     placeholder: string | null;
@@ -2009,7 +2011,7 @@ declare module "@sanity/client" {
     '{\n  "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{\n    "slug": slug.current,\n    title,\n    "lastModified": _updatedAt\n  }\n}': QuerySitemapDataResult;
     '\n  *[_type == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    logos {\n      logo {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n      logoDark {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n    },\n    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",\n    "favicon": logos.favicon.asset->url,\n    siteDescription,\n    socialLinks{\n      linkedin,\n      facebook,\n      twitter,\n      instagram,\n      youtube,\n      reddit\n    }\n  }\n': QueryGlobalSeoSettingsResult;
     '\n  *[_type == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    siteDescription,\n    "logo": logos.logo.asset->url + "?w=80&h=40&dpr=3&fit=max",\n    "socialLinks": socialLinks,\n    "contactEmail": contactEmail,\n  }\n': QuerySettingsDataResult;
-    '{\n  "siteTitle": *[_type == "settings"][0].siteTitle,\n  "chat": *[_type == "chat" && _id == "chat"][0]{\n    heading,\n    intro,\n    placeholder,\n    suggestedQuestions,\n    instructions\n  }\n}': QueryChatSettingsResult;
+    '{\n  "siteTitle": *[_type == "settings"][0].siteTitle,\n  "chat": *[_type == "chat" && _id == "chat"][0]{\n    label,\n    heading,\n    intro,\n    placeholder,\n    suggestedQuestions,\n    instructions\n  }\n}': QueryChatSettingsResult;
     '\n  *[_type == "redirect" && status == "active" && defined(source.current) && defined(destination.current)]{\n    "source":source.current, \n    "destination":destination.current, \n    "permanent" : permanent == "true"\n  }\n': QueryRedirectsResult;
   }
 }

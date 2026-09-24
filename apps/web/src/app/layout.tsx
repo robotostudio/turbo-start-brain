@@ -26,7 +26,7 @@ import { CombinedJsonLd } from "@/components/json-ld";
 import { PreviewBar } from "@/components/preview-bar";
 import { Providers } from "@/components/providers";
 import { ScrollToTop } from "@/components/scroll-to-top";
-import { getChatSettings } from "@/lib/ai/chat-settings";
+import { getChatSettings, isChatConfigured } from "@/lib/ai/chat-settings";
 import { getDocsNavigation } from "@/lib/docs-tree";
 import { getNavigationData } from "@/lib/navigation";
 
@@ -193,13 +193,22 @@ async function CachedDocsShell({
     perspective,
     stega,
   });
+  const askAiLabel = isChatConfigured()
+    ? chat?.label?.trim() || "Ask AI"
+    : null;
 
   return (
     <div className="grid min-h-dvh grid-cols-1 bg-background lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-1">
-      <DocsSidebarFrame navbar={navbar} settings={settings} tree={tree} />
+      <DocsSidebarFrame
+        askAiLabel={askAiLabel}
+        navbar={navbar}
+        settings={settings}
+        tree={tree}
+      />
       <ExpandSidebarButton />
       <div className="min-w-0">
         <DocsHeader
+          askAiLabel={askAiLabel}
           chat={chat}
           navbar={navbar}
           settings={settings}

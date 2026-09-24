@@ -9,6 +9,14 @@ export const chat = defineType({
   icon: MessageCircle,
   fields: [
     defineField({
+      name: "label",
+      type: "string",
+      title: "Button Label",
+      description:
+        "Text on the button that opens the assistant. The button only appears once the AI environment variables are set",
+      initialValue: "Ask AI",
+    }),
+    defineField({
       name: "heading",
       type: "string",
       title: "Welcome Heading",

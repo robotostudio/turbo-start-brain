@@ -4,30 +4,26 @@ import type { ComponentProps } from "react";
 
 import { AskAiDialog } from "@/components/ask-ai-dialog";
 import { DocsSearch } from "@/components/docs/docs-search";
-import {
-  DocsMobileSidebar,
-  flattenNavbarLinks,
-} from "@/components/docs/docs-sidebar";
+import { DocsMobileSidebar } from "@/components/docs/docs-sidebar";
 import { Logo } from "@/components/logo";
 import { DOC_CONTENT, DOC_TRACKS } from "@/lib/doc-grid";
 import type { DocsTreeNode } from "@/lib/docs-tree";
 import type { NavigationData } from "@/types";
 
 export function DocsHeader({
+  askAiLabel,
   chat,
   navbar,
   settings,
   tree,
 }: Readonly<{
+  askAiLabel: string | null;
   chat: ComponentProps<typeof AskAiDialog>["chat"];
   navbar: NavigationData["navbarData"];
   settings: NavigationData["settingsData"];
   tree: DocsTreeNode[];
 }>) {
   const { logos, siteTitle } = settings ?? {};
-  const chatLink = flattenNavbarLinks(navbar).find(
-    (link) => link.href === "/chat"
-  );
 
   return (
     <>
@@ -62,9 +58,7 @@ export function DocsHeader({
         <div className={`${DOC_CONTENT} flex justify-center`}>
           <div className="pointer-events-auto flex w-full items-center gap-2 border border-foreground/20 bg-background/85 p-1.5 backdrop-blur-lg sm:w-auto">
             <DocsSearch />
-            {chatLink?.name ? (
-              <AskAiDialog chat={chat} label={chatLink.name} />
-            ) : null}
+            {askAiLabel ? <AskAiDialog chat={chat} label={askAiLabel} /> : null}
           </div>
         </div>
       </div>
