@@ -3,7 +3,6 @@ import {
   DRAFTS_WITHOUT_SESSION,
   type DynamicFetchOptions,
   getDynamicFetchOptions,
-  resolvePageFetchOptions,
   sanityFetch,
   sanityFetchMetadata,
   sanityFetchStaticParams,
@@ -109,28 +108,22 @@ async function redirectIfMoved(slug: string[]): Promise<void> {
   redirect(target.destination);
 }
 
+const PUBLISHED_OPTIONS: DynamicFetchOptions = {
+  perspective: "published",
+  stega: false,
+};
+
 export default async function DocPage({
   params,
 }: Readonly<{ params: Promise<SlugParams> }>) {
   const { isEnabled } = await draftMode();
-  if (isEnabled || DRAFTS_WITHOUT_SESSION) {
-    const [{ slug }, options] = await Promise.all([
-      params,
-      resolvePageFetchOptions(),
-    ]);
-    const { data, tree } = await getDocPage(slug, options);
-    if (!data) {
-      await redirectIfMoved(slug);
-      notFound();
-    }
-    return <DocContent data={data} slug={slug} tree={tree} />;
-  }
-
-  const { slug } = await params;
-  const { data, tree } = await getDocPage(slug, {
-    perspective: "published",
-    stega: false,
-  });
+  const [{ slug }, options] = await Promise.all([
+    params,
+    isEnabled || DRAFTS_WITHOUT_SESSION
+      ? getDynamicFetchOptions()
+      : PUBLISHED_OPTIONS,
+  ]);
+  const { data, tree } = await getDocPage(slug, options);
   if (!data) {
     await redirectIfMoved(slug);
     notFound();

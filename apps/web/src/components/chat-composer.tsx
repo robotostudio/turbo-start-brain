@@ -59,6 +59,8 @@ export function ChatComposer({
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Escape" && isBusy) {
+              // Stop the answer only; without this the dialog closes too.
+              event.stopPropagation();
               onStop();
             } else if (event.key === "Enter" && !event.shiftKey) {
               event.preventDefault();

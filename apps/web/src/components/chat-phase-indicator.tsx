@@ -20,8 +20,9 @@ export function ChatPhaseIndicator({ phase }: Readonly<{ phase: ChatPhase }>) {
   return (
     <div
       aria-live="polite"
-      className="flex items-center gap-2.5 text-base text-muted-foreground transition sm:text-sm-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
+      className="flex items-center gap-2.5 text-base text-muted-foreground transition-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0 sm:text-sm"
     >
+      <ThinkingOrb aria-hidden size={20} state={ORB_STATE[phase.key]} />
       {/* Keyed remount so label changes crossfade in via @starting-style; a
           light blur masks the swap (same recipe as the composer icon). */}
       <span
@@ -30,7 +31,6 @@ export function ChatPhaseIndicator({ phase }: Readonly<{ phase: ChatPhase }>) {
       >
         {phase.label}…
       </span>
-      <ThinkingOrb aria-hidden size={20} state={ORB_STATE[phase.key]} />
     </div>
   );
 }

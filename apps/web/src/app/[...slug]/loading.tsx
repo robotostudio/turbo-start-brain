@@ -1,6 +1,6 @@
 import { cn } from "@workspace/tailwind-config/utils";
 
-import { DOC_GRID } from "@/lib/doc-grid";
+import { DOC_CONTENT, DOC_GRID } from "@/lib/doc-grid";
 
 const BODY_LINE_WIDTHS = [
   "w-full",
@@ -25,10 +25,7 @@ export default function DocLoading() {
   return (
     <div className={cn("animate-pulse", DOC_GRID)} role="status">
       <span className="sr-only">Loading page</span>
-      <div
-        aria-hidden="true"
-        className="mx-auto w-full min-w-0 lg:max-w-3xl 3xl:col-start-2"
-      >
+      <div aria-hidden="true" className={DOC_CONTENT}>
         <div className="flex items-center gap-2">
           <Bar className="h-4 w-16" />
           <Bar className="h-4 w-3" />

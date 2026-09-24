@@ -4,7 +4,6 @@ import {
   DRAFTS_WITHOUT_SESSION,
   type DynamicFetchOptions,
   getDynamicFetchOptions,
-  resolvePageFetchOptions,
   sanityFetch,
   sanityFetchMetadata,
 } from "@workspace/sanity/live";
@@ -33,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DocsIndexPage() {
   const { isEnabled } = await draftMode();
   if (isEnabled || DRAFTS_WITHOUT_SESSION) {
-    return <DocsIndexContent options={await resolvePageFetchOptions()} />;
+    return <DocsIndexContent options={await getDynamicFetchOptions()} />;
   }
   return (
     <DocsIndexContent options={{ perspective: "published", stega: false }} />

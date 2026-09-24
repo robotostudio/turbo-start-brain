@@ -378,8 +378,16 @@ function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
   );
 }
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const subscribeReducedMotion = (onChange: () => void) => {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
 /** border-beam measures the element, so its styles differ from the server
- * render; it attaches only after hydration. */
+ * render; it attaches only after hydration, and never under reduced motion
+ * since it loops forever. */
 function SearchBeam({
   children,
   className,
@@ -390,7 +398,12 @@ function SearchBeam({
     () => true,
     () => false
   );
-  if (!hydrated) {
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false
+  );
+  if (!hydrated || reducedMotion) {
     return children;
   }
   return (
