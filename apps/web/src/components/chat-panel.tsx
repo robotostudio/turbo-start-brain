@@ -98,6 +98,8 @@ function subscribeToViewport(onChange: () => void) {
     viewport.removeEventListener("scroll", onScroll);
   };
 }
+const subscribeNever = () => () => {};
+
 function getViewportHeight() {
   const viewport = window.visualViewport;
   if (!viewport || viewport.scale > 1) {
@@ -124,8 +126,10 @@ export function ChatPanel({
   placeholder?: string | null;
   suggestedQuestions: readonly string[];
 }>) {
+  // Kept mounted inside the closed dialog, so an unconditional listener would
+  // scroll the page underneath whenever the keyboard opens.
   const viewportHeight = useSyncExternalStore(
-    subscribeToViewport,
+    fitViewport ? subscribeToViewport : subscribeNever,
     getViewportHeight,
     () => 0
   );
