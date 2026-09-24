@@ -141,7 +141,7 @@ export async function POST(req: Request) {
     // them left an open client behind whenever a sibling rejected.
     [pageIndex, outline, chatSettings] = await Promise.all([
       getDocsPageIndex(),
-      getKnowledgeBaseOutline(endpoint, token),
+      getKnowledgeBaseOutline(),
       getChatSettings(),
     ]);
     knowledgeBase = await connectKnowledgeBase(endpoint, token);

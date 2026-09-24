@@ -1,4 +1,5 @@
 import { createMCPClient } from "@ai-sdk/mcp";
+import { env } from "@workspace/env/server";
 import { type DynamicFetchOptions, sanityFetch } from "@workspace/sanity/live";
 import { queryDocsIndexTitle } from "@workspace/sanity/query";
 import type { ToolSet } from "ai";
@@ -91,14 +92,18 @@ export async function getDocsPageIndex(): Promise<string> {
 
 /**
  * The `initial_context` payload over plain HTTP, so its ~80KB rides in the
- * cached prompt prefix instead of a tool call per conversation.
+ * cached prompt prefix instead of a tool call per conversation. Reads the
+ * token from env, not a parameter: "use cache" arguments become the cache key.
  */
-export async function getKnowledgeBaseOutline(
-  url: string,
-  token: string
-): Promise<string> {
+export async function getKnowledgeBaseOutline(): Promise<string> {
   "use cache";
   cacheLife("hours");
+
+  const url = env.SANITY_CONTEXT_MCP_URL;
+  const token = env.SANITY_ORGANIZATION_TOKEN;
+  if (!(url && token)) {
+    throw new OutlineUnavailableError("Knowledge Base is not configured");
+  }
 
   let response: Response;
   try {
