@@ -76,21 +76,6 @@ const portableTextFragment = /* groq */ `
   }
 `;
 
-const buttonsFragment = /* groq */ `
-  buttons[]{
-    text,
-    variant,
-    _key,
-    _type,
-    "openInNewTab": url.openInNewTab,
-    "href": select(
-      url.type == "internal" => url.internal->slug.current,
-      url.type == "external" => url.external,
-      url.href
-    ),
-  }
-`;
-
 // Page builder block fragments are owned by their respective block packages
 // in @workspace/sanity-blocks, imported above, so the GROQ projection and
 // the component that reads it stay in lockstep.
@@ -162,44 +147,14 @@ export const querySearchDocs = defineQuery(`
     title,
     description,
     "slug": slug.current,
-    "content": pt::text(body)
-  }
-`);
-
-export const queryNavbarData = defineQuery(`
-  *[_type == "navbar" && _id == "navbar"][0]{
-    _id,
-    columns[]{
-      _key,
-      _type == "navbarColumn" => {
-        "type": "column",
-        title,
-        links[]{
-          _key,
-          name,
-          icon,
-          description,
-          "openInNewTab": url.openInNewTab,
-          "href": select(
-            url.type == "internal" => url.internal->slug.current,
-            url.type == "external" => url.external,
-            url.href
-          )
-        }
-      },
-      _type == "navbarLink" => {
-        "type": "link",
-        name,
-        description,
-        "openInNewTab": url.openInNewTab,
-        "href": select(
-          url.type == "internal" => url.internal->slug.current,
-          url.type == "external" => url.external,
-          url.href
-        )
-      }
-    },
-    ${buttonsFragment},
+    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.
+    "content": array::join([
+      coalesce(pt::text(body), ""),
+      coalesce(pt::text(body[_type == "callout"].body[]), ""),
+      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),
+      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),
+      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")
+    ], " ")
   }
 `);
 

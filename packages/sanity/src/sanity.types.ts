@@ -42,7 +42,15 @@ export type RichTextBlock = {
           _type: "span";
           _key: string;
         }>;
-        style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+        style?:
+          | "normal"
+          | "h2"
+          | "h3"
+          | "h4"
+          | "h5"
+          | "h6"
+          | "blockquote"
+          | "inline";
         listItem?: "number" | "bullet";
         markDefs?: Array<{
           customLink?: CustomUrl;
@@ -94,13 +102,6 @@ export type PageBuilder = Array<
     } & RichTextBlock)
 >;
 
-export type Button = {
-  _type: "button";
-  variant?: "default" | "secondary" | "outline" | "link";
-  text?: string;
-  url?: CustomUrl;
-};
-
 export type RichText = Array<
   | {
       children?: Array<{
@@ -109,7 +110,15 @@ export type RichText = Array<
         _type: "span";
         _key: string;
       }>;
-      style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+      style?:
+        | "normal"
+        | "h2"
+        | "h3"
+        | "h4"
+        | "h5"
+        | "h6"
+        | "blockquote"
+        | "inline";
       listItem?: "number" | "bullet";
       markDefs?: Array<{
         customLink?: CustomUrl;
@@ -132,7 +141,21 @@ export type RichText = Array<
     }
   | {
       code: string;
-      language?: "ts" | "tsx" | "js" | "groq" | "bash" | "json" | "css";
+      language?:
+        | "ts"
+        | "tsx"
+        | "js"
+        | "groq"
+        | "bash"
+        | "json"
+        | "css"
+        | "html"
+        | "python"
+        | "yaml"
+        | "sql"
+        | "diff"
+        | "markdown"
+        | "text";
       filename?: string;
       _type: "code";
       _key: string;
@@ -153,7 +176,15 @@ export type RichText = Array<
               _type: "span";
               _key: string;
             }>;
-            style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+            style?:
+              | "normal"
+              | "h2"
+              | "h3"
+              | "h4"
+              | "h5"
+              | "h6"
+              | "blockquote"
+              | "inline";
             listItem?: "number" | "bullet";
             markDefs?: Array<{
               customLink?: CustomUrl;
@@ -176,7 +207,21 @@ export type RichText = Array<
           }
         | {
             code: string;
-            language?: "ts" | "tsx" | "js" | "groq" | "bash" | "json" | "css";
+            language?:
+              | "ts"
+              | "tsx"
+              | "js"
+              | "groq"
+              | "bash"
+              | "json"
+              | "css"
+              | "html"
+              | "python"
+              | "yaml"
+              | "sql"
+              | "diff"
+              | "markdown"
+              | "text";
             filename?: string;
             _type: "code";
             _key: string;
@@ -202,7 +247,15 @@ export type RichText = Array<
                 _type: "span";
                 _key: string;
               }>;
-              style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+              style?:
+                | "normal"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "blockquote"
+                | "inline";
               listItem?: "number" | "bullet";
               markDefs?: Array<{
                 customLink?: CustomUrl;
@@ -225,7 +278,21 @@ export type RichText = Array<
             }
           | {
               code: string;
-              language?: "ts" | "tsx" | "js" | "groq" | "bash" | "json" | "css";
+              language?:
+                | "ts"
+                | "tsx"
+                | "js"
+                | "groq"
+                | "bash"
+                | "json"
+                | "css"
+                | "html"
+                | "python"
+                | "yaml"
+                | "sql"
+                | "diff"
+                | "markdown"
+                | "text";
               filename?: string;
               _type: "code";
               _key: string;
@@ -254,7 +321,15 @@ export type RichText = Array<
                 _type: "span";
                 _key: string;
               }>;
-              style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+              style?:
+                | "normal"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "blockquote"
+                | "inline";
               listItem?: "number" | "bullet";
               markDefs?: Array<{
                 customLink?: CustomUrl;
@@ -277,7 +352,21 @@ export type RichText = Array<
             }
           | {
               code: string;
-              language?: "ts" | "tsx" | "js" | "groq" | "bash" | "json" | "css";
+              language?:
+                | "ts"
+                | "tsx"
+                | "js"
+                | "groq"
+                | "bash"
+                | "json"
+                | "css"
+                | "html"
+                | "python"
+                | "yaml"
+                | "sql"
+                | "diff"
+                | "markdown"
+                | "text";
               filename?: string;
               _type: "code";
               _key: string;
@@ -350,41 +439,6 @@ export type Chat = {
   placeholder?: string;
   suggestedQuestions?: Array<string>;
   instructions?: string;
-};
-
-export type Navbar = {
-  _id: string;
-  _type: "navbar";
-  _createdAt: string;
-  _updatedAt: string;
-  _rev: string;
-  label: string;
-  columns?: Array<
-    | {
-        title?: string;
-        links: Array<{
-          icon?: LucideIcon;
-          name?: string;
-          description?: string;
-          url?: CustomUrl;
-          _type: "navbarColumnLink";
-          _key: string;
-        }>;
-        _type: "navbarColumn";
-        _key: string;
-      }
-    | {
-        name?: string;
-        url?: CustomUrl;
-        _type: "navbarLink";
-        _key: string;
-      }
-  >;
-  buttons?: Array<
-    {
-      _key: string;
-    } & Button
-  >;
 };
 
 export type Settings = {
@@ -492,7 +546,15 @@ export type Faq = {
       _type: "span";
       _key: string;
     }>;
-    style?: "normal" | "h2" | "h3" | "h4" | "h5" | "h6" | "inline";
+    style?:
+      | "normal"
+      | "h2"
+      | "h3"
+      | "h4"
+      | "h5"
+      | "h6"
+      | "blockquote"
+      | "inline";
     listItem?: "number" | "bullet";
     markDefs?: Array<{
       customLink?: CustomUrl;
@@ -512,7 +574,7 @@ export type Doc = {
   _updatedAt: string;
   _rev: string;
   title: string;
-  description?: string;
+  description: string;
   slug?: Slug;
   icon?: LucideIcon;
   order?: number;
@@ -936,7 +998,6 @@ export type AllSanitySchemaTypes =
   | FaqReference
   | FaqAccordion
   | PageBuilder
-  | Button
   | RichText
   | DocReference
   | DocsIndexReference
@@ -944,7 +1005,6 @@ export type AllSanitySchemaTypes =
   | Redirect
   | Slug
   | Chat
-  | Navbar
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
@@ -1007,7 +1067,15 @@ export type QueryDocsIndexResult = {
           _type: "span";
           _key: string;
         }>;
-        style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+        style?:
+          | "blockquote"
+          | "h2"
+          | "h3"
+          | "h4"
+          | "h5"
+          | "h6"
+          | "inline"
+          | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<
           | {
@@ -1037,7 +1105,15 @@ export type QueryDocsIndexResult = {
                 _type: "span";
                 _key: string;
               }>;
-              style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+              style?:
+                | "blockquote"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "inline"
+                | "normal";
               listItem?: "bullet" | "number";
               markDefs: Array<
                 | {
@@ -1059,7 +1135,21 @@ export type QueryDocsIndexResult = {
             }
           | {
               code: string;
-              language?: "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+              language?:
+                | "bash"
+                | "css"
+                | "diff"
+                | "groq"
+                | "html"
+                | "js"
+                | "json"
+                | "markdown"
+                | "python"
+                | "sql"
+                | "text"
+                | "ts"
+                | "tsx"
+                | "yaml";
               filename?: string;
               _type: "code";
               _key: string;
@@ -1098,7 +1188,21 @@ export type QueryDocsIndexResult = {
       }
     | {
         code: string;
-        language?: "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+        language?:
+          | "bash"
+          | "css"
+          | "diff"
+          | "groq"
+          | "html"
+          | "js"
+          | "json"
+          | "markdown"
+          | "python"
+          | "sql"
+          | "text"
+          | "ts"
+          | "tsx"
+          | "yaml";
         filename?: string;
         _type: "code";
         _key: string;
@@ -1142,7 +1246,15 @@ export type QueryDocsIndexResult = {
                   _type: "span";
                   _key: string;
                 }>;
-                style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+                style?:
+                  | "blockquote"
+                  | "h2"
+                  | "h3"
+                  | "h4"
+                  | "h5"
+                  | "h6"
+                  | "inline"
+                  | "normal";
                 listItem?: "bullet" | "number";
                 markDefs: Array<
                   | {
@@ -1167,11 +1279,18 @@ export type QueryDocsIndexResult = {
                 language?:
                   | "bash"
                   | "css"
+                  | "diff"
                   | "groq"
+                  | "html"
                   | "js"
                   | "json"
+                  | "markdown"
+                  | "python"
+                  | "sql"
+                  | "text"
                   | "ts"
-                  | "tsx";
+                  | "tsx"
+                  | "yaml";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1222,7 +1341,15 @@ export type QueryDocsIndexResult = {
                   _type: "span";
                   _key: string;
                 }>;
-                style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+                style?:
+                  | "blockquote"
+                  | "h2"
+                  | "h3"
+                  | "h4"
+                  | "h5"
+                  | "h6"
+                  | "inline"
+                  | "normal";
                 listItem?: "bullet" | "number";
                 markDefs: Array<
                   | {
@@ -1247,11 +1374,18 @@ export type QueryDocsIndexResult = {
                 language?:
                   | "bash"
                   | "css"
+                  | "diff"
                   | "groq"
+                  | "html"
                   | "js"
                   | "json"
+                  | "markdown"
+                  | "python"
+                  | "sql"
+                  | "text"
                   | "ts"
-                  | "tsx";
+                  | "tsx"
+                  | "yaml";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1295,7 +1429,7 @@ export type QueryDocsIndexResult = {
   featuredLinks: Array<{
     _id: string;
     title: string;
-    description: string | null;
+    description: string;
     icon: LucideIcon | null;
     slug: string | null;
   }> | null;
@@ -1317,7 +1451,15 @@ export type QueryDocsIndexResult = {
               _type: "span";
               _key: string;
             }>;
-            style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+            style?:
+              | "blockquote"
+              | "h2"
+              | "h3"
+              | "h4"
+              | "h5"
+              | "h6"
+              | "inline"
+              | "normal";
             listItem?: "bullet" | "number";
             markDefs: Array<
               | {
@@ -1352,7 +1494,15 @@ export type QueryDocsIndexResult = {
                 _type: "span";
                 _key: string;
               }>;
-              style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+              style?:
+                | "blockquote"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "inline"
+                | "normal";
               listItem?: "bullet" | "number";
               markDefs: Array<
                 | {
@@ -1413,7 +1563,7 @@ export type QueryDocBySlugResult = {
   _updatedAt: string;
   _rev: string;
   title: string;
-  description?: string;
+  description: string;
   slug: string | null;
   icon?: LucideIcon;
   order?: number;
@@ -1426,7 +1576,15 @@ export type QueryDocBySlugResult = {
           _type: "span";
           _key: string;
         }>;
-        style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+        style?:
+          | "blockquote"
+          | "h2"
+          | "h3"
+          | "h4"
+          | "h5"
+          | "h6"
+          | "inline"
+          | "normal";
         listItem?: "bullet" | "number";
         markDefs: Array<
           | {
@@ -1456,7 +1614,15 @@ export type QueryDocBySlugResult = {
                 _type: "span";
                 _key: string;
               }>;
-              style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+              style?:
+                | "blockquote"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "inline"
+                | "normal";
               listItem?: "bullet" | "number";
               markDefs: Array<
                 | {
@@ -1478,7 +1644,21 @@ export type QueryDocBySlugResult = {
             }
           | {
               code: string;
-              language?: "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+              language?:
+                | "bash"
+                | "css"
+                | "diff"
+                | "groq"
+                | "html"
+                | "js"
+                | "json"
+                | "markdown"
+                | "python"
+                | "sql"
+                | "text"
+                | "ts"
+                | "tsx"
+                | "yaml";
               filename?: string;
               _type: "code";
               _key: string;
@@ -1517,7 +1697,21 @@ export type QueryDocBySlugResult = {
       }
     | {
         code: string;
-        language?: "bash" | "css" | "groq" | "js" | "json" | "ts" | "tsx";
+        language?:
+          | "bash"
+          | "css"
+          | "diff"
+          | "groq"
+          | "html"
+          | "js"
+          | "json"
+          | "markdown"
+          | "python"
+          | "sql"
+          | "text"
+          | "ts"
+          | "tsx"
+          | "yaml";
         filename?: string;
         _type: "code";
         _key: string;
@@ -1561,7 +1755,15 @@ export type QueryDocBySlugResult = {
                   _type: "span";
                   _key: string;
                 }>;
-                style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+                style?:
+                  | "blockquote"
+                  | "h2"
+                  | "h3"
+                  | "h4"
+                  | "h5"
+                  | "h6"
+                  | "inline"
+                  | "normal";
                 listItem?: "bullet" | "number";
                 markDefs: Array<
                   | {
@@ -1586,11 +1788,18 @@ export type QueryDocBySlugResult = {
                 language?:
                   | "bash"
                   | "css"
+                  | "diff"
                   | "groq"
+                  | "html"
                   | "js"
                   | "json"
+                  | "markdown"
+                  | "python"
+                  | "sql"
+                  | "text"
                   | "ts"
-                  | "tsx";
+                  | "tsx"
+                  | "yaml";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1641,7 +1850,15 @@ export type QueryDocBySlugResult = {
                   _type: "span";
                   _key: string;
                 }>;
-                style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+                style?:
+                  | "blockquote"
+                  | "h2"
+                  | "h3"
+                  | "h4"
+                  | "h5"
+                  | "h6"
+                  | "inline"
+                  | "normal";
                 listItem?: "bullet" | "number";
                 markDefs: Array<
                   | {
@@ -1666,11 +1883,18 @@ export type QueryDocBySlugResult = {
                 language?:
                   | "bash"
                   | "css"
+                  | "diff"
                   | "groq"
+                  | "html"
                   | "js"
                   | "json"
+                  | "markdown"
+                  | "python"
+                  | "sql"
+                  | "text"
                   | "ts"
-                  | "tsx";
+                  | "tsx"
+                  | "yaml";
                 filename?: string;
                 _type: "code";
                 _key: string;
@@ -1729,7 +1953,15 @@ export type QueryDocBySlugResult = {
               _type: "span";
               _key: string;
             }>;
-            style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+            style?:
+              | "blockquote"
+              | "h2"
+              | "h3"
+              | "h4"
+              | "h5"
+              | "h6"
+              | "inline"
+              | "normal";
             listItem?: "bullet" | "number";
             markDefs: Array<
               | {
@@ -1764,7 +1996,15 @@ export type QueryDocBySlugResult = {
                 _type: "span";
                 _key: string;
               }>;
-              style?: "h2" | "h3" | "h4" | "h5" | "h6" | "inline" | "normal";
+              style?:
+                | "blockquote"
+                | "h2"
+                | "h3"
+                | "h4"
+                | "h5"
+                | "h6"
+                | "inline"
+                | "normal";
               listItem?: "bullet" | "number";
               markDefs: Array<
                 | {
@@ -1834,7 +2074,7 @@ export type QueryDocPathsResult = Array<string>;
 export type QueryDocsTreeResult = Array<{
   _id: string;
   title: string;
-  description: string | null;
+  description: string;
   slug: string;
   order: number | null;
   icon: LucideIcon | null;
@@ -1843,52 +2083,14 @@ export type QueryDocsTreeResult = Array<{
 
 // Source: ../../packages/sanity/src/query.ts
 // Variable: querySearchDocs
-// Query: *[_type == "doc" && defined(slug.current) && hidden != true]{    _id,    title,    description,    "slug": slug.current,    "content": pt::text(body)  }
+// Query: *[_type == "doc" && defined(slug.current) && hidden != true]{    _id,    title,    description,    "slug": slug.current,    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.    "content": array::join([      coalesce(pt::text(body), ""),      coalesce(pt::text(body[_type == "callout"].body[]), ""),      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")    ], " ")  }
 export type QuerySearchDocsResult = Array<{
   _id: string;
   title: string;
-  description: string | null;
+  description: string;
   slug: string | null;
   content: string;
 }>;
-
-// Source: ../../packages/sanity/src/query.ts
-// Variable: queryNavbarData
-// Query: *[_type == "navbar" && _id == "navbar"][0]{    _id,    columns[]{      _key,      _type == "navbarColumn" => {        "type": "column",        title,        links[]{          _key,          name,          icon,          description,          "openInNewTab": url.openInNewTab,          "href": select(            url.type == "internal" => url.internal->slug.current,            url.type == "external" => url.external,            url.href          )        }      },      _type == "navbarLink" => {        "type": "link",        name,        description,        "openInNewTab": url.openInNewTab,        "href": select(          url.type == "internal" => url.internal->slug.current,          url.type == "external" => url.external,          url.href        )      }    },      buttons[]{    text,    variant,    _key,    _type,    "openInNewTab": url.openInNewTab,    "href": select(      url.type == "internal" => url.internal->slug.current,      url.type == "external" => url.external,      url.href    ),  },  }
-export type QueryNavbarDataResult = {
-  _id: "navbar";
-  columns: Array<
-    | {
-        _key: string;
-        type: "link";
-        name: string | null;
-        description: null;
-        openInNewTab: boolean | null;
-        href: string | null;
-      }
-    | {
-        _key: string;
-        type: "column";
-        title: string | null;
-        links: Array<{
-          _key: string;
-          name: string | null;
-          icon: LucideIcon | null;
-          description: string | null;
-          openInNewTab: boolean | null;
-          href: string | null;
-        }>;
-      }
-  > | null;
-  buttons: Array<{
-    text: string | null;
-    variant: "default" | "link" | "outline" | "secondary" | null;
-    _key: string;
-    _type: "button";
-    openInNewTab: boolean | null;
-    href: string | null;
-  }> | null;
-} | null;
 
 // Source: ../../packages/sanity/src/query.ts
 // Variable: querySitemapData
@@ -2006,8 +2208,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "docsIndex" && _id == "docsIndex"][0]{title}\n': QueryDocsIndexTitleResult;
     '\n  *[_type == "doc" && defined(slug.current)].slug.current\n': QueryDocPathsResult;
     '\n  *[_type == "doc" && defined(slug.current)]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    order,\n    icon,\n    hidden\n  }\n': QueryDocsTreeResult;
-    '\n  *[_type == "doc" && defined(slug.current) && hidden != true]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    "content": pt::text(body)\n  }\n': QuerySearchDocsResult;
-    '\n  *[_type == "navbar" && _id == "navbar"][0]{\n    _id,\n    columns[]{\n      _key,\n      _type == "navbarColumn" => {\n        "type": "column",\n        title,\n        links[]{\n          _key,\n          name,\n          icon,\n          description,\n          "openInNewTab": url.openInNewTab,\n          "href": select(\n            url.type == "internal" => url.internal->slug.current,\n            url.type == "external" => url.external,\n            url.href\n          )\n        }\n      },\n      _type == "navbarLink" => {\n        "type": "link",\n        name,\n        description,\n        "openInNewTab": url.openInNewTab,\n        "href": select(\n          url.type == "internal" => url.internal->slug.current,\n          url.type == "external" => url.external,\n          url.href\n        )\n      }\n    },\n    \n  buttons[]{\n    text,\n    variant,\n    _key,\n    _type,\n    "openInNewTab": url.openInNewTab,\n    "href": select(\n      url.type == "internal" => url.internal->slug.current,\n      url.type == "external" => url.external,\n      url.href\n    ),\n  }\n,\n  }\n': QueryNavbarDataResult;
+    '\n  *[_type == "doc" && defined(slug.current) && hidden != true]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.\n    "content": array::join([\n      coalesce(pt::text(body), ""),\n      coalesce(pt::text(body[_type == "callout"].body[]), ""),\n      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")\n    ], " ")\n  }\n': QuerySearchDocsResult;
     '{\n  "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{\n    "slug": slug.current,\n    title,\n    "lastModified": _updatedAt\n  }\n}': QuerySitemapDataResult;
     '\n  *[_type == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    logos {\n      logo {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n      logoDark {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n    },\n    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",\n    "favicon": logos.favicon.asset->url,\n    siteDescription,\n    socialLinks{\n      linkedin,\n      facebook,\n      twitter,\n      instagram,\n      youtube,\n      reddit\n    }\n  }\n': QueryGlobalSeoSettingsResult;
     '\n  *[_type == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    siteDescription,\n    "logo": logos.logo.asset->url + "?w=80&h=40&dpr=3&fit=max",\n    "socialLinks": socialLinks,\n    "contactEmail": contactEmail,\n  }\n': QuerySettingsDataResult;
