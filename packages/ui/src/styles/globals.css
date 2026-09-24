@@ -52,7 +52,6 @@
   --ring: oklch(0.705 0.015 286.067);
   /* Brand: sharp corners everywhere, no exceptions (robotostudio.com/design). */
   --radius: 0;
-  /* Motion tokens (transitions.dev). Surfaces close faster than they open. */
   --duration-quick: 150ms;
   --duration-fast: 250ms;
   --duration-medium: 350ms;
@@ -100,13 +99,8 @@
 }
 
 .dark {
-  /* Not pure black. `oklch(0 0 0)` against a near-white foreground is ~20:1,
-     past the point where OLED halation smears text, and it leaves no room
-     below `--card`/`--muted` for elevation. 0.145 is the ground, 0.21 the
-     raised card, 0.274 the muted/border step — three legible rungs. The
-     foreground drops to 0.93 for ~13:1, comfortable rather than glaring. */
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.92 0.004 286.32);
+  --background: oklch(0.182 0.005 285.9);
+  --foreground: oklch(0.95 0.003 286.32);
   --card: oklch(0.21 0.006 285.885);
   --primary: oklch(0.967 0.001 286.375);
   --primary-foreground: var(--background);
@@ -131,7 +125,7 @@
   --border: var(--muted);
   --input: var(--border);
   --ring: oklch(0.442 0.017 285.786);
-  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar: var(--background);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
@@ -427,8 +421,6 @@
   display: block;
 }
 
-/* Sidebar sections grow open instead of popping. Needs ::details-content and
-   interpolate-size; other browsers keep the instant toggle. */
 @supports (interpolate-size: allow-keywords) {
   [data-slot="sidebar-group"] {
     interpolate-size: allow-keywords;
