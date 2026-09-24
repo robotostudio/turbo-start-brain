@@ -14,18 +14,26 @@ import {
 } from "@workspace/ui/components/base-drawer";
 import { Button } from "@workspace/ui/components/button";
 import { Menu, X } from "lucide-react";
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { type SidebarData, SidebarPanel } from "@/components/docs/docs-sidebar";
 import { DrawerTree } from "@/components/docs/docs-sidebar-tree";
 import type { DocsTreeNode } from "@/lib/docs-tree";
 
 const TABLET_QUERY = "(min-width: 48rem)";
-const subscribeTablet = (onChange: () => void) => {
-  const query = window.matchMedia(TABLET_QUERY);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-};
+const DESKTOP_QUERY = "(min-width: 64rem)";
+
+function useMediaQuery(query: string) {
+  return useSyncExternalStore(
+    (onChange) => {
+      const list = window.matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(query).matches,
+    () => false
+  );
+}
 
 // A full-screen sheet from the bottom on phones, a side panel from md.
 const DRAWER_POPUP_CLASS = cn(
@@ -41,11 +49,15 @@ export function DocsMobileSidebar({
 }: Readonly<SidebarData & { tree: DocsTreeNode[] }>) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
-  const isTablet = useSyncExternalStore(
-    subscribeTablet,
-    () => window.matchMedia(TABLET_QUERY).matches,
-    () => false
-  );
+  const isTablet = useMediaQuery(TABLET_QUERY);
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
+
+  // Close on crossing md (the sheet flips from bottom to side) or lg (the
+  // desktop sidebar takes over).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the breakpoints are the trigger; the body only closes.
+  useEffect(() => {
+    setOpen(false);
+  }, [isTablet, isDesktop]);
 
   return (
     <Drawer

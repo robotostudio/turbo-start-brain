@@ -11,11 +11,13 @@ import type { SiteSettings } from "@/types";
 export function DocsHeader({
   askAiLabel,
   chat,
+  featured,
   settings,
   tree,
 }: Readonly<{
   askAiLabel: string | null;
   chat: ComponentProps<typeof AskAiDialog>["chat"];
+  featured: ComponentProps<typeof DocsSearch>["featured"];
   settings: SiteSettings;
   tree: DocsTreeNode[];
 }>) {
@@ -49,7 +51,7 @@ export function DocsHeader({
       >
         <div className={`${DOC_CONTENT} flex justify-center`}>
           <div className="pointer-events-auto flex w-full items-center gap-2 border border-foreground/20 bg-background/85 p-1.5 backdrop-blur-lg sm:w-auto">
-            <DocsSearch />
+            <DocsSearch featured={featured} tree={tree} />
             {askAiLabel ? <AskAiDialog chat={chat} label={askAiLabel} /> : null}
           </div>
         </div>

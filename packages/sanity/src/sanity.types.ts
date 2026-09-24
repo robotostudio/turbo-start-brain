@@ -2082,6 +2082,14 @@ export type QueryDocsTreeResult = Array<{
 }>;
 
 // Source: ../../packages/sanity/src/query.ts
+// Variable: queryFeaturedDocs
+// Query: *[_type == "docsIndex" && _id == "docsIndex"][0].featuredLinks[]->{    title,    "slug": slug.current  }
+export type QueryFeaturedDocsResult = Array<{
+  title: string;
+  slug: string | null;
+}> | null;
+
+// Source: ../../packages/sanity/src/query.ts
 // Variable: querySearchDocs
 // Query: *[_type == "doc" && defined(slug.current) && hidden != true]{    _id,    title,    description,    "slug": slug.current,    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.    "content": array::join([      coalesce(pt::text(body), ""),      coalesce(pt::text(body[_type == "callout"].body[]), ""),      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")    ], " ")  }
 export type QuerySearchDocsResult = Array<{
@@ -2208,6 +2216,7 @@ declare module "@sanity/client" {
     '\n  *[_type == "docsIndex" && _id == "docsIndex"][0]{title}\n': QueryDocsIndexTitleResult;
     '\n  *[_type == "doc" && defined(slug.current)].slug.current\n': QueryDocPathsResult;
     '\n  *[_type == "doc" && defined(slug.current)]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    order,\n    icon,\n    hidden\n  }\n': QueryDocsTreeResult;
+    '\n  *[_type == "docsIndex" && _id == "docsIndex"][0].featuredLinks[]->{\n    title,\n    "slug": slug.current\n  }\n': QueryFeaturedDocsResult;
     '\n  *[_type == "doc" && defined(slug.current) && hidden != true]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.\n    "content": array::join([\n      coalesce(pt::text(body), ""),\n      coalesce(pt::text(body[_type == "callout"].body[]), ""),\n      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")\n    ], " ")\n  }\n': QuerySearchDocsResult;
     '{\n  "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{\n    "slug": slug.current,\n    title,\n    "lastModified": _updatedAt\n  }\n}': QuerySitemapDataResult;
     '\n  *[_type == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    logos {\n      logo {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n      logoDark {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n    },\n    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",\n    "favicon": logos.favicon.asset->url,\n    siteDescription,\n    socialLinks{\n      linkedin,\n      facebook,\n      twitter,\n      instagram,\n      youtube,\n      reddit\n    }\n  }\n': QueryGlobalSeoSettingsResult;

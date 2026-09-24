@@ -28,7 +28,7 @@ import { Providers } from "@/components/providers";
 import { ScrollToTop } from "@/components/scroll-to-top";
 import { getChatConfig, getChatSettings } from "@/lib/ai/chat-settings";
 import { getDocsNavigation } from "@/lib/docs-tree";
-import { getSiteSettings } from "@/lib/site-settings";
+import { getFeaturedDocs, getSiteSettings } from "@/lib/site-settings";
 
 // The fallback stack is what the first frame renders under `font-display:
 // swap`, so it has to be the right family: next/font's default is a
@@ -189,7 +189,7 @@ async function CachedDocsShell({
   stega,
   children,
 }: DynamicFetchOptions & { children: React.ReactNode }) {
-  const { chat, settings, tree } = await getDocsShellData({
+  const { chat, featured, settings, tree } = await getDocsShellData({
     perspective,
     stega,
   });
@@ -207,6 +207,7 @@ async function CachedDocsShell({
         <DocsHeader
           askAiLabel={askAiLabel}
           chat={chat}
+          featured={featured}
           settings={settings}
           tree={tree}
         />
@@ -220,14 +221,16 @@ async function CachedDocsShell({
 
 async function getDocsShellData({ perspective, stega }: DynamicFetchOptions) {
   "use cache";
-  const [settingsData, tree, chatSettings] = await Promise.all([
+  const [settingsData, tree, chatSettings, featured] = await Promise.all([
     getSiteSettings({ perspective, stega }),
     getDocsNavigation({ perspective, stega }),
     getChatSettings().catch(() => null),
+    getFeaturedDocs({ perspective, stega }),
   ]);
 
   return {
     chat: chatSettings?.chat ?? null,
+    featured,
     settings: settingsData,
     tree,
   };

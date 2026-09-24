@@ -11,10 +11,11 @@ import {
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
 import { BorderBeam } from "border-beam";
-import { FileText, Loader2, SearchIcon, X } from "lucide-react";
+import { ChevronRight, FileText, Loader2, SearchIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
+  Fragment,
   useCallback,
   useEffect,
   useId,
@@ -23,6 +24,8 @@ import {
   useSyncExternalStore,
   useTransition,
 } from "react";
+
+import type { DocsTreeNode } from "@/lib/docs-tree";
 
 const SEARCH_DEBOUNCE_MS = 200;
 const MIN_QUERY_LENGTH = 2;
@@ -47,7 +50,34 @@ type SearchResult = {
   description: string | null;
   slug: string | null;
   snippet: string;
+  /** Set on empty-query suggestions; starts a labelled group in the list. */
+  group?: string;
 };
+
+const MAX_SUGGESTIONS = 5;
+const MAX_CHIPS = 6;
+
+function suggestionsFor(tree: DocsTreeNode[], path: string): SearchResult[] {
+  const section = tree.find(
+    (node) => path === node.slug || path.startsWith(`${node.slug}/`)
+  );
+  const source = section ?? tree[0];
+  if (!source) {
+    return [];
+  }
+  const group = section ? `In ${section.title}` : "Start here";
+  const pages = [source, ...source.children].filter(
+    (node) =>
+      node.slug !== path && (node.document || node.children.length === 0)
+  );
+  return pages.slice(0, MAX_SUGGESTIONS).map((node) => ({
+    title: node.title,
+    description: node.description ?? null,
+    slug: node.slug,
+    snippet: node.description ?? "",
+    group,
+  }));
+}
 
 type SearchState = "idle" | "loading" | "done";
 
@@ -82,7 +112,12 @@ function describeResults({
  * pending row until the navigation commits, so choosing a result never leaves
  * the reader staring at the old page with no feedback.
  */
-export function DocsSearch() {
+type FeaturedDoc = { title: string; slug: string };
+
+export function DocsSearch({
+  featured,
+  tree,
+}: Readonly<{ featured: FeaturedDoc[]; tree: DocsTreeNode[] }>) {
   const router = useRouter();
   const listboxId = useId();
   const [open, setOpen] = useState(false);
@@ -92,6 +127,9 @@ export function DocsSearch() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMac, setIsMac] = useState(true);
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
+  // Read on open rather than via usePathname, which would make the header
+  // URL-dependent during prerendering.
+  const [openedOn, setOpenedOn] = useState("");
   const [isNavigating, startNavigation] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -150,6 +188,12 @@ export function DocsSearch() {
     };
   }, [query]);
 
+  useEffect(() => {
+    if (open) {
+      setOpenedOn(window.location.pathname);
+    }
+  }, [open]);
+
   const onOpenChange = useCallback((nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) {
@@ -179,13 +223,20 @@ export function DocsSearch() {
     });
   };
 
+  const trimmedQuery = query.trim();
+  const isSuggesting = trimmedQuery.length < MIN_QUERY_LENGTH;
+  const items = isSuggesting ? suggestionsFor(tree, openedOn) : results;
+  const chips = isSuggesting
+    ? (featured.length > 0 ? featured : tree).slice(0, MAX_CHIPS)
+    : [];
+
   const onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (results.length === 0 && event.key !== "Enter") {
+    if (items.length === 0 && event.key !== "Enter") {
       return;
     }
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((index) => Math.min(index + 1, results.length - 1));
+      setActiveIndex((index) => Math.min(index + 1, items.length - 1));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((index) => Math.max(index - 1, 0));
@@ -194,10 +245,10 @@ export function DocsSearch() {
       setActiveIndex(0);
     } else if (event.key === "End") {
       event.preventDefault();
-      setActiveIndex(results.length - 1);
+      setActiveIndex(items.length - 1);
     } else if (event.key === "Enter") {
       event.preventDefault();
-      navigateTo(results[activeIndex]?.slug ?? null);
+      navigateTo(items[activeIndex]?.slug ?? null);
     }
   };
 
@@ -207,14 +258,12 @@ export function DocsSearch() {
       ?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, listboxId]);
 
-  const trimmedQuery = query.trim();
   const isSearching = state === "loading";
   const showEmpty =
     state === "done" &&
     results.length === 0 &&
     trimmedQuery.length >= MIN_QUERY_LENGTH;
-  const showIdle = state === "idle" && results.length === 0;
-  const hasResults = results.length > 0;
+  const hasResults = items.length > 0;
 
   const announcement = describeResults({
     count: results.length,
@@ -260,7 +309,10 @@ export function DocsSearch() {
                 "h-12 w-full bg-transparent text-base text-foreground outline-none",
                 "placeholder:text-muted-foreground sm:text-sm"
               )}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setActiveIndex(0);
+              }}
               onKeyDown={onInputKeyDown}
               placeholder="Search docs…"
               role="combobox"
@@ -268,13 +320,9 @@ export function DocsSearch() {
               type="text"
               value={query}
             />
-            <kbd className="hidden shrink-0 border bg-muted px-1.5 py-0.5 font-sans text-micro text-muted-foreground sm:block">
-              Esc
-            </kbd>
-            {/* Phones have no Esc key. */}
             <DialogClose
               aria-label="Close search"
-              className="focus-ring -me-2 grid size-11 shrink-0 place-items-center text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+              className="focus-ring -me-2 grid size-11 shrink-0 place-items-center text-muted-foreground transition-colors hover:text-foreground sm:size-9"
             >
               <X aria-hidden="true" className="size-5" />
             </DialogClose>
@@ -283,54 +331,88 @@ export function DocsSearch() {
             aria-label="Search results"
             className={cn(
               "min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 sm:max-h-[50dvh] sm:flex-none",
-              !(hasResults || showEmpty) && "hidden"
+              !(hasResults || showEmpty || chips.length > 0) && "hidden"
             )}
             id={listboxId}
             ref={listRef}
             role="listbox"
             tabIndex={-1}
           >
+            {chips.length > 0 ? (
+              <div className="grid gap-2 border-b px-3 pt-2 pb-4">
+                <p className={GROUP_LABEL_CLASS}>
+                  {featured.length > 0 ? "Featured" : "Sections"}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {chips.map((chip) => (
+                    <button
+                      className="focus-ring bg-muted px-3 py-1.5 text-base text-foreground transition-colors hover:bg-muted/70 sm:text-sm"
+                      key={chip.slug}
+                      onClick={() => navigateTo(chip.slug)}
+                      type="button"
+                    >
+                      {chip.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             {showEmpty ? (
               <p className="px-3 py-8 text-center text-base text-muted-foreground sm:text-sm">
                 No results for “{trimmedQuery}”
               </p>
             ) : null}
-            {results.map((result, index) => (
-              <div
-                aria-selected={index === activeIndex}
-                className={cn(
-                  "grid cursor-pointer gap-1 px-3 py-2.5",
-                  index === activeIndex
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground",
-                  pendingSlug && pendingSlug !== result.slug && "opacity-50"
-                )}
-                id={`${listboxId}-option-${index}`}
-                key={result.slug ?? index}
-                onClick={() => navigateTo(result.slug)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    navigateTo(result.slug);
-                  }
-                }}
-                onMouseMove={() => setActiveIndex(index)}
-                role="option"
-                tabIndex={-1}
-              >
-                <span className="flex items-center gap-2 font-medium text-base text-foreground sm:text-sm">
-                  {pendingSlug === result.slug ? (
-                    <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
-                  ) : (
-                    <FileText className="size-4 shrink-0 text-muted-foreground" />
-                  )}
-                  {result.title}
-                </span>
-                {result.snippet ? (
-                  <span className="line-clamp-2 pl-6 text-muted-foreground text-sm leading-relaxed sm:text-xs">
-                    {result.snippet}
-                  </span>
+            {items.map((result, index) => (
+              <Fragment key={result.slug ?? index}>
+                {result.group && result.group !== items[index - 1]?.group ? (
+                  <p
+                    className={`${GROUP_LABEL_CLASS} px-3 pt-4 pb-2`}
+                    role="presentation"
+                  >
+                    {result.group}
+                  </p>
                 ) : null}
-              </div>
+                <div
+                  aria-selected={index === activeIndex}
+                  className={cn(
+                    "relative grid cursor-pointer gap-1 px-3 py-2.5 pe-9",
+                    index === activeIndex
+                      ? "bg-muted text-foreground"
+                      : "text-muted-foreground",
+                    pendingSlug && pendingSlug !== result.slug && "opacity-50"
+                  )}
+                  id={`${listboxId}-option-${index}`}
+                  onClick={() => navigateTo(result.slug)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      navigateTo(result.slug);
+                    }
+                  }}
+                  onMouseMove={() => setActiveIndex(index)}
+                  role="option"
+                  tabIndex={-1}
+                >
+                  <span className="flex items-center gap-2 font-medium text-base text-foreground sm:text-sm">
+                    {pendingSlug === result.slug ? (
+                      <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                    ) : (
+                      <FileText className="size-4 shrink-0 text-muted-foreground" />
+                    )}
+                    {result.title}
+                  </span>
+                  {result.snippet ? (
+                    <span className="line-clamp-2 pl-6 text-muted-foreground text-sm leading-relaxed sm:text-xs">
+                      {result.snippet}
+                    </span>
+                  ) : null}
+                  {index === activeIndex ? (
+                    <ChevronRight
+                      aria-hidden="true"
+                      className="absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground"
+                    />
+                  ) : null}
+                </div>
+              </Fragment>
             ))}
           </div>
           {isSearching ? (
@@ -343,11 +425,6 @@ export function DocsSearch() {
               ))}
             </div>
           ) : null}
-          {showIdle ? (
-            <p className="px-4 py-8 text-center text-base text-muted-foreground sm:text-sm">
-              Type to search the docs…
-            </p>
-          ) : null}
           <p aria-live="polite" className="sr-only" role="status">
             {pendingSlug ? "Opening result…" : announcement}
           </p>
@@ -357,8 +434,11 @@ export function DocsSearch() {
   );
 }
 
+const GROUP_LABEL_CLASS =
+  "font-medium text-micro text-muted-foreground uppercase tracking-wider";
+
 const SEARCH_TRIGGER_CLASS =
-  "focus-ring inline-flex h-10 items-center gap-2.5 border border-border/60 bg-muted/60 pr-1.5 pl-3 text-muted-foreground text-sm transition-colors hover:border-border hover:bg-muted hover:text-foreground";
+  "focus-ring inline-flex h-11 items-center gap-2.5 border border-border/60 bg-muted/60 pr-1.5 pl-3 text-muted-foreground text-sm transition-colors hover:border-border hover:bg-muted hover:text-foreground sm:h-10";
 
 function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
   return (

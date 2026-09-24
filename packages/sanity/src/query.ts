@@ -141,6 +141,13 @@ export const queryDocsTree = defineQuery(`
   }
 `);
 
+export const queryFeaturedDocs = defineQuery(`
+  *[_type == "docsIndex" && _id == "docsIndex"][0].featuredLinks[]->{
+    title,
+    "slug": slug.current
+  }
+`);
+
 export const querySearchDocs = defineQuery(`
   *[_type == "doc" && defined(slug.current) && hidden != true]{
     _id,
