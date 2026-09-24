@@ -48,7 +48,7 @@ function DialogPopup({
     <DialogPrimitive.Popup
       className={cn(
         "fixed top-[15dvh] left-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2",
-        "flex flex-col overflow-hidden rounded-xl border bg-background text-foreground shadow-lg outline-none",
+        "flex flex-col overflow-hidden border bg-background text-foreground shadow-lg outline-none",
         "transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
         "data-ending-style:scale-95 data-ending-style:opacity-0",
         "data-starting-style:scale-95 data-starting-style:opacity-0",
