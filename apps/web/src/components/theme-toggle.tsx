@@ -48,7 +48,7 @@ export function ThemeToggle({ className }: { className?: string }) {
         className={cn(
           "absolute inset-y-0 left-0 w-1/3 bg-foreground/10",
           picked &&
-            "transition-[translate] duration-200 ease-out motion-reduce:transition-none"
+            "transition-[translate] duration-(--duration-fast) ease-(--ease-smooth-out) motion-reduce:transition-none"
         )}
         style={{ translate: `${activeIndex * 100}%` }}
       />

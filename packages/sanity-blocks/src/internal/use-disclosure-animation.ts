@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 
-export const DISCLOSURE_ANIMATION_MS = 200;
+export const DISCLOSURE_ANIMATION_MS = 250;
 
 const DISCLOSURE_TIMING: KeyframeAnimationOptions = {
   duration: DISCLOSURE_ANIMATION_MS,
-  easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+  easing: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
 /**

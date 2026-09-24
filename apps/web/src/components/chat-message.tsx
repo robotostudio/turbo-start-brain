@@ -54,7 +54,7 @@ const NO_LINK_SAFETY = { enabled: false };
 // transition, transform/opacity only). Motion is dropped under
 // prefers-reduced-motion; the fade stays.
 const MESSAGE_ENTER =
-  "transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
+  "transition-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
 
 export function ChatMessage({
   message,

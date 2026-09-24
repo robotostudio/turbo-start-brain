@@ -75,7 +75,7 @@ function FaqDisclosure({
         </h3>
         <Plus
           className={cn(
-            "pointer-events-none size-5 shrink-0 text-foreground transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+            "pointer-events-none size-5 shrink-0 text-foreground transition-transform duration-(--duration-fast) ease-(--ease-smooth-out) motion-reduce:transition-none",
             isOpen && "rotate-45"
           )}
         />

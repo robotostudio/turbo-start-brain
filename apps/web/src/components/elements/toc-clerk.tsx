@@ -157,7 +157,7 @@ function ThumbTrack({
   return (
     <svg
       aria-hidden="true"
-      className="absolute start-0 top-0 transition-[clip-path] duration-200 ease-out"
+      className="absolute start-0 top-0 transition-[clip-path] duration-200 ease-(--ease-smooth-out)"
       style={{
         ...style,
         clipPath:

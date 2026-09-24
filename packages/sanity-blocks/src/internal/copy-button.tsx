@@ -7,7 +7,7 @@ import { CopyIcon } from "./icons";
 import { COPY_STATUS_CLASS, useCopyToClipboard } from "./use-copy";
 
 const SHOWN = "scale-100 opacity-100 blur-none";
-const HIDDEN = "scale-[0.25] opacity-0 blur-[4px]";
+const HIDDEN = "scale-[0.25] opacity-0 blur-[2px]";
 
 export function CopyButton({
   code,
@@ -30,7 +30,7 @@ export function CopyButton({
       onClick={copy}
       type="button"
     >
-      <span className="grid size-4 place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-200 *:ease-[cubic-bezier(0.2,0,0,1)]">
+      <span className="grid size-4 place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-(--duration-fast) *:ease-in-out">
         <Check
           aria-hidden="true"
           className={cn("size-4", copied ? SHOWN : HIDDEN)}
