@@ -39,7 +39,7 @@ const FALLBACK = {
 };
 
 const ASK_AI_TRIGGER_CLASS =
-  "focus-ring inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap border border-border/60 bg-muted px-5 font-medium text-foreground text-sm transition-[background-color,border-color,scale] hover:border-border hover:bg-muted/70 active:scale-[0.96] max-sm:h-11";
+  "focus-ring inline-flex h-10 shrink-0 items-center justify-center whitespace-nowrap border border-border/60 bg-muted px-5 font-medium text-base text-foreground transition-[background-color,border-color,scale] hover:border-border hover:bg-muted/70 active:scale-[0.96] max-sm:h-11 sm:text-sm";
 
 export function AskAiDialog({
   label,
@@ -70,15 +70,17 @@ export function AskAiDialog({
       <DialogPortal keepMounted>
         <DialogBackdrop />
         <DialogPopup
-          className="top-[8dvh] h-[min(44rem,84dvh)] max-w-2xl"
+          className="sm:top-[8dvh] sm:h-[min(44rem,84dvh)] sm:max-w-2xl"
           initialFocus={() => popupRef.current?.querySelector("textarea")}
           ref={popupRef}
         >
-          <div className="flex h-12 shrink-0 items-center border-b ps-4 pe-1">
-            <DialogTitle className="me-auto text-sm">{label}</DialogTitle>
+          <div className="flex h-14 shrink-0 items-center border-b ps-4 pe-1 sm:h-12">
+            <DialogTitle className="me-auto text-base sm:text-sm">
+              {label}
+            </DialogTitle>
             {started ? (
               <button
-                className="focus-ring inline-flex h-10 items-center gap-1.5 px-3 text-muted-foreground text-sm transition-colors hover:text-foreground"
+                className="focus-ring inline-flex h-11 items-center gap-1.5 px-3 text-base text-muted-foreground transition-colors sm:h-10 sm:text-sm hover:text-foreground"
                 onClick={() => {
                   setSession((current) => current + 1);
                   setStarted(false);

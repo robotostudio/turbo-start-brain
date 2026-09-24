@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  type ButtonProps,
-  SanityButtons,
-} from "@workspace/sanity-blocks/internal/sanity-buttons";
+import { SanityButtons } from "@workspace/sanity-blocks/internal/sanity-buttons";
 import { SanityIcon } from "@workspace/sanity-blocks/internal/sanity-icon";
 import { cn } from "@workspace/tailwind-config/utils";
 import {
@@ -26,22 +23,20 @@ import {
   SidebarGroupTrigger,
   SidebarItem,
 } from "@workspace/ui/components/sidebar";
-import { Spinner } from "@workspace/ui/components/spinner";
 import { Menu, X } from "lucide-react";
-import Link, { useLinkStatus } from "next/link";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useSyncExternalStore } from "react";
 
 import { AskAiButton } from "@/components/ask-ai-dialog";
 import { SearchButton } from "@/components/docs/docs-search";
 import { CollapseSidebarButton } from "@/components/docs/sidebar-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { openAskAi } from "@/lib/ai/ask-ai-events";
 import type { DocsTreeNode } from "@/lib/docs-tree";
 import type { NavigationData } from "@/types";
 
-export type MobileNavLink = {
+type NavLink = {
   _key: string;
   name?: string | null;
   href?: string | null;
@@ -55,8 +50,8 @@ export type MobileNavLink = {
  */
 export function flattenNavbarLinks(
   navbar: NavigationData["navbarData"]
-): MobileNavLink[] {
-  const links: MobileNavLink[] = [];
+): NavLink[] {
+  const links: NavLink[] = [];
   for (const column of navbar?.columns ?? []) {
     if (column.type === "link") {
       links.push({
@@ -70,36 +65,6 @@ export function flattenNavbarLinks(
     }
   }
   return links.filter((link) => link.name && link.href);
-}
-
-/**
- * Rendered inside `<Link>`, which is what `useLinkStatus` needs: it reports the
- * pending state of its nearest ancestor link. A clicked row dims its label and
- * shows a spinner after it the moment the navigation starts, so a ~300ms
- * route change is never a dead click.
- */
-function TreeLinkContent({
-  icon,
-  label,
-}: Readonly<{ icon: React.ReactNode; label?: string | null }>) {
-  const { pending } = useLinkStatus();
-
-  return (
-    <>
-      {icon}
-      <span
-        className={cn(
-          "truncate transition-opacity",
-          pending && "opacity-60 duration-150"
-        )}
-      >
-        {label}
-      </span>
-      {pending ? (
-        <Spinner className="ml-auto size-3.5 shrink-0 text-muted-foreground" />
-      ) : null}
-    </>
-  );
 }
 
 /**
@@ -137,7 +102,8 @@ function TreeLink({
       onTouchStart={warmUp}
       prefetch={warm ? undefined : false}
     >
-      <TreeLinkContent icon={icon} label={label} />
+      {icon}
+      <span className="truncate">{label}</span>
     </Link>
   );
 }
@@ -240,23 +206,38 @@ function SidebarNavigation({
 
 const DESKTOP_SIDEBAR_CLASS = "min-h-0 flex-1";
 
-/** The /chat link renders as the Ask AI button, not a site link. */
-export function DocsSidebarFrame({
-  navbar,
-  settings,
-  tree,
-}: Readonly<{
+type SidebarData = {
   navbar: NavigationData["navbarData"];
   settings: NavigationData["settingsData"];
-  tree: DocsTreeNode[];
-}>) {
+};
+
+/**
+ * Shared by the desktop column and the mobile drawer. The /chat link becomes
+ * the Ask AI button; the drawer skips search and Ask AI (`showActions`) since
+ * the mobile floating bar has them, and `onNavigate` closes it on link clicks.
+ */
+function SidebarPanel({
+  navbar,
+  settings,
+  action,
+  treeSlot,
+  showActions = false,
+  onNavigate,
+}: Readonly<
+  SidebarData & {
+    action: React.ReactNode;
+    treeSlot: React.ReactNode;
+    showActions?: boolean;
+    onNavigate?: () => void;
+  }
+>) {
   const { logos, siteTitle } = settings ?? {};
   const allLinks = flattenNavbarLinks(navbar);
   const chatLink = allLinks.find((link) => link.href === "/chat");
   const links = allLinks.filter((link) => link !== chatLink);
 
   return (
-    <div className="sticky top-0 hidden h-dvh flex-col border-sidebar-border border-r bg-sidebar lg:flex lg:in-data-[sidebar=collapsed]:hidden">
+    <>
       <div className="flex h-14 shrink-0 items-center justify-between gap-2 ps-5 pe-3">
         <Logo
           alt={siteTitle ?? "Home"}
@@ -265,28 +246,27 @@ export function DocsSidebarFrame({
           imageDark={logos?.logoDark}
           linkClassName="min-w-0 truncate text-base"
         />
-        <CollapseSidebarButton />
+        {action}
       </div>
-      <div className="grid gap-2 px-3 pb-3">
-        <SearchButton className="w-full" />
-        {chatLink?.name ? (
-          <AskAiButton className="w-full" label={chatLink.name} />
-        ) : null}
-      </div>
-      {/* usePathname() makes the tree URL-dependent; the fallback is the same
-          nav without the active row, so the shell still prerenders. */}
-      <Suspense fallback={<DocsSidebarFallback tree={tree} />}>
-        <DocsSidebar tree={tree} />
-      </Suspense>
+      {showActions ? (
+        <div className="grid gap-2 px-3 pb-3">
+          <SearchButton className="w-full" />
+          {chatLink?.name ? (
+            <AskAiButton className="w-full" label={chatLink.name} />
+          ) : null}
+        </div>
+      ) : null}
+      {treeSlot}
       {links.length > 0 || navbar?.buttons?.length ? (
         <div className="grid shrink-0 gap-3 border-sidebar-border border-t px-3 py-3">
           {links.length > 0 ? (
             <nav aria-label="Site" className="grid gap-0.5">
               {links.map((link) => (
                 <Link
-                  className="focus-ring flex min-h-8 items-center px-2 text-muted-foreground text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  className="focus-ring flex min-h-8 items-center px-2 text-base text-muted-foreground transition-colors sm:text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground max-lg:min-h-11"
                   href={link.href ?? "#"}
                   key={link._key}
+                  onClick={onNavigate}
                   prefetch={false}
                   rel={link.openInNewTab ? "noopener noreferrer" : undefined}
                   target={link.openInNewTab ? "_blank" : undefined}
@@ -301,12 +281,37 @@ export function DocsSidebarFrame({
               buttonClassName="w-full"
               buttons={navbar.buttons}
               className="grid gap-2"
+              onClick={onNavigate}
               size="sm"
             />
           ) : null}
         </div>
       ) : null}
-      <ThemeToggle className="h-12 w-full border-sidebar-border border-t" />
+      <ThemeToggle className="h-12 w-full shrink-0 border-sidebar-border border-t" />
+    </>
+  );
+}
+
+export function DocsSidebarFrame({
+  navbar,
+  settings,
+  tree,
+}: Readonly<SidebarData & { tree: DocsTreeNode[] }>) {
+  return (
+    <div className="sticky top-0 hidden h-dvh flex-col border-sidebar-border border-r bg-sidebar lg:flex lg:in-data-[sidebar=collapsed]:hidden">
+      <SidebarPanel
+        action={<CollapseSidebarButton />}
+        showActions
+        navbar={navbar}
+        settings={settings}
+        treeSlot={
+          // usePathname() makes the tree URL-dependent; the fallback is the
+          // same nav without the active row, so the shell still prerenders.
+          <Suspense fallback={<DocsSidebarFallback tree={tree} />}>
+            <DocsSidebar tree={tree} />
+          </Suspense>
+        }
+      />
     </div>
   );
 }
@@ -358,38 +363,61 @@ function DrawerTree({
   );
 }
 
+const TABLET_QUERY = "(min-width: 48rem)";
+const subscribeTablet = (onChange: () => void) => {
+  const query = window.matchMedia(TABLET_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+};
+
+// Same as turbo-start-sanity's menu: a full-screen sheet from the bottom on
+// phones, a side panel from md. The transforms follow the swipe while dragging.
+const DRAWER_POPUP_CLASS = cn(
+  "h-dvh w-full bg-sidebar pb-[env(safe-area-inset-bottom)] text-sidebar-foreground",
+  "[transform:translateY(var(--drawer-swipe-movement-y,0px))] data-ending-style:[transform:translateY(100%)] data-starting-style:[transform:translateY(100%)]",
+  "md:w-[min(20rem,88vw)] md:border-sidebar-border md:border-r",
+  "md:[transform:translateX(var(--drawer-swipe-movement-x,0px))] md:data-ending-style:[transform:translateX(-100%)] md:data-starting-style:[transform:translateX(-100%)]"
+);
+
 export function DocsMobileSidebar({
+  navbar,
+  settings,
   tree,
-  links = [],
-  buttons,
-}: Readonly<{
-  tree: DocsTreeNode[];
-  links?: MobileNavLink[];
-  buttons?: ButtonProps[] | null;
-}>) {
+}: Readonly<SidebarData & { tree: DocsTreeNode[] }>) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
-  const hasSiteNav = links.length > 0 || Boolean(buttons?.length);
+  const isTablet = useSyncExternalStore(
+    subscribeTablet,
+    () => window.matchMedia(TABLET_QUERY).matches,
+    () => false
+  );
 
   return (
-    <Drawer onOpenChange={setOpen} open={open} swipeDirection="left">
+    <Drawer
+      onOpenChange={setOpen}
+      open={open}
+      swipeDirection={isTablet ? "left" : "down"}
+    >
       <DrawerTrigger
         render={
-          <Button className="size-11 lg:hidden" size="icon" variant="ghost">
+          <Button
+            className="-ml-3 size-11 lg:hidden"
+            size="icon"
+            variant="ghost"
+          >
             <Menu className="size-5" />
             <span className="sr-only">Open documentation navigation</span>
           </Button>
         }
       />
       <DrawerPortal>
-        <DrawerBackdrop />
-        <DrawerViewport className="justify-start">
-          <DrawerPopup className="h-dvh w-[min(22rem,88vw)] border-r">
+        <DrawerBackdrop className="bg-transparent" />
+        <DrawerViewport className="items-end justify-start md:items-stretch">
+          <DrawerPopup className={DRAWER_POPUP_CLASS}>
             <DrawerContent>
-              <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
-                <DrawerTitle>Documentation</DrawerTitle>
-                <div className="flex items-center gap-2">
-                  <ThemeToggle />
+              <DrawerTitle className="sr-only">Navigation</DrawerTitle>
+              <SidebarPanel
+                action={
                   <DrawerClose
                     render={
                       <Button className="size-11" size="icon" variant="ghost">
@@ -398,58 +426,12 @@ export function DocsMobileSidebar({
                       </Button>
                     }
                   />
-                </div>
-              </div>
-              <DrawerTree onNavigate={close} tree={tree} />
-              {hasSiteNav ? (
-                <div className="grid shrink-0 gap-2 border-t bg-sidebar px-3 py-3">
-                  {links.length > 0 ? (
-                    <nav aria-label="Site" className="grid gap-0.5">
-                      {links.map((link) =>
-                        link.href === "/chat" ? (
-                          // Styled as the one CTA, not another nav row.
-                          <button
-                            className="focus-ring flex min-h-11 items-center justify-center bg-foreground px-2 font-medium text-background text-sm transition-colors hover:opacity-90"
-                            key={link._key}
-                            onClick={() => {
-                              close();
-                              openAskAi();
-                            }}
-                            type="button"
-                          >
-                            {link.name}
-                          </button>
-                        ) : (
-                          <Link
-                            className="focus-ring flex min-h-11 items-center px-2 font-medium text-sidebar-foreground/75 text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                            href={link.href ?? "#"}
-                            key={link._key}
-                            onClick={close}
-                            prefetch={false}
-                            rel={
-                              link.openInNewTab
-                                ? "noopener noreferrer"
-                                : undefined
-                            }
-                            target={link.openInNewTab ? "_blank" : undefined}
-                          >
-                            {link.name}
-                          </Link>
-                        )
-                      )}
-                    </nav>
-                  ) : null}
-                  {buttons?.length ? (
-                    <SanityButtons
-                      buttonClassName="w-full"
-                      buttons={buttons}
-                      className="grid gap-2"
-                      onClick={close}
-                      size="sm"
-                    />
-                  ) : null}
-                </div>
-              ) : null}
+                }
+                navbar={navbar}
+                onNavigate={close}
+                settings={settings}
+                treeSlot={<DrawerTree onNavigate={close} tree={tree} />}
+              />
             </DrawerContent>
           </DrawerPopup>
         </DrawerViewport>

@@ -4,13 +4,14 @@ import { cn } from "@workspace/tailwind-config/utils";
 import {
   Dialog,
   DialogBackdrop,
+  DialogClose,
   DialogPopup,
   DialogPortal,
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog";
 import { BorderBeam } from "border-beam";
-import { FileText, Loader2, SearchIcon } from "lucide-react";
+import { FileText, Loader2, SearchIcon, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import {
@@ -225,7 +226,7 @@ export function DocsSearch() {
   const trigger = (
     <DialogTrigger
       aria-label="Search docs"
-      className={cn(SEARCH_TRIGGER_CLASS, "md:w-72 xl:w-96")}
+      className={cn(SEARCH_TRIGGER_CLASS, "w-full sm:w-80 md:w-96")}
     >
       <SearchTriggerContent isMac={isMac} />
     </DialogTrigger>
@@ -233,7 +234,7 @@ export function DocsSearch() {
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <SearchBeam>{trigger}</SearchBeam>
+      <SearchBeam className="min-w-0 flex-1 sm:flex-none">{trigger}</SearchBeam>
       <DialogPortal>
         <DialogBackdrop />
         <DialogPopup aria-label="Search documentation">
@@ -270,11 +271,18 @@ export function DocsSearch() {
             <kbd className="hidden shrink-0 border bg-muted px-1.5 py-0.5 font-sans text-micro text-muted-foreground sm:block">
               Esc
             </kbd>
+            {/* Phones have no Esc key. */}
+            <DialogClose
+              aria-label="Close search"
+              className="focus-ring -me-2 grid size-11 shrink-0 place-items-center text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+            >
+              <X aria-hidden="true" className="size-5" />
+            </DialogClose>
           </div>
           <div
             aria-label="Search results"
             className={cn(
-              "max-h-[50dvh] overflow-y-auto overscroll-contain p-2",
+              "min-h-0 flex-1 overflow-y-auto overscroll-contain p-2 sm:max-h-[50dvh] sm:flex-none",
               !(hasResults || showEmpty) && "hidden"
             )}
             id={listboxId}
@@ -283,7 +291,7 @@ export function DocsSearch() {
             tabIndex={-1}
           >
             {showEmpty ? (
-              <p className="px-3 py-8 text-center text-muted-foreground text-sm">
+              <p className="px-3 py-8 text-center text-base text-muted-foreground sm:text-sm">
                 No results for “{trimmedQuery}”
               </p>
             ) : null}
@@ -309,7 +317,7 @@ export function DocsSearch() {
                 role="option"
                 tabIndex={-1}
               >
-                <span className="flex items-center gap-2 font-medium text-foreground text-sm">
+                <span className="flex items-center gap-2 font-medium text-base text-foreground sm:text-sm">
                   {pendingSlug === result.slug ? (
                     <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
                   ) : (
@@ -318,7 +326,7 @@ export function DocsSearch() {
                   {result.title}
                 </span>
                 {result.snippet ? (
-                  <span className="line-clamp-2 pl-6 text-muted-foreground text-xs leading-relaxed">
+                  <span className="line-clamp-2 pl-6 text-muted-foreground text-sm leading-relaxed sm:text-xs">
                     {result.snippet}
                   </span>
                 ) : null}
@@ -336,7 +344,7 @@ export function DocsSearch() {
             </div>
           ) : null}
           {showIdle ? (
-            <p className="px-4 py-8 text-center text-muted-foreground text-sm">
+            <p className="px-4 py-8 text-center text-base text-muted-foreground sm:text-sm">
               Type to search the docs…
             </p>
           ) : null}
@@ -349,20 +357,19 @@ export function DocsSearch() {
   );
 }
 
-// Below sm the label and kbd are hidden, so the asymmetric padding that
-// balances them would push the lone icon off centre.
 const SEARCH_TRIGGER_CLASS =
-  "focus-ring inline-flex h-10 items-center gap-2.5 border border-border/60 bg-muted/60 text-muted-foreground text-sm transition-colors hover:border-border hover:bg-muted hover:text-foreground max-sm:size-11 max-sm:justify-center max-sm:px-0 sm:pr-1.5 sm:pl-3";
+  "focus-ring inline-flex h-10 items-center gap-2.5 border border-border/60 bg-muted/60 pr-1.5 pl-3 text-muted-foreground text-sm transition-colors hover:border-border hover:bg-muted hover:text-foreground";
 
 function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
   return (
     <>
       <SearchIcon className="size-4 shrink-0" />
-      <span className="hidden sm:inline">Search docs</span>
+      <span>Search docs</span>
+      {/* Phones have no keyboard to press it on. */}
       <kbd
         className={cn(
-          "pointer-events-none ml-auto hidden h-6 items-center gap-0.5 border bg-background px-1.5",
-          "font-medium font-sans text-micro text-muted-foreground sm:inline-flex"
+          "pointer-events-none ml-auto inline-flex h-6 items-center gap-0.5 border bg-background px-1.5",
+          "font-medium font-sans text-micro text-muted-foreground max-sm:hidden"
         )}
       >
         {isMac ? "⌘" : "Ctrl"} K
@@ -373,7 +380,10 @@ function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
 
 /** border-beam measures the element, so its styles differ from the server
  * render; it attaches only after hydration. */
-function SearchBeam({ children }: Readonly<{ children: React.ReactNode }>) {
+function SearchBeam({
+  children,
+  className,
+}: Readonly<{ children: React.ReactNode; className?: string }>) {
   const { resolvedTheme } = useTheme();
   const hydrated = useSyncExternalStore(
     subscribeNever,
@@ -386,6 +396,7 @@ function SearchBeam({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <BorderBeam
       borderRadius={0}
+      className={className}
       duration={4.5}
       size="line"
       theme={resolvedTheme === "light" ? "light" : "dark"}

@@ -52,6 +52,12 @@
   --ring: oklch(0.705 0.015 286.067);
   /* Brand: sharp corners everywhere, no exceptions (robotostudio.com/design). */
   --radius: 0;
+  /* Motion tokens (transitions.dev). Surfaces close faster than they open. */
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
   /* Zinc only — the brand never uses Tailwind's gray scale. */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
@@ -419,4 +425,29 @@
 
 .rich-code-gutter span {
   display: block;
+}
+
+/* Sidebar sections grow open instead of popping. Needs ::details-content and
+   interpolate-size; other browsers keep the instant toggle. */
+@supports (interpolate-size: allow-keywords) {
+  [data-slot="sidebar-group"] {
+    interpolate-size: allow-keywords;
+  }
+  [data-slot="sidebar-group"]::details-content {
+    block-size: 0;
+    overflow: clip;
+    overflow-clip-margin: 4px;
+    transition:
+      block-size var(--duration-fast) var(--ease-smooth-out),
+      content-visibility var(--duration-fast) allow-discrete;
+  }
+  [data-slot="sidebar-group"][open]::details-content {
+    block-size: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sidebar-group"]::details-content {
+    transition: none;
+  }
 }
