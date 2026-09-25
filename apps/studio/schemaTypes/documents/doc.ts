@@ -34,8 +34,12 @@ export const doc = defineType({
       group: GROUP.MAIN_CONTENT,
       validation: (rule) => [
         rule
-          .required()
-          .warning("Add a description so search and cards have a summary"),
+          .custom((value) =>
+            value?.trim()
+              ? true
+              : "Add a description so search and cards have a summary"
+          )
+          .warning(),
         rule
           .max(160)
           .warning(

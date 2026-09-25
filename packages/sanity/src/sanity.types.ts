@@ -693,7 +693,7 @@ export type Doc = {
   _updatedAt: string;
   _rev: string;
   title: string;
-  description: string;
+  description?: string;
   slug?: Slug;
   icon?: LucideIcon;
   order?: number;
@@ -1723,7 +1723,7 @@ export type QueryDocsIndexResult = {
   featuredLinks: Array<{
     _id: string;
     title: string;
-    description: string;
+    description: string | null;
     icon: LucideIcon | null;
     slug: string | null;
   }> | null;
@@ -1857,7 +1857,7 @@ export type QueryDocBySlugResult = {
   _updatedAt: string;
   _rev: string;
   title: string;
-  description: string;
+  description?: string;
   slug: string | null;
   icon?: LucideIcon;
   order?: number;
@@ -2543,7 +2543,7 @@ export type QueryDocPathsResult = Array<string>;
 export type QueryDocsTreeResult = Array<{
   _id: string;
   title: string;
-  description: string;
+  description: string | null;
   slug: string;
   order: number | null;
   icon: LucideIcon | null;
@@ -2564,7 +2564,7 @@ export type QueryFeaturedDocsResult = Array<{
 export type QuerySearchDocsResult = Array<{
   _id: string;
   title: string;
-  description: string;
+  description: string | null;
   slug: string | null;
   content: string;
 }>;
