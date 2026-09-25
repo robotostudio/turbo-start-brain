@@ -8,7 +8,6 @@ import {
 } from "@workspace/ui/components/input-group";
 import type { ChatStatus } from "ai";
 import { ArrowUpIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
 import { ThinkingOrb } from "thinking-orbs";
 
 const SHOWN = "scale-100 opacity-100 blur-none";
@@ -31,16 +30,6 @@ export function ChatComposer({
 }>) {
   const isBusy = status === "submitted" || status === "streaming";
   const canSend = input.trim().length > 0 && !isBusy;
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // `autoFocus` is unreliable here: with streaming SSR + hydration React can
-  // mount this textarea after the browser's autofocus window has closed, so
-  // the page whose only job is typing a question opened with nothing focused
-  // (audit: activeElement was BODY, 69 Tabs from the input). Focus once on
-  // mount instead; `preventScroll` keeps a restored scroll position intact.
-  useEffect(() => {
-    textareaRef.current?.focus({ preventScroll: true });
-  }, []);
 
   return (
     <form
@@ -55,7 +44,6 @@ export function ChatComposer({
         <InputGroupTextarea
           aria-label="Ask the docs assistant"
           className="max-h-40 min-h-0 py-2.5 pl-4 text-base"
-          ref={textareaRef}
           onChange={(event) => onInputChange(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Escape" && isBusy) {
@@ -84,7 +72,6 @@ export function ChatComposer({
             onClick={isBusy ? onStop : undefined}
             size="icon-sm"
             type={isBusy ? "button" : "submit"}
-            // Busy shows the orb on the bar itself, not on a white fill.
             variant={isBusy ? "ghost" : "default"}
           >
             <span className="grid place-items-center *:col-start-1 *:row-start-1 *:transition-[opacity,scale,filter] *:duration-(--duration-fast) *:ease-in-out">
