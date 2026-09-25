@@ -121,11 +121,9 @@ export function ChatPanel({
   placeholder,
   suggestedQuestions,
 }: Readonly<{
-  /** Track the visual viewport (mobile keyboard) below the dialog header. */
   fitViewport?: boolean;
   heading?: string | null;
   intro?: string | null;
-  /** Fires when the conversation gains its first message (or is empty). */
   onStartedChange?: (started: boolean) => void;
   placeholder?: string | null;
   suggestedQuestions: readonly string[];
@@ -158,6 +156,14 @@ export function ChatPanel({
   } else if (!errorCode && error?.message) {
     errorMessage = error.message;
   }
+
+  // Abort on unmount ("New chat") so the server stops generating and billing.
+  useEffect(
+    () => () => {
+      stop();
+    },
+    [stop]
+  );
 
   const started = messages.length > 0;
   useEffect(() => {
