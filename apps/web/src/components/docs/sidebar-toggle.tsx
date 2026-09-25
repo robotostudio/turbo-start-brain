@@ -5,11 +5,8 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 
 const STORAGE_KEY = "docs-sidebar";
 
-/** Runs before paint (see layout) so a collapsed sidebar never flashes open. */
 export const SIDEBAR_INIT_SCRIPT = `try{if(localStorage.getItem("${STORAGE_KEY}")==="collapsed")document.documentElement.dataset.sidebar="collapsed"}catch(e){}`;
 
-// The collapsed layout is pure CSS keyed off `html[data-sidebar]`, so the
-// toggle needs no React state and the server render never depends on it.
 function setCollapsed(collapsed: boolean) {
   const root = document.documentElement;
   if (collapsed) {
@@ -19,11 +16,7 @@ function setCollapsed(collapsed: boolean) {
   }
   try {
     localStorage.setItem(STORAGE_KEY, collapsed ? "collapsed" : "open");
-  } catch {
-    // Storage blocked (private mode): the toggle still works for this page.
-  }
-  // The pressed button just hid itself; hand focus to its counterpart so
-  // keyboard users are not dropped back to <body>.
+  } catch {}
   document
     .querySelector<HTMLElement>(
       `[data-sidebar-toggle="${collapsed ? "expand" : "collapse"}"]`

@@ -24,8 +24,6 @@ async function getSitemapData(): Promise<QuerySitemapDataResult | null> {
   }
 }
 
-// Real edit times only: a lastmod that always says "now" teaches crawlers to
-// ignore it. Google ignores changefreq and priority, so they are omitted.
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const data = await getSitemapData();
   return [

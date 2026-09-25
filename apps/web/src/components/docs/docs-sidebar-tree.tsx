@@ -141,12 +141,6 @@ export function DocsSidebar({ tree }: Readonly<{ tree: DocsTreeNode[] }>) {
   );
 }
 
-/**
- * Suspense fallback for {@link DocsSidebar}. Same tree, same markup, minus the
- * `usePathname()` active state — reading the URL is what makes the real sidebar
- * dynamic, so the prerendered shell ships this and the highlighted row streams
- * in. No skeleton flash, because the nav content is identical.
- */
 export function DocsSidebarFallback({
   tree,
 }: Readonly<{ tree: DocsTreeNode[] }>) {

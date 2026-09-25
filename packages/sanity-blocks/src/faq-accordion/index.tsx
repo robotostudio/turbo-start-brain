@@ -18,11 +18,6 @@ export interface FaqAccordionProps {
   title?: string | null;
 }
 
-/**
- * Server half of the block: it renders each answer's portable text here and
- * hands the resulting nodes to the client disclosure shell. The public props
- * are unchanged — `pagebuilder.tsx` still spreads the raw GROQ result in.
- */
 export function FaqAccordion({ faqs, ...rest }: Readonly<FaqAccordionProps>) {
   const renderedFaqs = faqs?.map((faq) => ({
     _id: faq._id,

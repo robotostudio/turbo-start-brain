@@ -1,8 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 
-// The type scale in globals.css (`--text-*`). Unregistered, tailwind-merge
-// reads `text-micro` as a colour and drops it next to `text-muted-foreground`.
+// Register the `--text-*` scale, or tailwind-merge drops `text-micro` as a colour.
 const twMerge = extendTailwindMerge({
   extend: {
     theme: {

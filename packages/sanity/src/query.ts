@@ -54,7 +54,6 @@ const nestedPortableTextFragment = /* groq */ `
   }
 `;
 
-// Callouts can also sit inside steps and tabs; their body is one level deep.
 const calloutFragment = /* groq */ `
   _type == "callout" => {
     ...,
@@ -220,8 +219,6 @@ export const querySettingsData = defineQuery(`
   }
 `);
 
-// One fetch for both the Ask AI dialog (copy) and the chat route (assistant
-// name and extra instructions).
 export const queryChatSettings = defineQuery(`{
   "siteTitle": *[_type == "settings" && _id == "settings"][0].siteTitle,
   "chat": *[_type == "chat" && _id == "chat"][0]{

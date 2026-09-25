@@ -35,7 +35,6 @@ function useMediaQuery(query: string) {
   );
 }
 
-// A full-screen sheet from the bottom on phones, a side panel from md.
 const DRAWER_POPUP_CLASS = cn(
   "h-dvh w-full bg-sidebar pb-[env(safe-area-inset-bottom)] text-sidebar-foreground",
   "[transform:translateY(var(--drawer-swipe-movement-y,0px))] data-ending-style:[transform:translateY(100%)] data-starting-style:[transform:translateY(100%)]",
@@ -52,8 +51,6 @@ export function DocsMobileSidebar({
   const isTablet = useMediaQuery(TABLET_QUERY);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
 
-  // Close on crossing md (the sheet flips from bottom to side) or lg (the
-  // desktop sidebar takes over).
   // biome-ignore lint/correctness/useExhaustiveDependencies: the breakpoints are the trigger; the body only closes.
   useEffect(() => {
     setOpen(false);

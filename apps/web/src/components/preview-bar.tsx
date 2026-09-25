@@ -9,8 +9,6 @@ import { disableDraftMode } from "@/app/actions";
 
 const logger = new Logger("PreviewBar");
 
-// Trapezoid tab rising off the bottom line, so it reads as a notch rather than
-// a floating pill; the horizontal padding gives the slopes room.
 const TAB_CLIP =
   "polygon(0.875rem 0, calc(100% - 0.875rem) 0, 100% 100%, 0 100%)";
 

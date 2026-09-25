@@ -93,7 +93,6 @@ function WebSiteJsonLd({ settings }: Readonly<WebSiteJsonLdProps>) {
     name: settings.siteTitle,
     description: settings.siteDescription || undefined,
     url: baseUrl,
-    // The same node as the Organization block, so crawlers join the two.
     publisher: { "@id": organizationId(baseUrl) } as Organization,
   };
 

@@ -35,14 +35,6 @@ function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
-/**
- * The link table, not the knowledge: answers come from the Knowledge Base
- * tools, every href comes from here. Byte-stable — it sits inside the
- * prompt-cache prefix, so nothing volatile may enter the output.
- *
- * Throws when it cannot be assembled, and the route fails closed (503): with no
- * slugs to link, an answer with no way back to its page is worse than an error.
- */
 export async function getDocsPageIndex(): Promise<string> {
   "use cache";
   cacheLife("hours");

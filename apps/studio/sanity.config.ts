@@ -63,8 +63,6 @@ export default defineConfig({
     contextPlugin(),
   ],
   document: {
-    // Singletons are one fixed document each: no duplicates, and nothing that
-    // would leave the site without it.
     actions: (prev, { schemaType }) =>
       singletonTypeSet.has(schemaType)
         ? prev.filter(

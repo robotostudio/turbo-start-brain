@@ -33,7 +33,6 @@ async function fetchSettings() {
   return data;
 }
 
-// Same source as the sitemap, so "Do not index" pages stay out of both.
 async function fetchSlugs() {
   "use cache";
   const { data } = await sanityFetch({

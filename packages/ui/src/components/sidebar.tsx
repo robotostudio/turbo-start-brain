@@ -73,8 +73,6 @@ function SidebarGroupContent({
   return (
     <div
       className={cn(
-        // A guide line down the left edge; the active row paints a brighter
-        // segment over it. Rows and nested groups indent past the line.
         "relative py-0.5 before:absolute before:inset-y-0.5 before:left-2.5 before:w-px before:bg-sidebar-border",
         "[&>[data-slot=sidebar-item]]:ml-2.5 [&>[data-slot=sidebar-item]]:w-auto [&>[data-slot=sidebar-item]]:pl-3.5 [&>[data-slot=sidebar-group]>summary]:ml-2.5 [&>[data-slot=sidebar-group]>summary]:pl-3.5 [&>[data-slot=sidebar-group]>[data-slot=sidebar-group-content]]:ml-4",
         "[&>[data-active]]:before:absolute [&>[data-active]]:before:inset-y-1.5 [&>[data-active]]:before:left-0 [&>[data-active]]:before:w-px [&>[data-active]]:before:bg-sidebar-accent-foreground",

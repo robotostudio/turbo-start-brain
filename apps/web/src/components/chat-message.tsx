@@ -28,9 +28,6 @@ function sameOriginUrlTransform(url: string): string | null {
   return null;
 }
 
-// Links are same-origin only (see above), so they navigate in place instead of
-// Streamdown's default new tab + "external link" confirmation, and close the
-// dialog so the page is visible (the conversation is kept).
 function ChatLink({ href, children }: ComponentProps<"a">) {
   if (!href) {
     return <>{children}</>;

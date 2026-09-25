@@ -62,13 +62,6 @@ export const parseRichTextToString = (
   return text.join(" ");
 };
 
-/**
- * Determines the presentation URL based on the current environment.
- * In development, uses SANITY_STUDIO_PRESENTATION_URL when set, else falls back
- * to localhost:3000.
- * In production, requires SANITY_STUDIO_PRESENTATION_URL to be set.
- * @throws {Error} If SANITY_STUDIO_PRESENTATION_URL is not set in production
- */
 export const getPresentationUrl = () => {
   const presentationUrl = process.env.SANITY_STUDIO_PRESENTATION_URL;
   if (process.env.NODE_ENV === "development") {

@@ -28,7 +28,6 @@ const BADGE_MAP: Record<string, string> = {
   markdown: "MD",
 };
 
-// GROQ has no Shiki grammar and "text" is plain on purpose.
 const HIGHLIGHTED = new Set<string>([
   "ts",
   "tsx",
@@ -46,9 +45,7 @@ const HIGHLIGHTED = new Set<string>([
 
 let highlighter: Promise<Highlighter> | undefined;
 
-// Server-only; tokens carry both themes as CSS variables (see globals.css).
-// Cached because Shiki reads the clock, which prerendering rejects. Failures
-// throw rather than return null, so a plain fallback is never cached.
+// Cached: prerender rejects Shiki's clock reads. Throws so failures aren't cached.
 async function highlight(
   code: string,
   language?: string | null
@@ -68,7 +65,6 @@ async function highlight(
       defaultColor: false,
     }).tokens;
   } catch (error) {
-    // Drop a failed load so the next render retries instead of reusing it.
     highlighter = undefined;
     throw error;
   }

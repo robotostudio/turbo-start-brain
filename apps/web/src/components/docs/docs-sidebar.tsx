@@ -16,10 +16,6 @@ export type SidebarData = {
   settings: SiteSettings;
 };
 
-/**
- * Shared by the desktop column and the mobile drawer. The drawer skips search
- * and Ask AI (`showActions`) since the mobile floating bar has them.
- */
 export function SidebarPanel({
   askAiLabel,
   settings,

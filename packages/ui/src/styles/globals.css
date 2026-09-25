@@ -8,10 +8,8 @@
    two globs matched nothing. */
 @source "../**/*.{ts,tsx}";
 @source "../../../sanity-blocks/src/**/*.{ts,tsx}";
-/* streamdown ships Tailwind classes that must be scanned by OUR build. Only
-   `/chat` renders it and Tailwind emits one stylesheet for the whole app, so
-   these candidates ride along on every page — but the classes live in the
-   hashed chunk, not the entry, so the glob has to stay wide. */
+/* streamdown ships Tailwind classes our build must scan. They live in hashed
+   chunks, not the entry, so the glob has to stay wide. */
 @source "../../node_modules/streamdown/dist/*.js";
 @source "../../node_modules/@streamdown/code/dist/*.js";
 
@@ -33,8 +31,6 @@
   --muted-foreground: oklch(0.442 0.017 285.786);
   --accent: var(--muted);
   --accent-foreground: var(--foreground);
-  /* The lime accent, clamped into sRGB (the original C 0.226
-     clips). A touch colour only: the preview bar and status dots. */
   --accent-green: oklch(0.935 0.221 122);
   --accent-green-foreground: oklch(0.21 0.006 285.885);
   /* Status ink. Tuned as *text/icon* colours (they carry the callout icon and
@@ -50,25 +46,20 @@
   --border: oklch(0.92 0.004 286.32);
   --input: var(--border);
   --ring: oklch(0.705 0.015 286.067);
-  /* Brand: sharp corners everywhere, no exceptions (robotostudio.com/design). */
   --radius: 0;
   --duration-quick: 150ms;
   --duration-fast: 250ms;
   --duration-medium: 350ms;
   --duration-slow: 400ms;
   --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
-  /* Zinc only — the brand never uses Tailwind's gray scale. */
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-accent: oklch(0.967 0.001 286.375);
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
 
-  /* Overscroll gutter surface, shown on the top rubber-band above the header. */
   --overscroll-top: var(--background);
 
-  /* Inline gutter shared by the header's `container` and page content, so they
-     line up at every width. */
   --container-px: 1.25rem;
 
   /* Status tints. Declared once: `color-mix` substitutes at the point of use,
@@ -107,8 +98,6 @@
   --secondary: var(--muted);
   --secondary-foreground: var(--foreground);
   --muted: oklch(0.274 0.006 286.033);
-  /* Zinc hue, lifted from zinc-400 (L 0.705, APCA Lc ~49) to clear Lc 60 on
-     every dark surface — it carries sidebar rows, descriptions and captions. */
   --muted-foreground: oklch(0.78 0.015 286.067);
   --accent: var(--card);
   --accent-foreground: var(--foreground);
@@ -310,8 +299,6 @@
     outline: 2px solid var(--foreground);
     outline-offset: -3px;
   }
-
-  /* Rings the whole card when a link inside it is focused. */
 }
 
 @layer base {
@@ -323,12 +310,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Geist is variable, so every weight is real; a missing one should fail
-       visibly, not be faked. Style synthesis stays on: Geist ships no italic,
-       and without it emphasis in prose would render upright. */
     font-synthesis-weight: none;
   }
-  /* Colour the overscroll gutters, mainly the top rubber-band above the header. */
   html {
     background: var(--overscroll-top);
     overscroll-behavior-x: none;

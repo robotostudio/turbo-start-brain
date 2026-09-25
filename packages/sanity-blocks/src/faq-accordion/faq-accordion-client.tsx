@@ -10,12 +10,6 @@ import {
   useState,
 } from "react";
 
-/**
- * The disclosure UI: exclusive-open state and the height animation. The answers themselves arrive as `body` — already
- * rendered on the server by `index.tsx` — so `RichText` (and everything it
- * reaches: PortableText, the code block, the Sanity image loader) never
- * crosses this boundary.
- */
 interface FaqClientItem {
   _key?: string | null;
   _id: string;

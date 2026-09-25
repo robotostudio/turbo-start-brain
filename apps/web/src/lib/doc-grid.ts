@@ -1,6 +1,3 @@
-// The TOC column is always reserved (empty without headings), so content sits
-// in the same place on every page.
-
 export const DOC_TRACKS =
   "grid grid-cols-1 px-5 sm:px-8 lg:px-12 xl:justify-center xl:gap-x-16 xl:grid-cols-[minmax(0,48rem)_14rem] 3xl:grid-cols-[minmax(0,1fr)_48rem_minmax(0,1fr)]";
 

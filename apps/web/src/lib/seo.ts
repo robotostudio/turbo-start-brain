@@ -26,7 +26,6 @@ type PageSeoData = Metadata & {
   keywords?: string[];
   seoNoIndex?: boolean;
   pageType?: Extract<Metadata["openGraph"], { type: string }>["type"];
-  /** ISO timestamp, published as `article:modified_time` on articles. */
   modifiedTime?: string;
 };
 
@@ -95,18 +94,12 @@ type SeoSourceDocument = {
   _updatedAt?: string | null;
 };
 
-/**
- * Maps a fetched Sanity document to page metadata, applying the shared
- * `seoTitle || title` / `seoDescription || description` override used by every
- * route's `generateMetadata`.
- */
 export function seoFromDocument(
   doc: SeoSourceDocument | null | undefined,
   { slug, pageType }: { slug: string; pageType?: PageSeoData["pageType"] }
 ): Promise<Metadata> {
   const isArticle = pageType === "article";
   return getSEOMetadata({
-    // Overrides win: title and description are required, so they're only fallbacks.
     title: doc?.seoTitle || doc?.title || undefined,
     description: doc?.seoDescription || doc?.description || undefined,
     ogTitle: doc?.ogTitle,

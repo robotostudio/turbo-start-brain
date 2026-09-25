@@ -41,11 +41,6 @@ const CODE_LANGUAGES = [
   { title: "Plain text", value: "text" },
 ];
 
-// Members that may appear at any nesting depth. Callout, steps and tabs
-// bodies reuse exactly this set (instead of the full `richText` type), so the
-// GROQ portable-text fragment only ever needs to project one level of
-// nesting — a callout inside a step can never smuggle in members the
-// nested projection doesn't resolve (links, videos).
 const baseRichTextMembers = [
   defineArrayMember({
     name: PORTABLE_TEXT_MEMBER_NAMES.block,

@@ -26,8 +26,6 @@ type ChatSettings = Pick<
   "heading" | "intro" | "placeholder" | "suggestedQuestions"
 > | null;
 
-// Shown until an editor fills in the Chat document in Studio; the heading and
-// intro match the schema's initial values.
 const FALLBACK = {
   heading: "Ask the docs",
   intro:
@@ -47,8 +45,6 @@ export function AskAiDialog({
   chat,
 }: Readonly<{ label: string; chat: ChatSettings }>) {
   const [open, setOpen] = useState(false);
-  // Bumping the key remounts the panel: a fresh useChat, so no messages,
-  // input or in-flight state carries over.
   const [session, setSession] = useState(0);
   const [started, setStarted] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -123,7 +119,6 @@ export function AskAiDialog({
   );
 }
 
-/** Another place to open the one dialog `AskAiDialog` owns. */
 export function AskAiButton({
   label,
   className,

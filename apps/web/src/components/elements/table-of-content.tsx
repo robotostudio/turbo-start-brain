@@ -81,8 +81,6 @@ const READING_LINE = 96;
 // `scrollIntoView` is sub-pixel while the scroll offset is rounded, so exact
 // comparison misses by a fraction and credits the heading above.
 const READING_LINE_SLACK = 2;
-// A section needs this much on screen to count, so a sliver doesn't flicker
-// the rail on and off.
 const SECTION_VISIBLE_MIN = 24;
 
 const DEFAULT_MAX_DEPTH = 6;
@@ -412,14 +410,9 @@ export function useHeadingsInView(slugKey: string): HeadingsInView {
     const toSlugIndex = (i: number) =>
       i === -1 ? -1 : (found[i]?.index ?? -1);
 
-    // Measured once and refreshed only when layout moves, so scrolling is pure
-    // arithmetic over the cache and never forces a layout read.
-    // Each section runs from its heading to the next one; the last runs to
-    // the end of the article, so trailing content still counts as in view.
     const article = elements[0]?.closest("article, main");
     let tops: number[] = [];
     let ends: number[] = [];
-    // The sticky header only exists below lg; hidden ones measure 0.
     let headerHeight = 0;
     const measure = () => {
       headerHeight = [
@@ -441,8 +434,6 @@ export function useHeadingsInView(slugKey: string): HeadingsInView {
       const viewportTop = window.scrollY + headerHeight;
       const viewportBottom = window.scrollY + window.innerHeight;
       const reading = lastIndexAtOrAbove(tops, line + READING_LINE_SLACK);
-      // The rail spans every section with a visible slice of its body, not
-      // just the headings that happen to be on screen.
       const visible = (i: number) =>
         (ends[i] ?? 0) - SECTION_VISIBLE_MIN > viewportTop &&
         (tops[i] ?? 0) + SECTION_VISIBLE_MIN < viewportBottom;

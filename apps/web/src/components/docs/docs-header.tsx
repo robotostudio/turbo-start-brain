@@ -25,12 +25,10 @@ export function DocsHeader({
 
   return (
     <>
-      {/* Mobile only; on desktop the sidebar holds all of this. */}
       <header
         className="sticky top-0 z-40 h-14 border-b bg-background/90 backdrop-blur-lg lg:hidden"
         data-site-header=""
       >
-        {/* Same side padding as the article, so the edges line up. */}
         <div className={`${DOC_TRACKS} h-full`}>
           <div className="flex items-center gap-2">
             <DocsMobileSidebar settings={settings} tree={tree} />
@@ -44,8 +42,6 @@ export function DocsHeader({
           </div>
         </div>
       </header>
-      {/* Floating search + Ask AI on mobile. These own both dialogs; the
-          desktop sidebar's buttons open them. */}
       <div
         className={`${DOC_TRACKS} pointer-events-none fixed inset-x-0 bottom-8 z-40 lg:hidden`}
       >

@@ -87,9 +87,6 @@ export default async function RootLayout({
 }>) {
   preconnect("https://cdn.sanity.io");
   prefetchDNS("https://cdn.sanity.io");
-  // In local dev, the sidebar follows drafts too (like page content), so
-  // settings and docs edits are visible without a Presentation session.
-  // Production stays static published.
   const showDrafts = DRAFTS_WITHOUT_SESSION;
   return (
     // motion-safe:scroll-smooth: in-page TOC anchors rely on native hash
