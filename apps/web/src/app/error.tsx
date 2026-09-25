@@ -27,8 +27,7 @@ export default function RouteError({
         </div>
 
         <h1 className="font-normal text-[clamp(6rem,26vw,15rem)] text-foreground leading-[0.8] tracking-tighter">
-          {"5"} {"0"}
-          {"0"}
+          500
         </h1>
 
         <h2 className="max-w-2xl text-balance font-normal text-h2 sm:text-h1">
