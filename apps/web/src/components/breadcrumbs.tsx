@@ -7,10 +7,6 @@ type Crumb = {
   readonly href?: string;
 };
 
-/**
- * Ancestor crumbs for a nested slug, excluding the page itself, labelled with
- * each section's title from the docs tree (the same names as the sidebar).
- */
 export function ancestorCrumbs(
   segments: readonly string[],
   tree: readonly DocsTreeNode[]
@@ -21,7 +17,10 @@ export function ancestorCrumbs(
   for (const segment of segments.slice(0, -1)) {
     path += `/${segment}`;
     const node = nodes.find((candidate) => candidate.slug === path);
-    crumbs.push({ label: node?.title ?? segment, href: path });
+    crumbs.push({
+      label: node?.title ?? segment,
+      href: node?.document ? path : undefined,
+    });
     nodes = node?.children ?? [];
   }
   return crumbs;
