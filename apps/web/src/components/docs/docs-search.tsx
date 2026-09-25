@@ -50,7 +50,6 @@ type SearchResult = {
   description: string | null;
   slug: string | null;
   snippet: string;
-  /** Set on empty-query suggestions; starts a labelled group in the list. */
   group?: string;
 };
 
@@ -133,29 +132,50 @@ export function DocsSearch({
   const [isNavigating, startNavigation] = useTransition();
   const listRef = useRef<HTMLDivElement>(null);
 
+  // Openers outside the dialog (sidebar button, ⌘K) get focus back on close.
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  const onOpenChange = useCallback((nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      returnFocusRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      return;
+    }
+    setQuery("");
+    setResults([]);
+    setState("idle");
+    setActiveIndex(0);
+    setPendingSlug(null);
+  }, []);
+
   useEffect(() => {
     setIsMac(/mac|iphone|ipad/i.test(navigator.platform));
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        setOpen((wasOpen) => !wasOpen);
-      }
-    };
     const onOpenRequest = (event: Event) => {
       const seed = (event as CustomEvent<{ query?: string }>).detail?.query;
       if (seed) {
         setQuery(seed);
       }
-      setOpen(true);
+      onOpenChange(true);
+    };
+    window.addEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
+    return () =>
+      window.removeEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
+  }, [onOpenChange]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault();
+        onOpenChange(!open);
+      }
     };
     window.addEventListener("keydown", onKeyDown);
-    window.addEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener(DOCS_SEARCH_OPEN_EVENT, onOpenRequest);
-    };
-  }, []);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onOpenChange, open]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -177,8 +197,13 @@ export function DocsSearch({
         setResults(data);
         setActiveIndex(0);
         setState("done");
-      } catch {
+      } catch (error) {
         // Aborted by a newer keystroke or the dialog closing — keep quiet.
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setResults([]);
+        setState("done");
       }
     }, SEARCH_DEBOUNCE_MS);
 
@@ -193,17 +218,6 @@ export function DocsSearch({
       setOpenedOn(window.location.pathname);
     }
   }, [open]);
-
-  const onOpenChange = useCallback((nextOpen: boolean) => {
-    setOpen(nextOpen);
-    if (!nextOpen) {
-      setQuery("");
-      setResults([]);
-      setState("idle");
-      setActiveIndex(0);
-      setPendingSlug(null);
-    }
-  }, []);
 
   // The palette holds itself open (pending) while the route resolves; close it
   // only once React has committed the navigation.
@@ -286,7 +300,10 @@ export function DocsSearch({
       <SearchBeam className="min-w-0 flex-1 sm:flex-none">{trigger}</SearchBeam>
       <DialogPortal>
         <DialogBackdrop />
-        <DialogPopup aria-label="Search documentation">
+        <DialogPopup
+          aria-label="Search documentation"
+          finalFocus={() => returnFocusRef.current ?? true}
+        >
           <DialogTitle className="sr-only">Search documentation</DialogTitle>
           <div className="flex items-center gap-2 border-b px-4">
             {isSearching ? (
@@ -445,8 +462,6 @@ function SearchTriggerContent({ isMac }: Readonly<{ isMac: boolean }>) {
     <>
       <SearchIcon className="size-4 shrink-0" />
       <span>Search docs</span>
-      {/* Phones have no keyboard to press it on. Hidden from the accessible
-          name so it matches the visible "Search docs" label. */}
       <span aria-hidden="true" className="contents">
         <kbd
           className={cn(
@@ -468,9 +483,6 @@ const subscribeReducedMotion = (onChange: () => void) => {
   return () => query.removeEventListener("change", onChange);
 };
 
-/** border-beam measures the element, so its styles differ from the server
- * render; it attaches only after hydration, and never under reduced motion
- * since it loops forever. */
 function SearchBeam({
   children,
   className,
@@ -504,7 +516,6 @@ function SearchBeam({
 
 const subscribeMac = () => () => {};
 
-/** Another place to open the one search palette `DocsSearch` owns. */
 export function SearchButton({ className }: Readonly<{ className?: string }>) {
   const isMac = useSyncExternalStore(
     subscribeMac,
