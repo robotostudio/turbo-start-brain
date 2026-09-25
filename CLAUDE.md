@@ -54,7 +54,7 @@ packages/
   env/           — @workspace/env — Zod-validated env vars via @t3-oss/env-nextjs
   sanity/        — @workspace/sanity — Shared Sanity client, GROQ queries, live preview, image utils
   sanity-blocks/ — @workspace/sanity-blocks — Block schemas, GROQ projections, React block components, Markdown serializers, Vitest suite
-  ui/            — @workspace/ui — Shared UI components (Radix + CVA + Tailwind, shadcn-style)
+  ui/            — @workspace/ui — Shared UI components (Base UI + CVA + Tailwind, shadcn-style)
   tailwind-config/   — @workspace/tailwind-config — Shared Tailwind v4 theme + `cn` utility
   logger/        — @workspace/logger — Structured logger class with context prefixes
   typescript-config/ — Shared TS configs
@@ -77,7 +77,7 @@ The core content model is a **page builder** — an array of typed blocks:
 - **Schema source**: `packages/sanity-blocks/src/<block>/` — files are named after the block, e.g. `faq-accordion/faq-accordion.schema.ts`, `faq-accordion/faq-accordion.groq.ts`, `faq-accordion/index.tsx`, `faq-accordion/markdown.ts`, `faq-accordion/thumbnail.png`, plus co-located `*.test.tsx` / `*-markdown.test.ts`. All schemas are exported as `blockSchemas` from `packages/sanity-blocks/src/sanity-blocks.ts`
 - **Studio side**: `apps/studio/schemaTypes/index.ts` merges `blockSchemas` into the exported `schemaTypes`, and `apps/studio/schemaTypes/definitions/pagebuilder.ts` maps over `blockSchemas` to build the array members — so a block added to `blockSchemas` shows up in the page builder automatically, no manual registration. Its insert-menu grid preview is `/static/thumbnails/preview-<kebab-case-name>.png`, copied from each block's `thumbnail.png` by the studio's `sync-thumbnails` script (runs on `postinstall`)
 - **Frontend side**: `apps/web/src/components/pagebuilder.tsx` — renders each `_type` via `renderBlockComponent`. Includes Sanity visual editing data attributes and optimistic updates
-- **Block components**: `packages/sanity-blocks/src/<block>/index.tsx` — styled implementations using Tailwind + `@workspace/ui`, imported by `pagebuilder.tsx` from `@workspace/sanity-blocks/<block>/index` and rendered directly. These are the production render layer
+- **Block components**: `packages/sanity-blocks/src/<block>/index.tsx` — styled with Tailwind (sanity-blocks does not depend on `@workspace/ui`), imported by `pagebuilder.tsx` from `@workspace/sanity-blocks/<block>/index` and rendered directly. These are the production render layer
 
 To add a new page builder block:
 
@@ -162,7 +162,7 @@ All frontend types derive from generated Sanity types. `apps/web/src/types.ts` e
 
 - Prefer `grid` over `flex` unless two sibling elements
 - Use `SanityImage` component for Sanity images (from `sanity-image` library)
-- Shared UI components in `@workspace/ui` (Radix + CVA pattern)
+- Shared UI components in `@workspace/ui` (Base UI + CVA pattern)
 
 ### Formatting (Biome)
 
