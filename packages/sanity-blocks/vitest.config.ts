@@ -1,9 +1,7 @@
 import path from "node:path";
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [react()],
   resolve: {
     alias: [
       {
@@ -13,17 +11,6 @@ export default defineConfig({
       {
         find: /^@workspace\/sanity-blocks\/(.*)$/,
         replacement: `${path.resolve(__dirname, "src")}/$1`,
-      },
-      {
-        find: /^@workspace\/env\/client$/,
-        replacement: path.resolve(
-          __dirname,
-          "src/internal/testing/env.mock.ts"
-        ),
-      },
-      {
-        find: /^@workspace\/ui\/(.*)$/,
-        replacement: `${path.resolve(__dirname, "../ui/src")}/$1`,
       },
       {
         find: "@workspace/logger",
