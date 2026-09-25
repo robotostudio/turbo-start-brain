@@ -80,9 +80,6 @@ const DOC_CARDS_PROMPT = docsCatalog.prompt({
   ],
 });
 
-// Byte-stable and volatile-free: this is the cached prefix, and a single
-// changed byte (a date, a request id, unsorted JSON) invalidates the whole
-// Anthropic cache entry behind it. The Studio inputs only change on publish.
 function buildInstructions(
   siteTitle: string | null | undefined,
   extra: string | null | undefined
@@ -129,7 +126,7 @@ export async function POST(req: Request) {
   // throws.
   let pageIndex: string;
   let outline: string;
-  let chatSettings: Awaited<ReturnType<typeof getChatSettings>>;
+  let chatSettings: Awaited<ReturnType<typeof getChatSettings>> | null;
   let knowledgeBase: Awaited<ReturnType<typeof connectKnowledgeBase>>;
   let tools: ToolSet;
   try {
@@ -140,7 +137,7 @@ export async function POST(req: Request) {
     [pageIndex, outline, chatSettings] = await Promise.all([
       getDocsPageIndex(),
       getKnowledgeBaseOutline(),
-      getChatSettings(),
+      getChatSettings().catch(() => null),
     ]);
     knowledgeBase = await connectKnowledgeBase(endpoint, token);
     tools = knowledgeBase.tools;
