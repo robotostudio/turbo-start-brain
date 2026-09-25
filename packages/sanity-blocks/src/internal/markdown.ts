@@ -5,21 +5,13 @@
  */
 
 import {
-  absolutizeUrl,
   escapeMarkdown,
-  formatUrl,
   type MarkdownImage,
   type MarkdownOptions,
   type PortableTextValue,
 } from "./portable-text-to-markdown";
 
 export type { MarkdownImage, MarkdownOptions, PortableTextValue };
-
-export interface MarkdownButton {
-  _key?: string | null;
-  text?: string | null;
-  href?: string | null;
-}
 
 export interface MarkdownFaq {
   _key?: string | null;
@@ -36,7 +28,6 @@ export interface MarkdownBlock {
   description?: string | null;
   subtitle?: string | null;
   richText?: PortableTextValue;
-  buttons?: MarkdownButton[] | null;
   faqs?: MarkdownFaq[] | null;
 }
 
@@ -58,43 +49,4 @@ export function headingToMarkdown(
 ): string {
   const text = title?.trim().replace(/\s+/g, " ");
   return text ? `${"#".repeat(level)} ${escapeMarkdown(text)}` : "";
-}
-
-export function buttonsToMarkdown(
-  buttons?: MarkdownButton[] | null,
-  options: MarkdownOptions = {}
-): string {
-  if (!Array.isArray(buttons)) {
-    return "";
-  }
-
-  return buttons
-    .map((button) => {
-      const text = (button.text ?? "").trim();
-      const href = button.href;
-      if (href && href !== "#") {
-        const url = formatUrl(absolutizeUrl(href, options.baseUrl));
-        return `- [${escapeMarkdown(text || href)}](${url})`;
-      }
-      return text ? `- ${escapeMarkdown(text)}` : null;
-    })
-    .filter(Boolean)
-    .join("\n");
-}
-
-export function imageToMarkdown(
-  image: MarkdownImage | null | undefined,
-  options: MarkdownOptions
-): string {
-  const alt = (image?.alt ?? "").trim();
-  const caption = (image?.caption ?? "").trim();
-  const url = image?.id ? options.resolveImageUrl?.(image) : undefined;
-  // Mirror portable-text: image when a URL resolves, else caption/alt text.
-  if (url) {
-    const img = `![${escapeMarkdown(alt)}](${formatUrl(url)})`;
-    return caption && caption !== alt
-      ? `${img}\n\n_${escapeMarkdown(caption)}_`
-      : img;
-  }
-  return escapeMarkdown(caption || alt);
 }

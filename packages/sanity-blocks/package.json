@@ -55,7 +55,6 @@
     "./internal/mux-video": "./src/internal/mux-video.tsx",
     "./internal/page-builder-to-markdown": "./src/internal/page-builder-to-markdown.ts",
     "./internal/portable-text-to-markdown": "./src/internal/portable-text-to-markdown.ts",
-    "./internal/rendering": "./src/internal/rendering.tsx",
     "./internal/safe-href": "./src/internal/safe-href.ts",
     "./internal/rich-text": "./src/internal/rich-text.tsx",
     "./internal/rich-text-tabs": "./src/internal/rich-text-tabs.tsx",
