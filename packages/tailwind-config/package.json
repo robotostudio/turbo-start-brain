@@ -13,7 +13,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "catalog:",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.7.0"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",
