@@ -19,19 +19,19 @@
     "sanity": "catalog:"
   },
   "dependencies": {
-    "@base-ui/react": "^1.6.0",
-    "@mux/mux-player-react": "^3.13.0",
-    "@portabletext/markdown": "^1.4.2",
-    "@portabletext/react": "^6.0.3",
-    "@sanity/icons": "^3.7.4",
+    "@base-ui/react": "catalog:",
+    "@mux/mux-player-react": "^3.13.4",
+    "@portabletext/markdown": "^1.5.0",
+    "@portabletext/react": "^6.2.0",
+    "@sanity/icons": "catalog:",
     "@workspace/logger": "workspace:*",
     "@workspace/tailwind-config": "workspace:*",
     "lucide-react": "catalog:",
     "sanity": "catalog:",
-    "sanity-image": "^1.1.0",
-    "schema-dts": "^1.1.5",
+    "sanity-image": "^1.2.0",
+    "schema-dts": "catalog:",
     "shiki": "^3.23.0",
-    "slugify": "^1.6.8"
+    "slugify": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

@@ -1,5 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "agentGuidance": false,
   "ui": "tui",
   "globalEnv": [
     "NEXT_PUBLIC_SANITY_PROJECT_ID",
