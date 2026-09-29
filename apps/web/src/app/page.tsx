@@ -58,7 +58,7 @@ async function DocsIndexContent({
               {data.eyebrow}
             </p>
           ) : null}
-          <h1 className="text-balance font-semibold text-display sm:text-hero">
+          <h1 className="text-balance break-words font-semibold text-h1 sm:text-display">
             {data?.title ?? "Documentation"}
           </h1>
           {data?.description ? (
