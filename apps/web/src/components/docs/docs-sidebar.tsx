@@ -53,7 +53,7 @@ export function SidebarPanel({
         </div>
       ) : null}
       {treeSlot}
-      <ThemeToggle className="h-12 w-full shrink-0 border-sidebar-border border-t" />
+      <ThemeToggle className="h-16 w-full lg:h-12 shrink-0 border-sidebar-border border-t" />
     </>
   );
 }

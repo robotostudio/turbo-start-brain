@@ -68,7 +68,7 @@ export function ThemeToggle({ className }: { className?: string }) {
           title={label}
           type="button"
         >
-          <Icon aria-hidden="true" className="size-3.5" />
+          <Icon aria-hidden="true" className="size-4.5 lg:size-3.5" />
         </button>
       ))}
     </fieldset>
