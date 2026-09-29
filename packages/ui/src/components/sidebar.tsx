@@ -61,7 +61,7 @@ function SidebarGroupTrigger({
       {...props}
     >
       {children}
-      <ChevronDown className="ml-auto size-3.5 shrink-0 -rotate-90 opacity-60 transition-transform duration-(--duration-fast) ease-(--ease-smooth-out) group-open/sidebar-group:rotate-0 motion-reduce:transition-none" />
+      <ChevronDown className="ml-auto size-4.5 shrink-0 lg:size-3.5 -rotate-90 opacity-60 transition-transform duration-(--duration-fast) ease-(--ease-smooth-out) group-open/sidebar-group:rotate-0 motion-reduce:transition-none" />
     </summary>
   );
 }
