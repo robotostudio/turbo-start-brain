@@ -194,7 +194,10 @@ export const queryGlobalSeoSettings = defineQuery(`
       },
     },
     "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
-    "favicon": logos.favicon.asset->url,
+    "favicon": logos.favicon {
+      "svg": svg.asset->url,
+      "ico": ico.asset->url
+    },
     siteDescription,
     socialLinks{
       linkedin,

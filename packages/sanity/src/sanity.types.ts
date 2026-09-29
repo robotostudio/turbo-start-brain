@@ -567,6 +567,13 @@ export type Chat = {
   instructions?: string;
 };
 
+export type SanityFileAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.fileAsset";
+};
+
 export type Settings = {
   _id: string;
   _type: "settings";
@@ -593,11 +600,18 @@ export type Settings = {
       _type: "image";
     };
     favicon?: {
-      asset?: SanityImageAssetReference;
-      media?: unknown;
-      hotspot?: SanityImageHotspot;
-      crop?: SanityImageCrop;
-      _type: "image";
+      svg?: {
+        asset?: SanityImageAssetReference;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        _type: "image";
+      };
+      ico?: {
+        asset?: SanityFileAssetReference;
+        media?: unknown;
+        _type: "file";
+      };
     };
   };
   ogImage?: {
@@ -1124,6 +1138,7 @@ export type AllSanitySchemaTypes =
   | Redirect
   | Slug
   | Chat
+  | SanityFileAssetReference
   | Settings
   | SanityImageCrop
   | SanityImageHotspot
@@ -2583,7 +2598,7 @@ export type QuerySitemapDataResult = {
 
 // Source: ../../packages/sanity/src/query.ts
 // Variable: queryGlobalSeoSettings
-// Query: *[_type == "settings" && _id == "settings"][0]{    _id,    _type,    siteTitle,    logos {      logo {          "id": asset._ref,  "preview": asset->metadata.lqip,  "alt": coalesce(    alt,    asset->altText,    caption,    asset->originalFilename,    "untitled"  ),  hotspot {    x,    y  },  crop {    bottom,    left,    right,    top  }      },      logoDark {          "id": asset._ref,  "preview": asset->metadata.lqip,  "alt": coalesce(    alt,    asset->altText,    caption,    asset->originalFilename,    "untitled"  ),  hotspot {    x,    y  },  crop {    bottom,    left,    right,    top  }      },    },    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",    "favicon": logos.favicon.asset->url,    siteDescription,    socialLinks{      linkedin,      facebook,      twitter,      instagram,      youtube,      reddit    }  }
+// Query: *[_type == "settings" && _id == "settings"][0]{    _id,    _type,    siteTitle,    logos {      logo {          "id": asset._ref,  "preview": asset->metadata.lqip,  "alt": coalesce(    alt,    asset->altText,    caption,    asset->originalFilename,    "untitled"  ),  hotspot {    x,    y  },  crop {    bottom,    left,    right,    top  }      },      logoDark {          "id": asset._ref,  "preview": asset->metadata.lqip,  "alt": coalesce(    alt,    asset->altText,    caption,    asset->originalFilename,    "untitled"  ),  hotspot {    x,    y  },  crop {    bottom,    left,    right,    top  }      },    },    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",    "favicon": logos.favicon {      "svg": svg.asset->url,      "ico": ico.asset->url    },    siteDescription,    socialLinks{      linkedin,      facebook,      twitter,      instagram,      youtube,      reddit    }  }
 export type QueryGlobalSeoSettingsResult = {
   _id: "settings";
   _type: "settings";
@@ -2621,7 +2636,10 @@ export type QueryGlobalSeoSettingsResult = {
     } | null;
   } | null;
   ogImage: string | null;
-  favicon: string | null;
+  favicon: {
+    svg: string | null;
+    ico: string | null;
+  } | null;
   siteDescription: string;
   socialLinks: {
     linkedin: string | null;
@@ -2688,7 +2706,7 @@ declare global {
     '\n  *[_type == "docsIndex" && _id == "docsIndex"][0].featuredLinks[]->{\n    title,\n    "slug": slug.current\n  }\n': QueryFeaturedDocsResult;
     '\n  *[_type == "doc" && defined(slug.current) && hidden != true]{\n    _id,\n    title,\n    description,\n    "slug": slug.current,\n    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.\n    "content": array::join([\n      coalesce(pt::text(body), ""),\n      coalesce(pt::text(body[_type == "callout"].body[]), ""),\n      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),\n      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")\n    ], " ")\n  }\n': QuerySearchDocsResult;
     '{\n  "homeModified": *[_type == "docsIndex" && _id == "docsIndex"][0]._updatedAt,\n  "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{\n    "slug": slug.current,\n    title,\n    "lastModified": _updatedAt\n  }\n}': QuerySitemapDataResult;
-    '\n  *[_type == "settings" && _id == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    logos {\n      logo {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n      logoDark {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n    },\n    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",\n    "favicon": logos.favicon.asset->url,\n    siteDescription,\n    socialLinks{\n      linkedin,\n      facebook,\n      twitter,\n      instagram,\n      youtube,\n      reddit\n    }\n  }\n': QueryGlobalSeoSettingsResult;
+    '\n  *[_type == "settings" && _id == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    logos {\n      logo {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n      logoDark {\n        \n  "id": asset._ref,\n  "preview": asset->metadata.lqip,\n  "alt": coalesce(\n    alt,\n    asset->altText,\n    caption,\n    asset->originalFilename,\n    "untitled"\n  ),\n  hotspot {\n    x,\n    y\n  },\n  crop {\n    bottom,\n    left,\n    right,\n    top\n  }\n\n      },\n    },\n    "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",\n    "favicon": logos.favicon {\n      "svg": svg.asset->url,\n      "ico": ico.asset->url\n    },\n    siteDescription,\n    socialLinks{\n      linkedin,\n      facebook,\n      twitter,\n      instagram,\n      youtube,\n      reddit\n    }\n  }\n': QueryGlobalSeoSettingsResult;
     '\n  *[_type == "settings" && _id == "settings"][0]{\n    _id,\n    _type,\n    siteTitle,\n    siteDescription,\n    "logo": logos.logo.asset->url + "?w=80&h=40&dpr=3&fit=max",\n    "socialLinks": socialLinks,\n    "contactEmail": contactEmail,\n  }\n': QuerySettingsDataResult;
     '{\n  "siteTitle": *[_type == "settings" && _id == "settings"][0].siteTitle,\n  "chat": *[_type == "chat" && _id == "chat"][0]{\n    label,\n    heading,\n    intro,\n    placeholder,\n    suggestedQuestions,\n    instructions\n  }\n}': QueryChatSettingsResult;
     '\n  *[_type == "redirect" && status == "active" && defined(source.current) && defined(destination.current)]{\n    "source":source.current, \n    "destination":destination.current, \n    "permanent" : permanent == "true"\n  }\n': QueryRedirectsResult;

@@ -69,14 +69,17 @@ export async function generateMetadata(): Promise<Metadata> {
     perspective,
   });
   return {
-    icons: data?.favicon
-      ? { icon: data.favicon }
-      : {
-          icon: [
-            { url: "/favicon.svg", type: "image/svg+xml" },
-            { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
-          ],
+    // SVG first so browsers that support it take it. Each slot falls back
+    // separately: an SVG-only setting must still emit the ICO for Safari.
+    icons: {
+      icon: [
+        { url: data?.favicon?.svg ?? "/favicon.svg", type: "image/svg+xml" },
+        {
+          url: data?.favicon?.ico ?? "/favicon.ico",
+          sizes: "16x16 32x32 48x48",
         },
+      ],
+    },
   };
 }
 
