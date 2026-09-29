@@ -69,30 +69,6 @@ export function resolveAssetId(
   return SANITY_ASSET_ID.test(id) ? id : null;
 }
 
-// Extract the pixel dimensions Sanity encodes in an asset id
-// (`image-<hash>-<width>x<height>-<format>`). Returns null when the id is
-// missing/malformed. Used to normalize logo sizing by aspect ratio so a wide
-// wordmark and a square icon read as the same visual weight (the "logo soup"
-// problem) without any extra CMS fields.
-export function getImageDimensions(
-  image: SanityImageData | null | undefined
-): { width: number; height: number; aspectRatio: number } | null {
-  const id = resolveAssetId(image);
-  if (!id) {
-    return null;
-  }
-  const match = /-(\d+)x(\d+)-/.exec(id);
-  if (!match) {
-    return null;
-  }
-  const width = Number(match[1]);
-  const height = Number(match[2]);
-  if (!(width > 0 && height > 0)) {
-    return null;
-  }
-  return { width, height, aspectRatio: width / height };
-}
-
 const HOTSPOT_KEYS = ["x", "y"] as const;
 const CROP_KEYS = ["top", "bottom", "left", "right"] as const;
 

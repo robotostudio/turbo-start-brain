@@ -13,9 +13,6 @@ export const isValidUrl = (url: string) => {
   }
 };
 
-export const capitalize = (str: string) =>
-  str.charAt(0).toUpperCase() + str.slice(1);
-
 export const getTitleCase = (name: string) => {
   const titleTemp = name.replace(/([A-Z])/g, " $1");
   return titleTemp.charAt(0).toUpperCase() + titleTemp.slice(1);
@@ -65,13 +62,6 @@ export const parseRichTextToString = (
   return text.join(" ");
 };
 
-/**
- * Determines the presentation URL based on the current environment.
- * In development, uses SANITY_STUDIO_PRESENTATION_URL when set (e.g. the
- * portless URL https://web.brain.localhost), else falls back to localhost:3000.
- * In production, requires SANITY_STUDIO_PRESENTATION_URL to be set.
- * @throws {Error} If SANITY_STUDIO_PRESENTATION_URL is not set in production
- */
 export const getPresentationUrl = () => {
   const presentationUrl = process.env.SANITY_STUDIO_PRESENTATION_URL;
   if (process.env.NODE_ENV === "development") {

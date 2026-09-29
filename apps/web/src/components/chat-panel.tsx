@@ -11,7 +11,14 @@ import {
 } from "@workspace/ui/components/message-scroller";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import dynamic from "next/dynamic";
-import { useState, useSyncExternalStore } from "react";
+import {
+  type CSSProperties,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
+import { ThinkingOrb } from "thinking-orbs";
 
 import { ChatComposer } from "@/components/chat-composer";
 import { ChatPhaseIndicator } from "@/components/chat-phase-indicator";
@@ -30,15 +37,8 @@ const ChatMessage = dynamic(
   { ssr: false }
 );
 
-const EXAMPLE_QUESTIONS = [
-  "What should I do in my first week?",
-  "How does a migration project get sequenced?",
-  "Which tools do I need accounts for?",
-  "How do we talk to clients?",
-] as const;
-
 const QUESTION_PILL =
-  "rounded-full border bg-card px-4 py-2 text-sm transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50";
+  "border bg-card px-4 py-2.5 text-base transition-[background-color,border-color,scale] duration-150 ease-out hover:border-foreground/20 hover:bg-accent active:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 sm:py-2 sm:text-sm";
 
 // Speakable text of an assistant message for the screen-reader mirror below:
 // fenced blocks (the doc-card spec is machine data) dropped, markdown links
@@ -61,6 +61,30 @@ function speakableText(message: UIMessage | undefined) {
     .trim();
 }
 
+function ChatWelcome({
+  heading,
+  intro,
+}: Readonly<{ heading?: string | null; intro?: string | null }>) {
+  return (
+    <>
+      <ThinkingOrb
+        aria-hidden
+        className="mx-auto mb-5"
+        size={64}
+        state="working"
+      />
+      {heading ? (
+        <h2 className="font-semibold text-foreground text-lg">{heading}</h2>
+      ) : null}
+      {intro ? (
+        <p className="mt-2 text-balance text-base text-muted-foreground sm:text-sm">
+          {intro}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 function subscribeToViewport(onChange: () => void) {
   const viewport = window.visualViewport;
   if (!viewport) {
@@ -79,6 +103,8 @@ function subscribeToViewport(onChange: () => void) {
     viewport.removeEventListener("scroll", onScroll);
   };
 }
+const subscribeNever = () => () => {};
+
 function getViewportHeight() {
   const viewport = window.visualViewport;
   if (!viewport || viewport.scale > 1) {
@@ -87,9 +113,25 @@ function getViewportHeight() {
   return Math.round(viewport.height);
 }
 
-export function ChatPanel() {
+export function ChatPanel({
+  fitViewport = true,
+  heading,
+  intro,
+  onStartedChange,
+  placeholder,
+  suggestedQuestions,
+}: Readonly<{
+  fitViewport?: boolean;
+  heading?: string | null;
+  intro?: string | null;
+  onStartedChange?: (started: boolean) => void;
+  placeholder?: string | null;
+  suggestedQuestions: readonly string[];
+}>) {
+  // Kept mounted inside the closed dialog, so an unconditional listener would
+  // scroll the page underneath whenever the keyboard opens.
   const viewportHeight = useSyncExternalStore(
-    subscribeToViewport,
+    fitViewport ? subscribeToViewport : subscribeNever,
     getViewportHeight,
     () => 0
   );
@@ -114,6 +156,19 @@ export function ChatPanel() {
   } else if (!errorCode && error?.message) {
     errorMessage = error.message;
   }
+
+  // Abort on unmount ("New chat") so the server stops generating and billing.
+  useEffect(
+    () => () => {
+      stop();
+    },
+    [stop]
+  );
+
+  const started = messages.length > 0;
+  useEffect(() => {
+    onStartedChange?.(started);
+  }, [onStartedChange, started]);
 
   const lastMessage = messages.at(-1);
   // What the assistant is doing right now (thinking / preparing doc cards),
@@ -156,18 +211,24 @@ export function ChatPanel() {
 
   const followUps =
     messages.length > 0 && !hasTyped
-      ? EXAMPLE_QUESTIONS.filter((question) => !clickedPills.includes(question))
+      ? suggestedQuestions.filter(
+          (question) => !clickedPills.includes(question)
+        )
       : [];
   const isBusy = status === "submitted" || status === "streaming";
 
   return (
     <div
-      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-out motion-reduce:transition-none"
-      style={{
-        height: viewportHeight
-          ? `calc(${viewportHeight}px - 3.5rem)`
-          : undefined,
-      }}
+      className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto] transition-[height] duration-200 ease-(--ease-smooth-out) motion-reduce:transition-none max-sm:h-[var(--chat-viewport-h,100%)]"
+      // Phones only: there the dialog is full-screen under a 3.5rem header;
+      // from sm it has a fixed height, and this would push the header out.
+      style={
+        fitViewport && viewportHeight
+          ? ({
+              "--chat-viewport-h": `calc(${viewportHeight}px - 3.5rem)`,
+            } as CSSProperties)
+          : undefined
+      }
     >
       <MessageScrollerProvider
         autoScroll
@@ -186,19 +247,13 @@ export function ChatPanel() {
             <MessageScrollerContent className="mx-auto w-full max-w-[832px] px-5 py-6 sm:px-8">
               {messages.length === 0 ? (
                 <div className="grid flex-1 place-items-center">
-                  <div className="max-w-md text-center transition-opacity duration-500 ease-out starting:opacity-0">
-                    <h2 className="font-semibold text-foreground text-lg">
-                      Ask the docs
-                    </h2>
-                    <p className="mt-2 text-balance text-muted-foreground text-sm">
-                      Answers come straight from this knowledge base, with links
-                      to the pages they were found on.
-                    </p>
-                    <ul className="mt-6 grid justify-items-center gap-2">
-                      {EXAMPLE_QUESTIONS.map((question) => (
+                  <div className="max-w-md text-center transition-opacity duration-500 ease-in-out starting:opacity-0">
+                    <ChatWelcome heading={heading} intro={intro} />
+                    <ul className="mx-auto mt-6 grid w-full max-w-sm gap-2">
+                      {suggestedQuestions.map((question) => (
                         <li key={question}>
                           <button
-                            className={`text-center ${QUESTION_PILL}`}
+                            className={`w-full text-center ${QUESTION_PILL}`}
                             onClick={() => askQuestion(question)}
                             type="button"
                           >
@@ -233,7 +288,7 @@ export function ChatPanel() {
               {status === "error" ? (
                 <MessageScrollerItem messageId="error">
                   <p
-                    className="text-destructive text-sm transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0"
+                    className="text-base text-destructive transition-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0 sm:text-sm"
                     data-error-code={errorCode}
                     role="alert"
                   >
@@ -243,7 +298,7 @@ export function ChatPanel() {
               ) : null}
             </MessageScrollerContent>
           </MessageScrollerViewport>
-          <MessageScrollerButton className="rounded-full" />
+          <MessageScrollerButton />
         </MessageScroller>
       </MessageScrollerProvider>
       <output aria-live="polite" className="sr-only">
@@ -268,6 +323,7 @@ export function ChatPanel() {
         ) : null}
         <ChatComposer
           input={input}
+          placeholder={placeholder}
           onInputChange={(value) => {
             setInput(value);
             if (value.trim()) {

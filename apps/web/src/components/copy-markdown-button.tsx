@@ -49,7 +49,7 @@ export function CopyMarkdownButton({
     <button
       aria-label={LABELS.idle}
       className={cn(
-        "-mr-2 focus-ring inline-flex min-h-10 items-center gap-2 px-2 uppercase font-light font-mono text-muted-foreground text-sm leading-5 tracking-[0.24px] transition-colors duration-150 ease-out hover:text-foreground motion-reduce:transition-none",
+        "focus-ring inline-flex h-11 shrink-0 items-center gap-2 border border-border px-3 text-base text-muted-foreground sm:h-9 sm:text-sm transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground motion-reduce:transition-none",
         COPY_STATUS_CLASS[status],
         className
       )}
@@ -58,10 +58,10 @@ export function CopyMarkdownButton({
     >
       <span
         aria-hidden="true"
-        className="grid size-4.5 flex-none place-items-center"
+        className="grid size-4 flex-none place-items-center"
       >
         <StatusIcon
-          className={cn("size-4.5", status === "loading" && "animate-spin")}
+          className={cn("size-4", status === "loading" && "animate-spin")}
         />
       </span>
       <span className="grid text-left">

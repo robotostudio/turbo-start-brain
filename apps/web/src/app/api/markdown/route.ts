@@ -1,5 +1,6 @@
 import { Logger } from "@workspace/logger";
 import {
+  DRAFTS_WITHOUT_SESSION,
   type DynamicFetchOptions,
   getDynamicFetchOptions,
   sanityFetch,
@@ -33,7 +34,7 @@ async function buildMarkdown(
 
 async function resolveFetchOptions(): Promise<DynamicFetchOptions> {
   const { isEnabled } = await draftMode();
-  return isEnabled
+  return isEnabled || DRAFTS_WITHOUT_SESSION
     ? { ...(await getDynamicFetchOptions()), stega: false }
     : PUBLISHED;
 }

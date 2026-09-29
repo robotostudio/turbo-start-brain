@@ -81,14 +81,6 @@ export async function getDynamicFetchOptions(): Promise<DynamicFetchOptions> {
   return { perspective: perspective ?? "drafts", stega: true };
 }
 
-/**
- * Perspective/stega for a page route's inner (post-Suspense) component. Must be
- * called outside any `'use cache'` boundary (reads draftMode).
- */
-export async function resolvePageFetchOptions(): Promise<DynamicFetchOptions> {
-  return getDynamicFetchOptions();
-}
-
 /** For usage within `generateStaticParams` only. */
 export async function sanityFetchStaticParams<
   const QueryString extends string,

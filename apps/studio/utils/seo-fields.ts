@@ -44,12 +44,4 @@ export const seoFields = [
     initialValue: () => false,
     group: GROUP.SEO,
   }),
-  defineField({
-    name: "seoHideFromLists",
-    type: "boolean",
-    title: "Hide From Lists",
-    description: "If checked, this content won't appear in any list pages.",
-    initialValue: () => false,
-    group: GROUP.SEO,
-  }),
 ];

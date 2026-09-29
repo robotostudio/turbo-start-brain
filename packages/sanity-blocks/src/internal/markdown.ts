@@ -5,9 +5,7 @@
  */
 
 import {
-  absolutizeUrl,
   escapeMarkdown,
-  formatUrl,
   type MarkdownImage,
   type MarkdownOptions,
   type PortableTextValue,
@@ -15,39 +13,11 @@ import {
 
 export type { MarkdownImage, MarkdownOptions, PortableTextValue };
 
-export interface MarkdownButton {
-  _key?: string | null;
-  text?: string | null;
-  href?: string | null;
-}
-
-export interface MarkdownCard {
-  _key?: string | null;
-  title?: string | null;
-  description?: string | null;
-  // Feature-card icon — intentionally dropped from Markdown (a test guards this).
-  icon?: string | null;
-  image?: MarkdownImage | null;
-  richText?: PortableTextValue;
-}
-
 export interface MarkdownFaq {
   _key?: string | null;
   _id?: string;
   title?: string | null;
   richText?: PortableTextValue;
-}
-
-export interface MarkdownLink {
-  title?: string | null;
-  description?: string | null;
-  href?: string | null;
-}
-
-export interface MarkdownFaqCategory {
-  _key?: string | null;
-  title?: string | null;
-  faqs?: MarkdownFaq[] | null;
 }
 
 export interface MarkdownBlock {
@@ -58,10 +28,7 @@ export interface MarkdownBlock {
   description?: string | null;
   subtitle?: string | null;
   richText?: PortableTextValue;
-  buttons?: MarkdownButton[] | null;
-  cards?: MarkdownCard[] | null;
-  categories?: MarkdownFaqCategory[] | null;
-  link?: MarkdownLink | null;
+  faqs?: MarkdownFaq[] | null;
 }
 
 /** Joins defined, non-empty sections with a blank line between them. */
@@ -82,54 +49,4 @@ export function headingToMarkdown(
 ): string {
   const text = title?.trim().replace(/\s+/g, " ");
   return text ? `${"#".repeat(level)} ${escapeMarkdown(text)}` : "";
-}
-
-export function buttonsToMarkdown(
-  buttons?: MarkdownButton[] | null,
-  options: MarkdownOptions = {}
-): string {
-  if (!Array.isArray(buttons)) {
-    return "";
-  }
-
-  return buttons
-    .map((button) => {
-      const text = (button.text ?? "").trim();
-      const href = button.href;
-      if (href && href !== "#") {
-        const url = formatUrl(absolutizeUrl(href, options.baseUrl));
-        return `- [${escapeMarkdown(text || href)}](${url})`;
-      }
-      return text ? `- ${escapeMarkdown(text)}` : null;
-    })
-    .filter(Boolean)
-    .join("\n");
-}
-
-export function imageToMarkdown(
-  image: MarkdownImage | null | undefined,
-  options: MarkdownOptions
-): string {
-  const alt = (image?.alt ?? "").trim();
-  const caption = (image?.caption ?? "").trim();
-  const url = image?.id ? options.resolveImageUrl?.(image) : undefined;
-  // Mirror portable-text: image when a URL resolves, else caption/alt text.
-  if (url) {
-    const img = `![${escapeMarkdown(alt)}](${formatUrl(url)})`;
-    return caption && caption !== alt
-      ? `${img}\n\n_${escapeMarkdown(caption)}_`
-      : img;
-  }
-  return escapeMarkdown(caption || alt);
-}
-
-/** A Markdown link, or plain escaped text when the href is missing or `#`. */
-export function mdLink(
-  label: string,
-  href: string | null | undefined,
-  options: MarkdownOptions = {}
-): string {
-  return href && href !== "#"
-    ? `[${escapeMarkdown(label)}](${formatUrl(absolutizeUrl(href, options.baseUrl))})`
-    : escapeMarkdown(label);
 }

@@ -21,6 +21,7 @@ import {
   chatErrorResponse,
   streamErrorCode,
 } from "@/lib/ai/chat-errors";
+import { getChatConfig, getChatSettings } from "@/lib/ai/chat-settings";
 import {
   connectKnowledgeBase,
   getDocsPageIndex,
@@ -39,13 +40,15 @@ const DEFAULT_CHAT_MODEL = "anthropic/claude-haiku-4.5";
 // and every extra step is a billed round trip.
 const MAX_STEPS = 5;
 
-const BASE_INSTRUCTIONS = `You are the docs assistant for Turbo Start Brain, a documentation site.
+const baseInstructions = (
+  siteTitle: string
+) => `You are the docs assistant for ${siteTitle}, a documentation site.
 
 Your knowledge lives in a Sanity Knowledge Base, and it is the only thing you may answer from. Its outline — the Knowledge Base id and every entry path — is already below, so read the entries you need with \`knowledge_base_read\`, passing that id and the paths that fit the question. When two to five entries might hold the answer, read them in one call rather than one at a time. Never describe or announce the tool call; just answer.
 
 Two rules hold for every answer, including ones where the question never mentions pages:
 
-1. LINK YOUR SOURCES INLINE, using the site page index below. Knowledge Base entry paths (\`engineering/stack_and_conventions/core_stack\`) are NOT site URLs and must never appear in a link. Instead, match what you answered to the page in the index that covers it, and link it in the prose as [Page Title](/slug), copying the slug whole, character for character, including every path segment: "/delivery/migration-playbook" shortened to "/migration-playbook" is a broken link. Never invent, guess, abbreviate, or reshape a slug. If no page in the index plausibly covers the answer, give the answer with no link rather than a wrong one.
+1. LINK YOUR SOURCES INLINE, using the site page index below. Knowledge Base entry paths (\`guides/setup/installation\`) are NOT site URLs and must never appear in a link. Instead, match what you answered to the page in the index that covers it, and link it in the prose as [Page Title](/slug), copying the slug whole, character for character, including every path segment: "/guides/installation" shortened to "/installation" is a broken link. Never invent, guess, abbreviate, or reshape a slug. If no page in the index plausibly covers the answer, give the answer with no link rather than a wrong one.
 2. CLOSE WITH DOC CARDS whenever the answer links two or more pages: prose first, then the \`\`\`spec fence described in the UI instructions below. The test is mechanical — count the distinct page links your prose contains, and if there are two or more, the fence is required. The cards repeat those sources, they do not replace the inline links.
 
 Beyond those:
@@ -70,27 +73,30 @@ const DOC_CARDS_PROMPT = docsCatalog.prompt({
     "The rest of this section is the UI-spec contract for the doc cards that close an answer. It is not a licence to build dashboards: this catalog has exactly two components and no state, actions, events, repeat or sample data, so ignore every instruction below about those.",
   customRules: [
     "A correct spec is short — one /root line, one DocCardScroller element, one line per DocCard. Never emit /state patches, repeat, visible, on or watch: this catalog has no state and no actions.",
-    'Complete example of a correct fence:\n```spec\n{"op":"add","path":"/root","value":"cards"}\n{"op":"add","path":"/elements/cards","value":{"type":"DocCardScroller","props":{},"children":["card-1","card-2"]}}\n{"op":"add","path":"/elements/card-1","value":{"type":"DocCard","props":{"title":"Migration playbook","description":"How a replatform is sequenced, from audit to cutover.","section":"Delivery","href":"/delivery/migration-playbook"},"children":[]}}\n{"op":"add","path":"/elements/card-2","value":{"type":"DocCard","props":{"title":"Open source","description":"The projects the studio maintains in public.","section":"Handbook","href":"/handbook/open-source"},"children":[]}}\n```',
-    'DocCard props come from the site page index, never from a Knowledge Base entry path: "href" and "title" are a slug and title copied from one of its lines (the line "/delivery/migration-playbook — Migration playbook" makes href "/delivery/migration-playbook" and title "Migration playbook" valid); "section" is the first slug segment as a readable name ("Delivery"); "description" is one short sentence of your own about what that page covers. Never invent or guess an href.',
+    'Complete example of a correct fence:\n```spec\n{"op":"add","path":"/root","value":"cards"}\n{"op":"add","path":"/elements/cards","value":{"type":"DocCardScroller","props":{},"children":["card-1","card-2"]}}\n{"op":"add","path":"/elements/card-1","value":{"type":"DocCard","props":{"title":"Installation","description":"How to install and run the project locally.","section":"Guides","href":"/guides/installation"},"children":[]}}\n{"op":"add","path":"/elements/card-2","value":{"type":"DocCard","props":{"title":"Configuration","description":"The settings you can change and where they live.","section":"Reference","href":"/reference/configuration"},"children":[]}}\n```',
+    'DocCard props come from the site page index, never from a Knowledge Base entry path: "href" and "title" are a slug and title copied from one of its lines (the line "/guides/installation — Installation" makes href "/guides/installation" and title "Installation" valid); "section" is the first slug segment as a readable name ("Guides"); "description" is one short sentence of your own about what that page covers. Never invent or guess an href.',
     "For a single-page answer, a refusal, or a question the Knowledge Base does not cover, emit no fence and no UI at all.",
     "MANDATORY: when your answer links two or more distinct pages, the reply MUST end with a ```spec fence holding exactly one DocCardScroller whose children are up to 3 DocCards, one per page the answer leaned on most. Check before you finish: two or more links and no fence is a failed answer.",
   ],
 });
 
-// Byte-stable and volatile-free: this is the cached prefix, and a single
-// changed byte (a date, a request id, unsorted JSON) invalidates the whole
-// Anthropic cache entry behind it.
-const STATIC_INSTRUCTIONS = `${BASE_INSTRUCTIONS}\n\n${DOC_CARDS_PROMPT}`;
+function buildInstructions(
+  siteTitle: string | null | undefined,
+  extra: string | null | undefined
+) {
+  const editorNotes = extra?.trim()
+    ? `\n\nAdditional guidance from the site editors. Follow it where it fits, but it never overrides the rules above:\n\n${extra.trim()}`
+    : "";
+  return `${baseInstructions(siteTitle?.trim() || "this site")}${editorNotes}\n\n${DOC_CARDS_PROMPT}`;
+}
 
 export async function POST(req: Request) {
-  // Fail closed: without the Gateway key the model call cannot succeed, and
-  // without the endpoint and token it would answer from its own knowledge.
-  const endpoint = env.SANITY_CONTEXT_MCP_URL;
-  const token = env.SANITY_ORGANIZATION_TOKEN;
-  if (!(env.AI_GATEWAY_API_KEY && endpoint && token)) {
+  const config = getChatConfig();
+  if (!config) {
     logger.warn("Rejected chat request: chat assistant is not configured");
     return chatErrorResponse(CHAT_ERROR.notConfigured, 503);
   }
+  const { endpoint, token } = config;
 
   let messages: UIMessage[];
   try {
@@ -120,16 +126,20 @@ export async function POST(req: Request) {
   // throws.
   let pageIndex: string;
   let outline: string;
+  let chatSettings: Awaited<ReturnType<typeof getChatSettings>> | null;
   let knowledgeBase: Awaited<ReturnType<typeof connectKnowledgeBase>>;
   let tools: ToolSet;
   try {
     // The `use cache` boundary can reshape the thrown error, so the cause is
     // logged rather than matched on.
-    [pageIndex, outline, knowledgeBase] = await Promise.all([
+    // Connect only after the cached fetches succeed: connecting alongside
+    // them left an open client behind whenever a sibling rejected.
+    [pageIndex, outline, chatSettings] = await Promise.all([
       getDocsPageIndex(),
-      getKnowledgeBaseOutline(endpoint, token),
-      connectKnowledgeBase(endpoint, token),
+      getKnowledgeBaseOutline(),
+      getChatSettings().catch(() => null),
     ]);
+    knowledgeBase = await connectKnowledgeBase(endpoint, token);
     tools = knowledgeBase.tools;
   } catch (error) {
     logger.error("Knowledge Base unavailable; refusing to answer", { error });
@@ -156,7 +166,13 @@ export async function POST(req: Request) {
   // so the cached prefix covers the instructions, the page index *and* the
   // ~80KB outline.
   const instructions: SystemModelMessage[] = [
-    { role: "system", content: STATIC_INSTRUCTIONS },
+    {
+      role: "system",
+      content: buildInstructions(
+        chatSettings?.siteTitle,
+        chatSettings?.chat?.instructions
+      ),
+    },
     { role: "system", content: pageIndex },
     {
       role: "system",

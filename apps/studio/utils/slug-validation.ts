@@ -12,7 +12,7 @@ type SlugValidationResult = {
   warnings: string[];
 };
 
-export interface SlugValidationOptions {
+interface SlugValidationOptions {
   /** Human-readable doc type name for error messages */
   documentType?: string;
   /** Require leading slash */

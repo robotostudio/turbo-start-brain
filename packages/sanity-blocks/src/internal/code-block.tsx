@@ -1,4 +1,15 @@
+import { Logger } from "@workspace/logger";
+import { type CSSProperties, Fragment } from "react";
+import {
+  type BundledLanguage,
+  createHighlighter,
+  type Highlighter,
+  type ThemedToken,
+} from "shiki";
+
 import { CopyButton } from "./copy-button";
+
+const logger = new Logger("CodeBlock");
 
 // Short label shown in the language tile.
 const BADGE_MAP: Record<string, string> = {
@@ -9,15 +20,63 @@ const BADGE_MAP: Record<string, string> = {
   bash: "SH",
   json: "{ }",
   css: "CSS",
+  html: "HTML",
+  python: "PY",
+  yaml: "YML",
+  sql: "SQL",
+  diff: "DIFF",
+  markdown: "MD",
 };
 
-export interface CodeBlockValue {
+const HIGHLIGHTED = new Set<string>([
+  "ts",
+  "tsx",
+  "js",
+  "bash",
+  "json",
+  "css",
+  "html",
+  "python",
+  "yaml",
+  "sql",
+  "diff",
+  "markdown",
+]);
+
+let highlighter: Promise<Highlighter> | undefined;
+
+// Cached: prerender rejects Shiki's clock reads. Throws so failures aren't cached.
+async function highlight(
+  code: string,
+  language?: string | null
+): Promise<ThemedToken[][] | null> {
+  "use cache";
+  if (!(language && HIGHLIGHTED.has(language))) {
+    return null;
+  }
+  highlighter ??= createHighlighter({
+    themes: ["github-light", "github-dark"],
+    langs: [...HIGHLIGHTED] as BundledLanguage[],
+  });
+  try {
+    return (await highlighter).codeToTokens(code, {
+      lang: language as BundledLanguage,
+      themes: { light: "github-light", dark: "github-dark" },
+      defaultColor: false,
+    }).tokens;
+  } catch (error) {
+    highlighter = undefined;
+    throw error;
+  }
+}
+
+interface CodeBlockValue {
   code?: string | null;
   language?: string | null;
   filename?: string | null;
 }
 
-export function CodeBlock({
+export async function CodeBlock({
   code,
   language,
   filename,
@@ -27,18 +86,22 @@ export function CodeBlock({
   }
 
   const badge = (language && BADGE_MAP[language]) || "TXT";
+  const lines = await highlight(code, language).catch((error: unknown) => {
+    logger.warn("Code highlighting failed; rendering plain text", error);
+    return null;
+  });
 
   // Line numbers are rendered as a fixed gutter column beside the scrolling
   // code, so they stay put during horizontal scroll and are excluded from copy.
   const lineCount = code.replace(/\n$/, "").split("\n").length;
 
   return (
-    <figure className="not-prose relative my-6 overflow-hidden rounded-xl border border-border bg-background">
+    <figure className="not-prose relative my-8 overflow-hidden border border-border bg-background">
       {filename ? (
         <div className="flex items-center gap-2 border-border border-b bg-muted px-3 py-1.5">
           <span
             aria-hidden="true"
-            className="grid h-5 min-w-5 place-items-center rounded-md border border-border bg-background px-1 font-mono font-semibold text-[0.625rem] text-muted-foreground uppercase"
+            className="grid h-5 min-w-5 place-items-center border border-border bg-background px-1 font-mono font-semibold text-micro text-muted-foreground uppercase"
           >
             {badge}
           </span>
@@ -50,7 +113,7 @@ export function CodeBlock({
       ) : (
         <div className="absolute top-2 right-2 z-10">
           <CopyButton
-            className="rounded-md border border-border bg-background/80 p-1.5 backdrop-blur-sm"
+            className="border border-border bg-background/80 p-1.5 backdrop-blur-sm"
             code={code}
           />
         </div>
@@ -65,7 +128,23 @@ export function CodeBlock({
             keyboard-focusable on their own, so arrow keys can still pan a long
             line into view (WCAG 2.1.1). */}
         <pre className="rich-code-pre overflow-x-auto font-mono">
-          <code className="font-mono">{code}</code>
+          <code className="font-mono">
+            {lines
+              ? lines.map((line, lineIndex) => (
+                  <Fragment key={lineIndex}>
+                    {line.map((token, tokenIndex) => (
+                      <span
+                        key={tokenIndex}
+                        style={token.htmlStyle as CSSProperties}
+                      >
+                        {token.content}
+                      </span>
+                    ))}
+                    {lineIndex < lines.length - 1 ? "\n" : null}
+                  </Fragment>
+                ))
+              : code}
+          </code>
         </pre>
       </div>
     </figure>

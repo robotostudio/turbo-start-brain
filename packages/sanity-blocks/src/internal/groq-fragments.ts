@@ -1,4 +1,4 @@
-export const imageFields = /* groq */ `
+const imageFields = /* groq */ `
   "id": asset._ref,
   "preview": asset->metadata.lqip,
   "alt": coalesce(
@@ -20,12 +20,6 @@ export const imageFields = /* groq */ `
   }
 `;
 
-export const imageFragment = /* groq */ `
-  image {
-    ${imageFields}
-  }
-`;
-
 const customLinkFragment = /* groq */ `
   ...customLink{
     openInNewTab,
@@ -37,7 +31,7 @@ const customLinkFragment = /* groq */ `
   }
 `;
 
-export const markDefsFragment = /* groq */ `
+const markDefsFragment = /* groq */ `
   markDefs[]{
     ...,
     ${customLinkFragment}
@@ -56,28 +50,4 @@ export const richTextFragment = /* groq */ `
       "caption": caption
     }
   }
-`;
-
-export const buttonsFragment = /* groq */ `
-  buttons[]{
-    text,
-    variant,
-    _key,
-    _type,
-    "openInNewTab": url.openInNewTab,
-    "href": select(
-      url.type == "internal" => url.internal->slug.current,
-      url.type == "external" => url.external,
-      url.href
-    ),
-  }
-`;
-
-export const urlFragment = /* groq */ `
-  "openInNewTab": url.openInNewTab,
-  "href": select(
-    url.type == "internal" => url.internal->slug.current,
-    url.type == "external" => url.external,
-    url.href
-  )
 `;

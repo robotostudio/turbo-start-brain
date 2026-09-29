@@ -1,12 +1,15 @@
 import { TocClerk } from "@/components/elements/toc-clerk";
+import { hasTocHeadings } from "@/lib/toc";
 import type { SanityRichTextProps } from "@/types";
 
-export function DocsToc({
-  body,
-}: Readonly<{ body?: SanityRichTextProps; title?: string | null }>) {
+export const TOC_MAX_DEPTH = 3;
+
+export function DocsToc({ body }: Readonly<{ body?: SanityRichTextProps }>) {
   return (
-    <div className="sticky top-20 hidden max-h-[calc(100dvh-6rem)] w-56 max-w-full overflow-y-auto xl:block 3xl:col-start-3">
-      <TocClerk maxDepth={3} richText={body} />
+    <div className="sticky top-10 hidden max-h-[calc(100dvh-5rem)] w-56 max-w-full overflow-y-auto xl:block 3xl:col-start-3">
+      {hasTocHeadings(body, TOC_MAX_DEPTH) ? (
+        <TocClerk maxDepth={TOC_MAX_DEPTH} richText={body} />
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 "use client";
-
 import {
   JSONUIProvider,
   Renderer,
@@ -9,7 +8,10 @@ import { MessageResponse } from "@workspace/ui/components/ai-response";
 import { Bubble, BubbleContent } from "@workspace/ui/components/bubble";
 import { Message, MessageContent } from "@workspace/ui/components/message";
 import type { UIMessage } from "ai";
+import Link from "next/link";
+import type { ComponentProps } from "react";
 
+import { closeAskAi } from "@/lib/ai/ask-ai-events";
 import { registry } from "@/lib/ai/registry";
 
 // Streamdown security hardening: only same-origin (relative) links and images
@@ -26,11 +28,30 @@ function sameOriginUrlTransform(url: string): string | null {
   return null;
 }
 
+function ChatLink({ href, children }: ComponentProps<"a">) {
+  if (!href) {
+    return <>{children}</>;
+  }
+  return (
+    <Link
+      className="font-medium underline decoration-from-font [text-underline-position:from-font]"
+      href={href}
+      onClick={closeAskAi}
+      prefetch={false}
+    >
+      {children}
+    </Link>
+  );
+}
+
+const CHAT_COMPONENTS = { a: ChatLink };
+const NO_LINK_SAFETY = { enabled: false };
+
 // Entry animation: fade + rise via @starting-style (interruptible CSS
 // transition, transform/opacity only). Motion is dropped under
 // prefers-reduced-motion; the fade stays.
 const MESSAGE_ENTER =
-  "transition-[opacity,translate] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
+  "transition-[opacity,translate] duration-300 ease-(--ease-smooth-out) starting:translate-y-2 starting:opacity-0 motion-reduce:starting:translate-y-0";
 
 export function ChatMessage({
   message,
@@ -49,9 +70,7 @@ export function ChatMessage({
       <Message align="end" className={MESSAGE_ENTER}>
         <MessageContent>
           <Bubble align="end" variant="default">
-            <BubbleContent className="rounded-[20px] px-4">
-              {text}
-            </BubbleContent>
+            <BubbleContent className="px-4">{text}</BubbleContent>
           </Bubble>
         </MessageContent>
       </Message>
@@ -65,7 +84,9 @@ export function ChatMessage({
           <BubbleContent>
             {text ? (
               <MessageResponse
+                components={CHAT_COMPONENTS}
                 isAnimating={isAnimating}
+                linkSafety={NO_LINK_SAFETY}
                 urlTransform={sameOriginUrlTransform}
               >
                 {text}

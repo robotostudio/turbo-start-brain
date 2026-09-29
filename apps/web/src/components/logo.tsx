@@ -26,7 +26,7 @@ export function Logo({
     return (
       <Link
         className={cn(
-          "focus-ring inline-block rounded-none font-semibold text-lg",
+          "focus-ring inline-block font-semibold text-lg",
           linkClassName
         )}
         href="/"
@@ -39,10 +39,7 @@ export function Logo({
   const loading = priority ? "eager" : "lazy";
 
   return (
-    <Link
-      className={cn("focus-ring inline-block rounded-none", linkClassName)}
-      href="/"
-    >
+    <Link className={cn("focus-ring inline-block", linkClassName)} href="/">
       {imageDark?.id ? (
         <>
           <SanityImage
@@ -67,7 +64,7 @@ export function Logo({
            against the dark ground. Give it a light plaque to sit on rather
            than a CSS `invert`, which mangles any logo that isn't monochrome.
            The real fix is uploading a `logoDark` in Studio. */
-        <span className="inline-block rounded-md dark:bg-foreground dark:px-2 dark:py-1">
+        <span className="inline-block dark:bg-foreground dark:px-2 dark:py-1">
           <SanityImage
             className={cn("h-auto w-44", className)}
             height={32}

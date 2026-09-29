@@ -1,6 +1,7 @@
 {
   "name": "@workspace/sanity",
   "version": "0.0.1",
+  "license": "MIT",
   "type": "module",
   "private": true,
   "scripts": {
@@ -15,14 +16,13 @@
     "@sanity/image-url": "^2.1.1",
     "@workspace/env": "workspace:*",
     "@workspace/sanity-blocks": "workspace:*",
-    "next-sanity": "13.1.0",
-    "react-is": "catalog:"
+    "next-sanity": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@workspace/typescript-config": "workspace:*",
-    "next": "16.2.9",
+    "next": "catalog:",
     "typescript": "catalog:"
   },
   "exports": {

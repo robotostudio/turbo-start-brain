@@ -37,9 +37,9 @@ test("callout renders its body and variant styling, unknown variant falls back t
 
   const html = renderToStaticMarkup(<RichText richText={value} />);
   expect(html).toMatch(/Mind the gap\./);
-  expect(html).toMatch(/border-warning\/40/);
+  expect(html).toMatch(/border-warning bg-warning-surface/);
   expect(html).toMatch(/Neutral note\./);
-  expect(html).toMatch(/border-info\/35/);
+  expect(html).toMatch(/border-info bg-info-surface/);
 });
 
 test("steps renders a numbered list of titled sections", () => {

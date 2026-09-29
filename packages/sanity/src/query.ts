@@ -1,5 +1,4 @@
 import { faqAccordionGroqProjection } from "@workspace/sanity-blocks/faq-accordion/faq-accordion.groq";
-import { featureCardsIconGroqProjection } from "@workspace/sanity-blocks/feature-cards-icon/feature-cards-icon.groq";
 import { richTextBlockGroqProjection } from "@workspace/sanity-blocks/rich-text-block/rich-text-block.groq";
 import { defineQuery } from "next-sanity";
 
@@ -55,40 +54,29 @@ const nestedPortableTextFragment = /* groq */ `
   }
 `;
 
-const portableTextFragment = /* groq */ `
-  ${nestedPortableTextFragment},
+const calloutFragment = /* groq */ `
   _type == "callout" => {
     ...,
     body[]{${nestedPortableTextFragment}}
-  },
+  }
+`;
+
+const portableTextFragment = /* groq */ `
+  ${nestedPortableTextFragment},
+  ${calloutFragment},
   _type == "steps" => {
     ...,
     items[]{
       ...,
-      content[]{${nestedPortableTextFragment}}
+      content[]{${nestedPortableTextFragment}, ${calloutFragment}}
     }
   },
   _type == "tabs" => {
     ...,
     items[]{
       ...,
-      content[]{${nestedPortableTextFragment}}
+      content[]{${nestedPortableTextFragment}, ${calloutFragment}}
     }
-  }
-`;
-
-const buttonsFragment = /* groq */ `
-  buttons[]{
-    text,
-    variant,
-    _key,
-    _type,
-    "openInNewTab": url.openInNewTab,
-    "href": select(
-      url.type == "internal" => url.internal->slug.current,
-      url.type == "external" => url.external,
-      url.href
-    ),
   }
 `;
 
@@ -100,7 +88,6 @@ const pageBuilderFragment = /* groq */ `
     ...,
     _type,
     ${faqAccordionGroqProjection},
-    ${featureCardsIconGroqProjection},
     ${richTextBlockGroqProjection}
   }
 `;
@@ -158,51 +145,27 @@ export const queryDocsTree = defineQuery(`
   }
 `);
 
+export const queryFeaturedDocs = defineQuery(`
+  *[_type == "docsIndex" && _id == "docsIndex"][0].featuredLinks[]->{
+    title,
+    "slug": slug.current
+  }
+`);
+
 export const querySearchDocs = defineQuery(`
   *[_type == "doc" && defined(slug.current) && hidden != true]{
     _id,
     title,
     description,
     "slug": slug.current,
-    "content": pt::text(body)
-  }
-`);
-
-export const queryNavbarData = defineQuery(`
-  *[_type == "navbar" && _id == "navbar"][0]{
-    _id,
-    columns[]{
-      _key,
-      _type == "navbarColumn" => {
-        "type": "column",
-        title,
-        links[]{
-          _key,
-          name,
-          icon,
-          description,
-          "openInNewTab": url.openInNewTab,
-          "href": select(
-            url.type == "internal" => url.internal->slug.current,
-            url.type == "external" => url.external,
-            url.href
-          )
-        }
-      },
-      _type == "navbarLink" => {
-        "type": "link",
-        name,
-        description,
-        "openInNewTab": url.openInNewTab,
-        "href": select(
-          url.type == "internal" => url.internal->slug.current,
-          url.type == "external" => url.external,
-          url.href
-        )
-      }
-    },
-    ${buttonsFragment},
-    gitHubUrl,
+    // pt::text only reads top-level blocks; callouts, steps and tabs nest theirs.
+    "content": array::join([
+      coalesce(pt::text(body), ""),
+      coalesce(pt::text(body[_type == "callout"].body[]), ""),
+      coalesce(array::join(body[_type in ["steps", "tabs"]].items[].title, " "), ""),
+      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[]), ""),
+      coalesce(pt::text(body[_type in ["steps", "tabs"]].items[].content[_type == "callout"].body[]), "")
+    ], " ")
   }
 `);
 
@@ -210,13 +173,15 @@ export const queryNavbarData = defineQuery(`
 // URL in the sitemap while its own robots tag says noindex is a contradiction
 // search engines report as an error.
 export const querySitemapData = defineQuery(`{
+  "homeModified": *[_type == "docsIndex" && _id == "docsIndex"][0]._updatedAt,
   "docs": *[_type == "doc" && defined(slug.current) && seoNoIndex != true]{
     "slug": slug.current,
+    title,
     "lastModified": _updatedAt
   }
 }`);
 export const queryGlobalSeoSettings = defineQuery(`
-  *[_type == "settings"][0]{
+  *[_type == "settings" && _id == "settings"][0]{
     _id,
     _type,
     siteTitle,
@@ -229,6 +194,7 @@ export const queryGlobalSeoSettings = defineQuery(`
       },
     },
     "ogImage": ogImage.asset->url + "?w=1200&h=630&dpr=2&fit=max",
+    "favicon": logos.favicon.asset->url,
     siteDescription,
     socialLinks{
       linkedin,
@@ -242,7 +208,7 @@ export const queryGlobalSeoSettings = defineQuery(`
 `);
 
 export const querySettingsData = defineQuery(`
-  *[_type == "settings"][0]{
+  *[_type == "settings" && _id == "settings"][0]{
     _id,
     _type,
     siteTitle,
@@ -252,6 +218,18 @@ export const querySettingsData = defineQuery(`
     "contactEmail": contactEmail,
   }
 `);
+
+export const queryChatSettings = defineQuery(`{
+  "siteTitle": *[_type == "settings" && _id == "settings"][0].siteTitle,
+  "chat": *[_type == "chat" && _id == "chat"][0]{
+    label,
+    heading,
+    intro,
+    placeholder,
+    suggestedQuestions,
+    instructions
+  }
+}`);
 
 export const queryRedirects = defineQuery(`
   *[_type == "redirect" && status == "active" && defined(source.current) && defined(destination.current)]{

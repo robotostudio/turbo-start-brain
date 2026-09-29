@@ -1,5 +1,6 @@
 {
   "name": "auto-redirect",
+  "license": "MIT",
   "type": "module",
   "main": "index.ts",
   "dependencies": {

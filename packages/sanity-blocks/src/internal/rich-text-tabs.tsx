@@ -30,7 +30,7 @@ export function RichTextTabs({
       >
         {items.map((item) => (
           <Tabs.Tab
-            className="whitespace-nowrap border-transparent border-b-2 px-1 pt-1 pb-2.5 font-medium text-muted-foreground text-sm outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:border-primary data-active:text-foreground"
+            className="whitespace-nowrap border-transparent border-b-2 px-1 pt-1 pb-2.5 font-medium text-base text-muted-foreground outline-none sm:text-sm transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring data-active:border-primary data-active:text-foreground"
             key={item.key}
             value={item.key}
           >

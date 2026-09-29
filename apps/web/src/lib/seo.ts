@@ -11,7 +11,7 @@ import { capitalize, getBaseUrl } from "@/utils";
 type SiteConfig = {
   title: string;
   description: string;
-  twitterHandle: string;
+  twitterHandle?: string;
   keywords: string[];
   ogImage?: string | null;
 };
@@ -26,12 +26,12 @@ type PageSeoData = Metadata & {
   keywords?: string[];
   seoNoIndex?: boolean;
   pageType?: Extract<Metadata["openGraph"], { type: string }>["type"];
+  modifiedTime?: string;
 };
 
 const FALLBACK_SITE_CONFIG: SiteConfig = {
-  title: "Turbo Start Brain",
-  description: "Company knowledgebase built with Sanity and Next.js",
-  twitterHandle: "@studioroboto",
+  title: "Documentation",
+  description: "Documentation and knowledge base",
   keywords: ["docs", "knowledgebase", "documentation", "sanity", "next"],
 };
 
@@ -45,7 +45,7 @@ async function resolveSiteConfig(): Promise<SiteConfig> {
   return {
     title: settings?.siteTitle || FALLBACK_SITE_CONFIG.title,
     description: settings?.siteDescription || FALLBACK_SITE_CONFIG.description,
-    twitterHandle: twitter ? `@${twitter}` : FALLBACK_SITE_CONFIG.twitterHandle,
+    twitterHandle: twitter ? `@${twitter}` : undefined,
     keywords: FALLBACK_SITE_CONFIG.keywords,
     ogImage: settings?.ogImage ?? null,
   };
@@ -91,32 +91,28 @@ type SeoSourceDocument = {
   seoNoIndex?: boolean | null;
   _id?: string | null;
   _type?: string | null;
+  _updatedAt?: string | null;
 };
 
-/**
- * Maps a fetched Sanity document to page metadata, applying the shared
- * `title ?? seoTitle` / `description ?? seoDescription` fallback used by every
- * route's `generateMetadata`.
- */
 export function seoFromDocument(
   doc: SeoSourceDocument | null | undefined,
   { slug, pageType }: { slug: string; pageType?: PageSeoData["pageType"] }
 ): Promise<Metadata> {
+  const isArticle = pageType === "article";
   return getSEOMetadata({
-    title: doc?.title ?? doc?.seoTitle ?? undefined,
-    description: doc?.description ?? doc?.seoDescription ?? undefined,
+    title: doc?.seoTitle || doc?.title || undefined,
+    description: doc?.seoDescription || doc?.description || undefined,
     ogTitle: doc?.ogTitle,
     ogDescription: doc?.ogDescription,
     ogImage: doc?.ogImage,
     seoNoIndex: doc?.seoNoIndex ?? false,
     slug,
     pageType,
+    modifiedTime: isArticle ? (doc?._updatedAt ?? undefined) : undefined,
   });
 }
 
-export async function getSEOMetadata(
-  page: PageSeoData = {}
-): Promise<Metadata> {
+async function getSEOMetadata(page: PageSeoData = {}): Promise<Metadata> {
   const {
     title: pageTitle,
     description: pageDescription,
@@ -127,6 +123,7 @@ export async function getSEOMetadata(
     keywords: pageKeywords = [],
     seoNoIndex = false,
     pageType = "website",
+    modifiedTime,
     ...pageOverrides
   } = page;
 
@@ -177,12 +174,6 @@ export async function getSEOMetadata(
     metadataBase: new URL(baseUrl),
     creator: siteConfig.title,
     authors: [{ name: siteConfig.title }],
-    icons: {
-      icon: [
-        { url: `${baseUrl}/favicon.svg`, type: "image/svg+xml" },
-        { url: `${baseUrl}/favicon.ico`, sizes: "16x16 32x32 48x48" },
-      ],
-    },
     keywords: allKeywords,
     robots: seoNoIndex ? "noindex, nofollow" : "index, follow",
     twitter: {
@@ -199,6 +190,7 @@ export async function getSEOMetadata(
     openGraph: {
       type: pageType ?? "website",
       countryName: "UK",
+      ...(pageType === "article" && modifiedTime ? { modifiedTime } : {}),
       description: socialDescription,
       title: socialTitle,
       siteName: siteConfig.title,

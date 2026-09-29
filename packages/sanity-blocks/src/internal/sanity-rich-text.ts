@@ -32,13 +32,15 @@ const CODE_LANGUAGES = [
   { title: "Bash", value: "bash" },
   { title: "JSON", value: "json" },
   { title: "CSS", value: "css" },
+  { title: "HTML", value: "html" },
+  { title: "Python", value: "python" },
+  { title: "YAML", value: "yaml" },
+  { title: "SQL", value: "sql" },
+  { title: "Diff", value: "diff" },
+  { title: "Markdown", value: "markdown" },
+  { title: "Plain text", value: "text" },
 ];
 
-// Members that may appear at any nesting depth. Callout, steps and tabs
-// bodies reuse exactly this set (instead of the full `richText` type), so the
-// GROQ portable-text fragment only ever needs to project one level of
-// nesting — a callout inside a step can never smuggle in members the
-// nested projection doesn't resolve (links, videos).
 const baseRichTextMembers = [
   defineArrayMember({
     name: PORTABLE_TEXT_MEMBER_NAMES.block,
@@ -50,6 +52,7 @@ const baseRichTextMembers = [
       { title: "H4", value: "h4" },
       { title: "H5", value: "h5" },
       { title: "H6", value: "h6" },
+      { title: "Quote", value: "blockquote" },
       { title: "Inline", value: "inline" },
     ],
     lists: [
@@ -94,6 +97,13 @@ const baseRichTextMembers = [
         type: "string",
         title: "Alternative Text",
         description: "Describe the image for screen readers and search engines",
+        validation: (rule) =>
+          rule.custom((value, context) => {
+            const parent = context.parent as { asset?: unknown };
+            return parent?.asset && !value?.trim()
+              ? "Alt text is required when an image is set"
+              : true;
+          }),
       }),
       defineField({
         name: "caption",
@@ -166,31 +176,33 @@ const baseRichTextMembers = [
   }),
 ];
 
+const calloutMember = defineArrayMember({
+  name: PORTABLE_TEXT_MEMBER_NAMES.callout,
+  type: "object",
+  title: "Callout",
+  icon: BlockContentIcon,
+  fields: [
+    defineField({
+      name: "variant",
+      type: "string",
+      initialValue: "info",
+      options: {
+        list: ["info", "warning", "success", "danger"],
+        layout: "radio",
+      },
+    }),
+    defineField({
+      name: "body",
+      type: "array",
+      of: baseRichTextMembers,
+      validation: (rule) => rule.required(),
+    }),
+  ],
+});
+
 const richTextMembers = [
   ...baseRichTextMembers,
-  defineArrayMember({
-    name: PORTABLE_TEXT_MEMBER_NAMES.callout,
-    type: "object",
-    title: "Callout",
-    icon: BlockContentIcon,
-    fields: [
-      defineField({
-        name: "variant",
-        type: "string",
-        initialValue: "info",
-        options: {
-          list: ["info", "warning", "success", "danger"],
-          layout: "radio",
-        },
-      }),
-      defineField({
-        name: "body",
-        type: "array",
-        of: baseRichTextMembers,
-        validation: (rule) => rule.required(),
-      }),
-    ],
-  }),
+  calloutMember,
   defineArrayMember({
     name: PORTABLE_TEXT_MEMBER_NAMES.steps,
     type: "object",
@@ -214,7 +226,7 @@ const richTextMembers = [
               defineField({
                 name: "content",
                 type: "array",
-                of: baseRichTextMembers,
+                of: [...baseRichTextMembers, calloutMember],
                 validation: (rule) => rule.required(),
               }),
             ],
@@ -246,7 +258,7 @@ const richTextMembers = [
               defineField({
                 name: "content",
                 type: "array",
-                of: baseRichTextMembers,
+                of: [...baseRichTextMembers, calloutMember],
                 validation: (rule) => rule.required(),
               }),
             ],

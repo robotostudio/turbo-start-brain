@@ -27,84 +27,22 @@ export const faqAccordionSchema = defineType({
       description: "Additional context below the main title",
     }),
     defineField({
-      name: "link",
-      type: "object",
-      title: "Link",
-      description: "Optional link for additional content or actions",
-      fields: [
-        defineField({
-          name: "title",
-          type: "string",
-          title: "Link Title",
-          description: "The text to display for the link",
-        }),
-        defineField({
-          name: "description",
-          type: "string",
-          title: "Link Description",
-          description: "A brief description of where the link leads to",
-        }),
-        defineField({
-          name: "url",
-          type: "customUrl",
-          title: "URL",
-          description: "The destination URL for the link",
-        }),
-      ],
-    }),
-    defineField({
-      name: "categories",
+      name: "faqs",
       type: "array",
-      title: "Categories",
+      title: "FAQs",
       description:
-        "Groups of questions shown as a switchable list. The first category is shown by default; visitors click a category to reveal its questions.",
+        "Choose the questions and answers to show. Add them in the order you want visitors to see them.",
       of: [
         defineArrayMember({
-          name: "faqCategory",
-          type: "object",
-          title: "Category",
-          fields: [
-            defineField({
-              name: "title",
-              type: "string",
-              title: "Category Title",
-              description:
-                'The label shown in the left-hand category list (for example "Components" or "Pricing")',
-              validation: (Rule) => Rule.required(),
-            }),
-            defineField({
-              name: "faqs",
-              type: "array",
-              title: "FAQs",
-              description:
-                "Choose the questions and answers shown when this category is selected. Add them in the order you want visitors to see them.",
-              of: [
-                defineArrayMember({
-                  type: "reference",
-                  to: [{ type: "faq" }],
-                  // Weak so a category can reference draft/unpublished FAQ docs
-                  // without failing mutations or triggering a strength mismatch.
-                  weak: true,
-                  options: { disableNew: true },
-                }),
-              ],
-              validation: (Rule) => [Rule.required(), Rule.unique()],
-            }),
-          ],
-          preview: {
-            select: {
-              title: "title",
-              faqs: "faqs",
-            },
-            prepare: ({ title, faqs }) => ({
-              title: title ?? "Untitled category",
-              subtitle: `${faqs?.length ?? 0} FAQ${
-                faqs?.length === 1 ? "" : "s"
-              }`,
-            }),
-          },
+          type: "reference",
+          to: [{ type: "faq" }],
+          // Weak so the block can reference draft/unpublished FAQ docs
+          // without failing mutations or triggering a strength mismatch.
+          weak: true,
+          options: { disableNew: true },
         }),
       ],
+      validation: (Rule) => Rule.unique(),
     }),
   ],
   preview: {

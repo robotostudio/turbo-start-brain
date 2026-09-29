@@ -5,7 +5,10 @@ import {
   type DynamicFetchOptions,
   getDynamicFetchOptions,
   SanityLive,
+  sanityFetchMetadata,
 } from "@workspace/sanity/live";
+import { queryGlobalSeoSettings } from "@workspace/sanity/query";
+import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
@@ -14,16 +17,18 @@ import { preconnect, prefetchDNS } from "react-dom";
 
 import { revalidateSyncTags } from "@/app/actions/revalidate";
 import { DocsHeader } from "@/components/docs/docs-header";
+import { DocsSidebarFrame } from "@/components/docs/docs-sidebar";
 import {
-  DocsSidebar,
-  DocsSidebarFallback,
-} from "@/components/docs/docs-sidebar";
+  ExpandSidebarButton,
+  SIDEBAR_INIT_SCRIPT,
+} from "@/components/docs/sidebar-toggle";
 import { CombinedJsonLd } from "@/components/json-ld";
 import { PreviewBar } from "@/components/preview-bar";
 import { Providers } from "@/components/providers";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import { getChatConfig, getChatSettings } from "@/lib/ai/chat-settings";
 import { getDocsNavigation } from "@/lib/docs-tree";
-import { getNavigationData } from "@/lib/navigation";
+import { getFeaturedDocs, getSiteSettings } from "@/lib/site-settings";
 
 // The fallback stack is what the first frame renders under `font-display:
 // swap`, so it has to be the right family: next/font's default is a
@@ -47,7 +52,7 @@ const fontSans = Geist({
 // Visually hidden until focused: the first Tab on any page reaches it, and it
 // jumps past the header and the 60+ sidebar links to the content wrapper.
 const SKIP_LINK_CLASS =
-  "sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2.5 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-2 focus:outline-ring focus:outline-offset-2";
+  "sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:bg-background focus:px-4 focus:py-2.5 focus:font-medium focus:text-foreground focus:text-sm focus:shadow-lg focus:outline-2 focus:outline-ring focus:outline-offset-2";
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -57,6 +62,24 @@ const fontMono = Geist_Mono({
   fallback: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
 });
 
+export async function generateMetadata(): Promise<Metadata> {
+  const { perspective } = await getDynamicFetchOptions();
+  const { data } = await sanityFetchMetadata({
+    query: queryGlobalSeoSettings,
+    perspective,
+  });
+  return {
+    icons: data?.favicon
+      ? { icon: data.favicon }
+      : {
+          icon: [
+            { url: "/favicon.svg", type: "image/svg+xml" },
+            { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+          ],
+        },
+  };
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -64,9 +87,6 @@ export default async function RootLayout({
 }>) {
   preconnect("https://cdn.sanity.io");
   prefetchDNS("https://cdn.sanity.io");
-  // In local dev, navigation follows drafts too (like page content), so navbar
-  // and settings edits are visible without a Presentation session.
-  // Production stays static published.
   const showDrafts = DRAFTS_WITHOUT_SESSION;
   return (
     // motion-safe:scroll-smooth: in-page TOC anchors rely on native hash
@@ -79,6 +99,7 @@ export default async function RootLayout({
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
       >
+        <script dangerouslySetInnerHTML={{ __html: SIDEBAR_INIT_SCRIPT }} />
         <a className={SKIP_LINK_CLASS} href="#content">
           Skip to content
         </a>
@@ -165,20 +186,28 @@ async function CachedDocsShell({
   stega,
   children,
 }: DynamicFetchOptions & { children: React.ReactNode }) {
-  const { navbar, settings, tree } = await getDocsShellData({
+  const { chat, featured, settings, tree } = await getDocsShellData({
     perspective,
     stega,
   });
+  const askAiLabel = getChatConfig() ? chat?.label?.trim() || "Ask AI" : null;
 
   return (
-    <div className="min-h-dvh bg-background">
-      <DocsHeader navbar={navbar} settings={settings} tree={tree} />
-      <div className="grid grid-cols-1 lg:grid-cols-[17rem_minmax(0,1fr)]">
-        {/* usePathname() makes the sidebar URL-dependent; the fallback is the
-            same nav without the active row, so the shell still prerenders. */}
-        <Suspense fallback={<DocsSidebarFallback tree={tree} />}>
-          <DocsSidebar tree={tree} />
-        </Suspense>
+    <div className="grid min-h-dvh grid-cols-1 bg-background lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-1">
+      <DocsSidebarFrame
+        askAiLabel={askAiLabel}
+        settings={settings}
+        tree={tree}
+      />
+      <ExpandSidebarButton />
+      <div className="min-w-0">
+        <DocsHeader
+          askAiLabel={askAiLabel}
+          chat={chat}
+          featured={featured}
+          settings={settings}
+          tree={tree}
+        />
         <div className="min-w-0" id="content" tabIndex={-1}>
           {children}
         </div>
@@ -189,10 +218,27 @@ async function CachedDocsShell({
 
 async function getDocsShellData({ perspective, stega }: DynamicFetchOptions) {
   "use cache";
-  const [{ navbarData, settingsData }, tree] = await Promise.all([
-    getNavigationData({ perspective, stega }),
+  const [settingsData, tree, chatSettings, featured] = await Promise.all([
+    getSiteSettings({ perspective, stega }),
     getDocsNavigation({ perspective, stega }),
+    getChatSettings().catch(() => null),
+    getFeaturedDocs({ perspective, stega }),
   ]);
 
-  return { navbar: navbarData, settings: settingsData, tree };
+  // `instructions` is part of the system prompt; keep it off the client.
+  const chat = chatSettings?.chat;
+  return {
+    chat: chat
+      ? {
+          label: chat.label,
+          heading: chat.heading,
+          intro: chat.intro,
+          placeholder: chat.placeholder,
+          suggestedQuestions: chat.suggestedQuestions,
+        }
+      : null,
+    featured,
+    settings: settingsData,
+    tree,
+  };
 }

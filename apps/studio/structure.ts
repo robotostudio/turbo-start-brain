@@ -4,7 +4,6 @@ import {
   House,
   type LucideIcon,
   MessageCircle,
-  PanelTop,
   Settings2,
   TrendingUpDown,
 } from "lucide-react";
@@ -86,9 +85,9 @@ export const structure = (
             .items([
               createSingleTon({
                 S,
-                type: "navbar",
-                title: "Navigation",
-                icon: PanelTop,
+                type: "chat",
+                title: "Chat",
+                icon: MessageCircle,
               }),
               createSingleTon({
                 S,

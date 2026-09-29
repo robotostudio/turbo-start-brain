@@ -2,16 +2,16 @@
 
 import { cn } from "@workspace/tailwind-config/utils";
 import { cva, type VariantProps } from "class-variance-authority";
-import { ChevronRight } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import type * as React from "react";
 
 const sidebarItemVariants = cva(
-  "focus-ring flex min-h-8 w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+  "focus-ring relative flex min-h-9 w-full items-center max-lg:min-h-11 gap-2 px-2 py-1.5 text-left text-base sm:text-sm transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
   {
     variants: {
       active: {
-        true: "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
-        false: "text-sidebar-foreground/75",
+        true: "bg-sidebar-accent text-sidebar-accent-foreground",
+        false: "text-muted-foreground",
       },
     },
     defaultVariants: { active: false },
@@ -54,14 +54,14 @@ function SidebarGroupTrigger({
   return (
     <summary
       className={cn(
-        "focus-ring flex min-h-8 list-none items-center gap-2 rounded-md px-2 py-1.5 font-medium text-sm marker:hidden hover:bg-sidebar-accent [&::-webkit-details-marker]:hidden",
+        "focus-ring flex min-h-9 cursor-pointer list-none max-lg:min-h-11 items-center gap-2 px-2 py-1.5 text-base text-muted-foreground transition-colors marker:hidden sm:text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&::-webkit-details-marker]:hidden",
         className
       )}
       data-slot="sidebar-group-trigger"
       {...props}
     >
-      <ChevronRight className="size-3.5 shrink-0 transition-transform group-open/sidebar-group:rotate-90" />
       {children}
+      <ChevronDown className="ml-auto size-4.5 shrink-0 lg:size-3.5 -rotate-90 opacity-60 transition-transform duration-(--duration-fast) ease-(--ease-smooth-out) group-open/sidebar-group:rotate-0 motion-reduce:transition-none" />
     </summary>
   );
 }
@@ -72,7 +72,12 @@ function SidebarGroupContent({
 }: React.ComponentProps<"div">) {
   return (
     <div
-      className={cn("ml-3 border-sidebar-border border-l pl-2", className)}
+      className={cn(
+        "relative py-0.5 before:absolute before:inset-y-0.5 before:left-2.5 before:w-px before:bg-sidebar-border",
+        "[&>[data-slot=sidebar-item]]:ml-2.5 [&>[data-slot=sidebar-item]]:w-auto [&>[data-slot=sidebar-item]]:pl-3.5 [&>[data-slot=sidebar-group]>summary]:ml-2.5 [&>[data-slot=sidebar-group]>summary]:pl-3.5 [&>[data-slot=sidebar-group]>[data-slot=sidebar-group-content]]:ml-4",
+        "[&>[data-active]]:before:absolute [&>[data-active]]:before:inset-y-1.5 [&>[data-active]]:before:left-0 [&>[data-active]]:before:w-px [&>[data-active]]:before:bg-sidebar-accent-foreground",
+        className
+      )}
       data-slot="sidebar-group-content"
       {...props}
     />

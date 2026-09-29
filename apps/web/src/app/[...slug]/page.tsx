@@ -3,25 +3,24 @@ import {
   DRAFTS_WITHOUT_SESSION,
   type DynamicFetchOptions,
   getDynamicFetchOptions,
-  resolvePageFetchOptions,
   sanityFetch,
   sanityFetchMetadata,
   sanityFetchStaticParams,
 } from "@workspace/sanity/live";
 import { queryDocBySlug, queryDocPaths } from "@workspace/sanity/query";
 import { RichText } from "@workspace/sanity-blocks/internal/rich-text";
-import { cn } from "@workspace/tailwind-config/utils";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 
-import { DocsBreadcrumbs } from "@/components/docs/docs-breadcrumbs";
+import { ancestorCrumbs, BreadcrumbsJsonLd } from "@/components/breadcrumbs";
+import { CopyMarkdownButton } from "@/components/copy-markdown-button";
 import { DocsPager } from "@/components/docs/docs-pager";
-import { DocsToc } from "@/components/docs/docs-toc";
+import { DocsToc, TOC_MAX_DEPTH } from "@/components/docs/docs-toc";
 import { MobileTableOfContent } from "@/components/elements/table-of-content";
 import { PageBuilderJsonLd } from "@/components/page-builder-json-ld";
 import { PageBuilder } from "@/components/pagebuilder";
-import { DOC_GRID, DOC_GRID_WITH_TOC } from "@/lib/doc-grid";
+import { DOC_CONTENT, DOC_GRID } from "@/lib/doc-grid";
 import {
   type DocsTreeNode,
   flattenDocsTree,
@@ -29,13 +28,10 @@ import {
 } from "@/lib/docs-tree";
 import { resolveRedirect } from "@/lib/redirects";
 import { seoFromDocument } from "@/lib/seo";
-import { hasTocHeadings } from "@/lib/toc";
 import type { SanityRichTextProps } from "@/types";
 import { PLACEHOLDER_SLUG } from "@/utils";
 
 const logger = new Logger("DocSlug");
-
-const TOC_MAX_DEPTH = 3;
 
 type SlugParams = { slug: string[] };
 
@@ -93,7 +89,7 @@ export async function generateMetadata({
     };
   }
 
-  return seoFromDocument(data, { slug: slugString });
+  return seoFromDocument(data, { slug: slugString, pageType: "article" });
 }
 
 /**
@@ -112,28 +108,22 @@ async function redirectIfMoved(slug: string[]): Promise<void> {
   redirect(target.destination);
 }
 
+const PUBLISHED_OPTIONS: DynamicFetchOptions = {
+  perspective: "published",
+  stega: false,
+};
+
 export default async function DocPage({
   params,
 }: Readonly<{ params: Promise<SlugParams> }>) {
   const { isEnabled } = await draftMode();
-  if (isEnabled || DRAFTS_WITHOUT_SESSION) {
-    const [{ slug }, options] = await Promise.all([
-      params,
-      resolvePageFetchOptions(),
-    ]);
-    const { data, tree } = await getDocPage(slug, options);
-    if (!data) {
-      await redirectIfMoved(slug);
-      notFound();
-    }
-    return <DocContent data={data} slug={slug} tree={tree} />;
-  }
-
-  const { slug } = await params;
-  const { data, tree } = await getDocPage(slug, {
-    perspective: "published",
-    stega: false,
-  });
+  const [{ slug }, options] = await Promise.all([
+    params,
+    isEnabled || DRAFTS_WITHOUT_SESSION
+      ? getDynamicFetchOptions()
+      : PUBLISHED_OPTIONS,
+  ]);
+  const { data, tree } = await getDocPage(slug, options);
   if (!data) {
     await redirectIfMoved(slug);
     notFound();
@@ -168,27 +158,24 @@ function DocContent({
   const previous = index > 0 ? flat[index - 1] : undefined;
   const next = index >= 0 ? flat[index + 1] : undefined;
   const body = data.body as SanityRichTextProps;
-  const showToc = hasTocHeadings(body, TOC_MAX_DEPTH);
 
   return (
     <>
       <PageBuilderJsonLd pageBuilder={data.pageBuilder} />
-      <main className={cn(DOC_GRID, showToc ? DOC_GRID_WITH_TOC : "")}>
-        <article
-          className={cn(
-            "mx-auto w-full min-w-0 max-w-3xl",
-            // Only the TOC layout has a middle column; pinning without it adds
-            // an implicit column and shoves the article right.
-            showToc && "3xl:col-start-2"
-          )}
-        >
-          <DocsBreadcrumbs slug={slug} title={data.title} />
+      <main className={DOC_GRID}>
+        <article className={DOC_CONTENT}>
+          <BreadcrumbsJsonLd
+            crumbs={[...ancestorCrumbs(slug, tree), { label: data.title }]}
+          />
           <header className="mb-10 border-b pb-8">
-            <h1 className="text-balance font-semibold text-h1 sm:text-display">
-              {data.title}
-            </h1>
+            <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+              <h1 className="text-balance break-words font-semibold text-h1 sm:text-display">
+                {data.title}
+              </h1>
+              <CopyMarkdownButton className="justify-self-start max-sm:order-first" />
+            </div>
             {data.description ? (
-              <p className="mt-4 max-w-2xl text-pretty text-lede text-muted-foreground">
+              <p className="mt-4 text-pretty text-lede text-muted-foreground">
                 {data.description}
               </p>
             ) : null}
@@ -213,7 +200,7 @@ function DocContent({
           ) : null}
           <DocsPager next={next} previous={previous} />
         </article>
-        {showToc ? <DocsToc body={body} title={data.title} /> : null}
+        <DocsToc body={body} />
       </main>
     </>
   );

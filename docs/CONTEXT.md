@@ -1,11 +1,11 @@
-# Turbo Start Sanity
+# Turbo Start Brain
 
-A Sanity-driven Next.js starter built around a **page builder**: a page is an ordered array of typed content blocks. This glossary pins the language for how those blocks are modeled and how their data is rendered for different audiences.
+A Sanity-driven Next.js docs site built around a **page builder**: a page is an ordered array of typed content blocks. This glossary pins the language for how those blocks are modeled and how their data is rendered for different audiences.
 
 ## Language
 
 **Page-builder block**:
-One typed content unit in a page's `pageBuilder` array (e.g. `hero`, `faqAccordion`, `cta`). Authored in Sanity, rendered by the frontend.
+One typed content unit in a page's `pageBuilder` array (`richTextBlock` or `faqAccordion`). Authored in Sanity, rendered by the frontend.
 _Avoid_: section, component, widget, module
 
 **Surface**:
@@ -26,5 +26,5 @@ _Avoid_: using "SEO" to mean "machine-readable" in general.
 
 ## Example
 
-> **Dev:** "Let's add JSON-LD to the hero block's Markdown surface for SEO."
-> **Domain expert:** "Three things are crossed. JSON-LD and Markdown are different *surfaces* — JSON-LD goes inside the HTML page, Markdown is the separate `.md` twin. JSON-LD serves SEO; the Markdown twin serves AEO and is noindexed. And a hero has no schema.org type, so it has no JSON-LD surface at all — only HTML and Markdown."
+> **Dev:** "Let's add JSON-LD to the FAQ block's Markdown surface for SEO."
+> **Domain expert:** "Three things are crossed. JSON-LD and Markdown are different *surfaces* — JSON-LD goes inside the HTML page, Markdown is the separate `.md` twin. JSON-LD serves SEO; the Markdown twin serves AEO and is noindexed. And a rich text block has no schema.org type, so it has no JSON-LD surface at all — only HTML and Markdown."

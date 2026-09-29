@@ -17,7 +17,7 @@ export const CHAT_ERROR = {
   streamFailed: "chat_stream_failed",
 } as const;
 
-export type ChatErrorCode = (typeof CHAT_ERROR)[keyof typeof CHAT_ERROR];
+type ChatErrorCode = (typeof CHAT_ERROR)[keyof typeof CHAT_ERROR];
 
 /** Serializes a code for a `Response` body or an in-stream error message. */
 export function chatErrorBody(code: ChatErrorCode): string {

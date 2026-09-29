@@ -11,37 +11,37 @@ const socialLinks = defineField({
   fields: [
     defineField({
       name: "linkedin",
-      type: "string",
+      type: "url",
       title: "LinkedIn URL",
       description: "Full URL to your LinkedIn profile/company page",
     }),
     defineField({
       name: "facebook",
-      type: "string",
+      type: "url",
       title: "Facebook URL",
       description: "Full URL to your Facebook profile/page",
     }),
     defineField({
       name: "twitter",
-      type: "string",
+      type: "url",
       title: "Twitter/X URL",
       description: "Full URL to your Twitter/X profile",
     }),
     defineField({
       name: "instagram",
-      type: "string",
+      type: "url",
       title: "Instagram URL",
       description: "Full URL to your Instagram profile",
     }),
     defineField({
       name: "youtube",
-      type: "string",
+      type: "url",
       title: "YouTube URL",
       description: "Full URL to your YouTube channel",
     }),
     defineField({
       name: "reddit",
-      type: "string",
+      type: "url",
       title: "Reddit URL",
       description: "Full URL to your Reddit profile/subreddit",
     }),
@@ -89,15 +89,23 @@ export const settings = defineType({
           name: "logo",
           title: "Logo (Light Mode)",
           description:
-            "The site logo shown on light backgrounds, such as the navbar in light mode. Its alt text is reused for the other logo variants.",
+            "The site logo shown on light backgrounds, such as the sidebar in light mode. Its alt text is reused for the other logo variants.",
         }),
         defineField({
           name: "logoDark",
           type: "image",
           title: "Logo (Dark Mode)",
           description:
-            "Optional logo variant for dark backgrounds, such as the navbar in dark mode. Reuses the light logo's alt text; if left empty, the light logo is used everywhere.",
+            "Optional logo variant for dark backgrounds, such as the sidebar in dark mode. Reuses the light logo's alt text; if left empty, the light logo is used everywhere.",
           options: { hotspot: true },
+        }),
+        defineField({
+          name: "favicon",
+          type: "image",
+          title: "Favicon",
+          description:
+            "The small icon shown in browser tabs and bookmarks. Use a square SVG or PNG of at least 64×64",
+          options: { accept: "image/svg+xml,image/png" },
         }),
       ],
     }),

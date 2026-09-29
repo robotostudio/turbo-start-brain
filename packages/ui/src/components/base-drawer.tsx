@@ -43,7 +43,7 @@ function DrawerBackdrop({
     <DrawerPrimitive.Backdrop
       className={cn(
         "fixed inset-0 z-50 min-h-dvh bg-background/95",
-        "opacity-[calc(1-var(--drawer-swipe-progress,0))] transition-opacity duration-300 ease-out motion-reduce:transition-none",
+        "opacity-[calc(1-var(--drawer-swipe-progress,0))] transition-opacity duration-(--duration-slow) ease-(--ease-smooth-out) data-ending-style:duration-(--duration-medium) motion-reduce:transition-none",
         "supports-[-webkit-touch-callout:none]:absolute",
         "data-ending-style:opacity-0 data-starting-style:opacity-0",
         className
@@ -76,7 +76,7 @@ function DrawerPopup({
       className={cn(
         // The sheet still slides for everyone else; reduced motion gets the
         // same open/closed states with the travel removed.
-        "relative flex flex-col overflow-hidden overscroll-contain bg-background text-foreground outline-none transition-transform duration-340 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none data-swiping:select-none data-swiping:duration-0",
+        "relative flex flex-col overflow-hidden overscroll-contain bg-background text-foreground outline-none transition-transform duration-(--duration-slow) ease-(--ease-smooth-out) data-ending-style:duration-(--duration-medium) motion-reduce:transition-none data-swiping:select-none data-swiping:duration-0",
         className
       )}
       data-slot="drawer-popup"

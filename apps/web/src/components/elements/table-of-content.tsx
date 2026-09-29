@@ -81,6 +81,7 @@ const READING_LINE = 96;
 // `scrollIntoView` is sub-pixel while the scroll offset is rounded, so exact
 // comparison misses by a fraction and credits the heading above.
 const READING_LINE_SLACK = 2;
+const SECTION_VISIBLE_MIN = 24;
 
 const DEFAULT_MAX_DEPTH = 6;
 const MIN_HEADINGS_TO_SHOW = 1;
@@ -367,7 +368,7 @@ export function useTableOfContentState(
   }
 }
 
-export function useActiveHeading(slugKey: string): string | null {
+function useActiveHeading(slugKey: string): string | null {
   const { active } = useHeadingsInView(slugKey);
   return active === -1 ? null : (slugKey.split("|")[active] ?? null);
 }
@@ -409,30 +410,43 @@ export function useHeadingsInView(slugKey: string): HeadingsInView {
     const toSlugIndex = (i: number) =>
       i === -1 ? -1 : (found[i]?.index ?? -1);
 
-    // Measured once and refreshed only when layout moves, so scrolling is pure
-    // arithmetic over the cache and never forces a layout read.
+    const article = elements[0]?.closest("article, main");
     let tops: number[] = [];
+    let ends: number[] = [];
+    let headerHeight = 0;
     const measure = () => {
+      headerHeight = [
+        ...document.querySelectorAll("[data-site-header]"),
+      ].reduce((sum, header) => sum + header.getBoundingClientRect().height, 0);
       tops = elements.map(
         (element) => element.getBoundingClientRect().top + window.scrollY
       );
+      const articleEnd = article
+        ? article.getBoundingClientRect().bottom + window.scrollY
+        : document.documentElement.scrollHeight;
+      ends = tops.map((_, i) => tops[i + 1] ?? articleEnd);
     };
 
     let frame = 0;
     const update = () => {
       frame = 0;
       const line = window.scrollY + READING_LINE;
+      const viewportTop = window.scrollY + headerHeight;
       const viewportBottom = window.scrollY + window.innerHeight;
-      const first = lastIndexAtOrAbove(tops, line + READING_LINE_SLACK);
-      const last = lastIndexAtOrAbove(tops, viewportBottom - 1);
+      const reading = lastIndexAtOrAbove(tops, line + READING_LINE_SLACK);
+      const visible = (i: number) =>
+        (ends[i] ?? 0) - SECTION_VISIBLE_MIN > viewportTop &&
+        (tops[i] ?? 0) + SECTION_VISIBLE_MIN < viewportBottom;
+      const first = tops.findIndex((_, i) => visible(i));
+      const last = tops.findLastIndex((_, i) => visible(i));
       // The last heading can't always reach the line — there isn't necessarily
       // a viewport of content beneath it.
       const atBottom =
         viewportBottom >= document.documentElement.scrollHeight - 2;
       const next = {
-        first: last === -1 ? -1 : toSlugIndex(Math.max(first, 0)),
+        first: toSlugIndex(first),
         last: toSlugIndex(last),
-        active: toSlugIndex(atBottom ? tops.length - 1 : first),
+        active: toSlugIndex(atBottom ? tops.length - 1 : reading),
       };
       setInView((current) => (sameInView(current, next) ? current : next));
     };
@@ -522,9 +536,9 @@ const TableOfContentAnchor: FC<AnchorProps> = ({
       <a
         aria-current={isActive ? "location" : undefined}
         className={cn(
-          "block rounded-none px-2 py-1.5 text-base leading-6 outline-none tracking-[0.01em] transition-colors focus-visible:[outline:2px_dotted_currentColor] focus-visible:[outline-offset:-3px]",
+          "block px-2 py-1.5 text-base leading-6 outline-none tracking-[0.01em] transition-colors focus-visible:[outline:2px_solid_currentColor] focus-visible:[outline-offset:-3px]",
           isActive
-            ? "bg-accent-green font-medium text-accent-green-foreground"
+            ? "bg-foreground font-medium text-background"
             : "text-muted-foreground hover:text-foreground"
         )}
         href={href}
@@ -582,7 +596,7 @@ export const MobileTableOfContent: FC<TableOfContentProps> = ({
       className={cn(
         // No breakpoint here: the one caller decides where the rail takes
         // over, and a hardcoded `lg:hidden` would silently win over it.
-        "overflow-hidden rounded-lg border text-zinc-800 dark:text-zinc-50",
+        "overflow-hidden border text-zinc-800 dark:text-zinc-50",
         className
       )}
       open

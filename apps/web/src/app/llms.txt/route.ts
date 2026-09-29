@@ -1,6 +1,9 @@
 import { Logger } from "@workspace/logger";
 import { sanityFetch } from "@workspace/sanity/live";
-import { queryDocPaths, queryGlobalSeoSettings } from "@workspace/sanity/query";
+import {
+  queryGlobalSeoSettings,
+  querySitemapData,
+} from "@workspace/sanity/query";
 import { absolutizeUrl } from "@workspace/sanity-blocks/internal/portable-text-to-markdown";
 
 import { getBaseUrl } from "@/utils";
@@ -33,10 +36,10 @@ async function fetchSettings() {
 async function fetchSlugs() {
   "use cache";
   const { data } = await sanityFetch({
-    query: queryDocPaths,
+    query: querySitemapData,
     ...PUBLISHED,
   });
-  return data;
+  return data?.docs ?? [];
 }
 
 function slugToTitle(slug: string): string {
@@ -70,16 +73,16 @@ export async function GET(): Promise<Response> {
     settingsResult.status === "fulfilled" ? settingsResult.value : null;
   const slugs =
     slugsResult.status === "fulfilled" ? (slugsResult.value ?? []) : [];
-  const siteTitle = settings?.siteTitle ?? "Turbo Start Brain";
+  const siteTitle = settings?.siteTitle ?? "Documentation";
   const siteDescription = settings?.siteDescription ?? "";
 
   const pageLines = [
     `- [Home](${mdHref("/index")})`,
     ...slugs
-      .filter((s): s is string => Boolean(s))
-      .map((slug) => {
+      .filter((doc): doc is typeof doc & { slug: string } => Boolean(doc.slug))
+      .map(({ slug, title }) => {
         const path = slug.startsWith("/") ? slug : `/${slug}`;
-        return `- [${slugToTitle(path)}](${mdHref(path)})`;
+        return `- [${title?.trim() || slugToTitle(path)}](${mdHref(path)})`;
       }),
   ];
 

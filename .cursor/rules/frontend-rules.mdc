@@ -17,7 +17,7 @@ alwaysApply: false
 
 - Always use appropriate semantic HTML
 - Use `SanityImage` for any images generated in Sanity if the component is available
-- Use `Buttons.tsx` resolver for any buttons unless specified otherwise
+- Use the shared `Button` from `@workspace/ui/components/button` for buttons
 
 ## Internationalization Rules
 

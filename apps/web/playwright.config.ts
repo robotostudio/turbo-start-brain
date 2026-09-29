@@ -3,7 +3,9 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 
 dotenv.config({
-  path: path.resolve(import.meta.dirname, ".env.local"),
+  path: [".env.local", ".env"].map((file) =>
+    path.resolve(import.meta.dirname, file)
+  ),
   quiet: true,
 });
 

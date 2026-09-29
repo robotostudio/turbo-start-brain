@@ -1,6 +1,5 @@
 import { env } from "@workspace/env/client";
 import { FaqAccordion } from "@workspace/sanity-blocks/faq-accordion/index";
-import { FeatureCardsWithIcon } from "@workspace/sanity-blocks/feature-cards-icon/index";
 import { RichTextBlock } from "@workspace/sanity-blocks/rich-text-block/index";
 import { cn } from "@workspace/tailwind-config/utils";
 import { draftMode } from "next/headers";
@@ -9,7 +8,7 @@ import { createDataAttribute } from "next-sanity";
 import { OptimisticBlocksLoader } from "@/components/pagebuilder-optimistic-loader";
 import type { PageBuilderBlock, PagebuilderType } from "@/types";
 
-export type PageBuilderProps = {
+type PageBuilderProps = {
   readonly pageBuilder?: PageBuilderBlock[];
   readonly id: string;
   readonly type: string;
@@ -30,12 +29,6 @@ function renderBlockComponent(block: PageBuilderBlock) {
   switch (block?._type) {
     case "faqAccordion":
       return <FaqAccordion {...(block as PagebuilderType<"faqAccordion">)} />;
-    case "featureCardsIcon":
-      return (
-        <FeatureCardsWithIcon
-          {...(block as PagebuilderType<"featureCardsIcon">)}
-        />
-      );
     case "richTextBlock":
       return <RichTextBlock {...(block as PagebuilderType<"richTextBlock">)} />;
     default:
@@ -64,13 +57,13 @@ function UnknownBlockError({
   return (
     <div
       aria-label={`Unknown block type: ${blockType}`}
-      className="flex items-center justify-center rounded-lg border-2 border-muted-foreground/20 border-dashed bg-muted p-8 text-center text-muted-foreground"
+      className="flex items-center justify-center border-2 border-muted-foreground/20 border-dashed bg-muted p-8 text-center text-muted-foreground"
       key={`${blockType}-${blockKey}`}
       role="alert"
     >
       <div className="space-y-2">
         <p>Component not found for block type:</p>
-        <code className="rounded bg-background px-2 py-1 font-mono text-sm">
+        <code className="bg-background px-2 py-1 font-mono text-sm">
           {blockType}
         </code>
       </div>
@@ -83,6 +76,9 @@ function renderBlock(block: PageBuilderBlock, dataSanity?: string) {
   const key = `${block?._type}-${block?._key}`;
 
   if (!content) {
+    if (!dataSanity) {
+      return null;
+    }
     return (
       <UnknownBlockError
         blockKey={block?._key ?? ""}

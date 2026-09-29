@@ -9,7 +9,6 @@ import { lucideIconPicker } from "sanity-plugin-lucide-icon-picker";
 import { media } from "sanity-plugin-media";
 import { muxInput } from "sanity-plugin-mux-input";
 
-import { Logo } from "@/components/logo";
 import { locations } from "@/location";
 import { presentationUrl } from "@/plugins/presentation-url";
 import { schemaTypes, singletonTypes } from "@/schemaTypes/index";
@@ -28,10 +27,12 @@ const hiddenTemplateIds = new Set([
   "media.tag",
 ]);
 
+const singletonTypeSet = new Set<string>(singletonTypes);
+const SINGLETON_BLOCKED_ACTIONS = new Set(["delete", "duplicate", "unpublish"]);
+
 export default defineConfig({
   name: "default",
   title,
-  icon: Logo,
   projectId,
   dataset,
   releases: {
@@ -62,6 +63,12 @@ export default defineConfig({
     contextPlugin(),
   ],
   document: {
+    actions: (prev, { schemaType }) =>
+      singletonTypeSet.has(schemaType)
+        ? prev.filter(
+            ({ action }) => !(action && SINGLETON_BLOCKED_ACTIONS.has(action))
+          )
+        : prev,
     newDocumentOptions: (prev, { creationContext }) => {
       const { type } = creationContext;
       if (type === "global") {

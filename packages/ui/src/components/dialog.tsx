@@ -29,8 +29,8 @@ function DialogBackdrop({
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 min-h-dvh bg-background/80 backdrop-blur-sm",
-        "transition-opacity duration-200 ease-out motion-reduce:transition-none",
+        "fixed inset-0 z-50 min-h-dvh sm:bg-background/50 sm:backdrop-blur-[2px]",
+        "transition-opacity duration-(--duration-fast) ease-(--ease-smooth-out) data-ending-style:duration-(--duration-quick) motion-reduce:transition-none",
         "data-ending-style:opacity-0 data-starting-style:opacity-0",
         className
       )}
@@ -47,11 +47,12 @@ function DialogPopup({
   return (
     <DialogPrimitive.Popup
       className={cn(
-        "fixed top-[15dvh] left-1/2 z-50 w-[calc(100vw-2rem)] max-w-xl -translate-x-1/2",
-        "flex flex-col overflow-hidden rounded-xl border bg-background text-foreground shadow-lg outline-none",
-        "transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
-        "data-ending-style:scale-95 data-ending-style:opacity-0",
-        "data-starting-style:scale-95 data-starting-style:opacity-0",
+        "fixed inset-0 z-50 flex h-dvh w-full flex-col overflow-hidden bg-background text-foreground outline-none",
+        "sm:inset-auto sm:top-[15dvh] sm:left-1/2 sm:h-auto sm:w-[calc(100vw-2rem)] sm:max-w-xl sm:-translate-x-1/2 sm:border sm:shadow-lg",
+        "transition-[translate,scale,opacity] ease-(--ease-smooth-out) motion-reduce:transition-none",
+        "duration-(--duration-slow) data-ending-style:duration-(--duration-medium) data-ending-style:translate-y-full data-starting-style:translate-y-full",
+        "sm:duration-(--duration-fast) sm:data-ending-style:duration-(--duration-quick) sm:data-ending-style:translate-y-0 sm:data-starting-style:translate-y-0",
+        "sm:data-ending-style:scale-96 sm:data-ending-style:opacity-0 sm:data-starting-style:scale-96 sm:data-starting-style:opacity-0",
         className
       )}
       data-slot="dialog-popup"

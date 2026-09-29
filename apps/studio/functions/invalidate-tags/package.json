@@ -1,5 +1,6 @@
 {
   "name": "invalidate-tags",
+  "license": "MIT",
   "type": "module",
   "main": "index.ts",
   "dependencies": {

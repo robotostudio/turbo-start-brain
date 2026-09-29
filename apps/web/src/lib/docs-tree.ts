@@ -1,7 +1,7 @@
 import { type DynamicFetchOptions, sanityFetch } from "@workspace/sanity/live";
 import { queryDocsTree } from "@workspace/sanity/query";
 
-export type DocsTreeDocument = {
+type DocsTreeDocument = {
   _id: string;
   title: string;
   description?: string | null;
@@ -33,7 +33,7 @@ function compareNodes(a: DocsTreeNode, b: DocsTreeNode): number {
   return a.order - b.order || a.title.localeCompare(b.title);
 }
 
-export function buildDocsTree(
+function buildDocsTree(
   documents: readonly DocsTreeDocument[] | null | undefined
 ): DocsTreeNode[] {
   const roots: DocsTreeNode[] = [];

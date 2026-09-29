@@ -17,13 +17,13 @@
   ],
   "license": "MIT",
   "author": "Roboto Studio (https://robotostudio.com)",
-  "homepage": "https://github.com/robotostudio/turbo-start-sanity#readme",
+  "homepage": "https://github.com/robotostudio/turbo-start-brain#readme",
   "bugs": {
-    "url": "https://github.com/robotostudio/turbo-start-sanity/issues"
+    "url": "https://github.com/robotostudio/turbo-start-brain/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/robotostudio/turbo-start-sanity.git"
+    "url": "git+https://github.com/robotostudio/turbo-start-brain.git"
   },
   "scripts": {
     "build": "turbo run build",

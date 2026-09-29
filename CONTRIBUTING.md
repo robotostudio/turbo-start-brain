@@ -1,4 +1,4 @@
-# Contributing to Turbo Start Sanity
+# Contributing to Turbo Start Brain
 
 Thanks for your interest in contributing. This guide covers the setup and the
 checks a pull request needs to pass.
@@ -38,12 +38,12 @@ pnpm check-types
 pnpm test
 ```
 
-If you touched a Sanity schema, also run `pnpm type` and commit the regenerated
-`packages/sanity/src/sanity.types.ts`.
+If you touched a Sanity schema, also run `pnpm --filter studio extract` then
+`pnpm type`, and commit the regenerated `packages/sanity/src/sanity.types.ts`.
 
 ## Conventions
 
-- Formatting and linting are Biome/Ultracite, not ESLint/Prettier. Do not add
+- Formatting and linting are Biome, not ESLint/Prettier. Do not add
   either.
 - File names are kebab-case; `.tsx` for React components, `.ts` for everything
   else.

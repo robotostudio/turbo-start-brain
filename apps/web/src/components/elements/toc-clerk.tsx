@@ -157,7 +157,7 @@ function ThumbTrack({
   return (
     <svg
       aria-hidden="true"
-      className="absolute start-0 top-0 transition-[clip-path] duration-200 ease-out"
+      className="absolute start-0 top-0 transition-[clip-path] duration-200 ease-(--ease-smooth-out)"
       style={{
         ...style,
         clipPath:
@@ -255,7 +255,7 @@ export function TocClerk({ richText, className, maxDepth = 3 }: TocClerkProps) {
             <a
               aria-current={isActive ? "location" : undefined}
               className={cn(
-                "relative wrap-anywhere py-1.5 transition-colors first:pt-0 last:pb-0",
+                "relative wrap-anywhere py-1.5 transition-colors first-of-type:pt-0 last:pb-0",
                 isActive
                   ? "font-medium text-primary"
                   : "text-muted-foreground hover:text-foreground"
