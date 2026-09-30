@@ -197,12 +197,13 @@ async function CachedDocsShell({
 
   return (
     <div className="grid min-h-dvh grid-cols-1 bg-background transition-[grid-template-columns] duration-(--duration-slow) ease-(--ease-smooth-out) motion-reduce:transition-none lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-[0rem_minmax(0,1fr)] in-data-[sidebar=collapsed]:duration-(--duration-medium)">
+      {/* Before the sidebar so tab order matches its painted header slot. */}
+      <SidebarToggleButton />
       <DocsSidebarFrame
         askAiLabel={askAiLabel}
         settings={settings}
         tree={tree}
       />
-      <SidebarToggleButton />
       <div className="min-w-0">
         <DocsHeader
           askAiLabel={askAiLabel}
