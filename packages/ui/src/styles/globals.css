@@ -387,6 +387,12 @@
   color: var(--foreground);
 }
 
+/* A focusable scroller flush with the figure's overflow clip: inset the ring
+   so the focus indicator stays visible. */
+.rich-code-pre:focus-visible {
+  outline-offset: -2px;
+}
+
 .rich-code-pre span[style] {
   color: var(--shiki-light);
 }
