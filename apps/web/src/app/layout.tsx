@@ -19,8 +19,8 @@ import { revalidateSyncTags } from "@/app/actions/revalidate";
 import { DocsHeader } from "@/components/docs/docs-header";
 import { DocsSidebarFrame } from "@/components/docs/docs-sidebar";
 import {
-  ExpandSidebarButton,
   SIDEBAR_INIT_SCRIPT,
+  SidebarToggleButton,
 } from "@/components/docs/sidebar-toggle";
 import { CombinedJsonLd } from "@/components/json-ld";
 import { PreviewBar } from "@/components/preview-bar";
@@ -196,13 +196,14 @@ async function CachedDocsShell({
   const askAiLabel = getChatConfig() ? chat?.label?.trim() || "Ask AI" : null;
 
   return (
-    <div className="grid min-h-dvh grid-cols-1 bg-background lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-1">
+    <div className="grid min-h-dvh grid-cols-1 bg-background transition-[grid-template-columns] duration-(--duration-slow) ease-(--ease-smooth-out) motion-reduce:transition-none lg:grid-cols-[18.5rem_minmax(0,1fr)] lg:in-data-[sidebar=collapsed]:grid-cols-[0rem_minmax(0,1fr)] in-data-[sidebar=collapsed]:duration-(--duration-medium)">
+      {/* Before the sidebar so tab order matches its painted header slot. */}
+      <SidebarToggleButton />
       <DocsSidebarFrame
         askAiLabel={askAiLabel}
         settings={settings}
         tree={tree}
       />
-      <ExpandSidebarButton />
       <div className="min-w-0">
         <DocsHeader
           askAiLabel={askAiLabel}

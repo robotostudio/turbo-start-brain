@@ -6,7 +6,6 @@ import {
   DocsSidebar,
   DocsSidebarFallback,
 } from "@/components/docs/docs-sidebar-tree";
-import { CollapseSidebarButton } from "@/components/docs/sidebar-toggle";
 import { Logo } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { DocsTreeNode } from "@/lib/docs-tree";
@@ -65,10 +64,13 @@ export function DocsSidebarFrame({
 }: Readonly<
   SidebarData & { askAiLabel: string | null; tree: DocsTreeNode[] }
 >) {
+  // Slides out instead of unmounting; `invisible` lands after the slide so the
+  // collapsed panel leaves the tab order and accessibility tree.
   return (
-    <div className="sticky top-0 hidden h-dvh flex-col border-sidebar-border border-r bg-sidebar lg:flex lg:in-data-[sidebar=collapsed]:hidden">
+    <div className="sticky top-0 hidden h-dvh w-[18.5rem] flex-col border-sidebar-border border-r bg-sidebar transition-[translate,visibility] duration-(--duration-slow) ease-(--ease-smooth-out) motion-reduce:transition-none lg:flex in-data-[sidebar=collapsed]:invisible in-data-[sidebar=collapsed]:-translate-x-full in-data-[sidebar=collapsed]:duration-(--duration-medium)">
       <SidebarPanel
-        action={<CollapseSidebarButton />}
+        // The fixed SidebarToggleButton sits here; this keeps its slot.
+        action={<span aria-hidden="true" className="size-9 shrink-0" />}
         askAiLabel={askAiLabel}
         showActions
         settings={settings}
