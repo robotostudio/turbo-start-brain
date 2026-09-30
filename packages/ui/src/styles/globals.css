@@ -378,9 +378,10 @@
   padding: var(--rich-code-inset-block) var(--rich-code-inset-inline);
   /* Inherited from .rich-code, so the gutter and the code cannot drift apart. */
   line-height: inherit;
-  /* max-content + min-width keeps the background full-width when lines overflow. */
-  width: max-content;
-  min-width: 100%;
+  /* Fill the space beside the gutter and scroll there; min-width: 0 stops the
+     flex item growing past the row, which clipped long lines under the figure. */
+  flex: 1;
+  min-width: 0;
   white-space: pre;
   tab-size: 2;
   color: var(--foreground);
